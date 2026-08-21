@@ -1,0 +1,2295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>泰讯AI智能呼叫客服系统</title>
+<script src="echarts.min.js"></script>
+<style>
+:root{--sw:230px;--sb:#0b0f1a;--sh:#141a2e;--sa:#1a2548;--st:#8892b0;--sta:#ccd6f6;--p:#4a6cf7;--pl:#6b8aff;--pd:#3651d5;--ac:#0ea5e9;--su:#10b981;--wa:#f59e0b;--da:#ef4444;--in:#8b5cf6;--bg:#f0f2f5;--cb:#fff;--bd:#e5e7eb;--tx:#111827;--ts:#6b7280;--tm:#9ca3af;--hh:52px;--r:8px;--shd:0 1px 3px rgba(0,0,0,.06);--shdl:0 10px 30px rgba(0,0,0,.1);--tr:.2s cubic-bezier(.4,0,.2,1)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif;background:var(--bg);color:var(--tx);font-size:13px;line-height:1.5;overflow:hidden;height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+.lc{display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#070b17 0%,#0f1b3a 30%,#132048 60%,#0b1529 100%);position:relative;overflow:hidden}
+.lc::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(74,108,247,.07) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(14,165,233,.05) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(139,92,246,.04) 0%,transparent 50%);animation:lbreathe 10s ease-in-out infinite}
+@keyframes lbreathe{0%,100%{opacity:.8}50%{opacity:1}}
+.lb{position:relative;z-index:1;background:rgba(255,255,255,.97);border-radius:14px;padding:28px 26px;width:420px;box-shadow:0 30px 70px rgba(0,0,0,.35);max-height:92vh;overflow-y:auto}
+.ll{text-align:center;margin-bottom:16px}
+.ll .llogo{width:48px;height:48px;background:linear-gradient(135deg,#4a6cf7,#0ea5e9);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px;margin-bottom:8px}
+.ll h1{font-size:19px;font-weight:700;color:#111827}
+.ll p{font-size:10.5px;color:var(--tm);margin-top:2px}
+.fg{margin-bottom:12px}
+.fg label{display:block;font-size:10.5px;font-weight:600;color:var(--ts);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+.fg input{width:100%;padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:13px;transition:var(--tr);outline:none;font-family:inherit;background:#f9fafb}
+.fg input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(74,108,247,.1);background:#fff}
+.lbtn{width:100%;padding:10px;background:linear-gradient(135deg,#4a6cf7,#3651d5);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:var(--tr);margin-bottom:8px;letter-spacing:.5px}
+.lbtn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(74,108,247,.4)}
+.ql{border-top:1px solid var(--bd);padding-top:10px}
+.qlt{font-size:10px;color:var(--tm);margin-bottom:6px;text-align:center;text-transform:uppercase;letter-spacing:1px}
+.qa{display:flex;flex-wrap:wrap;gap:4px}
+.qac{padding:5px 7px;background:#f8fafc;border:1px solid var(--bd);border-radius:6px;font-size:10px;cursor:pointer;transition:var(--tr);text-align:left;line-height:1.3;flex:0 0 calc(50% - 2px)}
+.qac:hover{background:#eff6ff;border-color:var(--pl);transform:translateY(-1px)}
+.qac .rn{font-weight:600;color:#111827;display:block;font-size:11px}
+.qac .re{color:var(--tm);font-size:9px}
+.le{color:var(--da);font-size:11px;text-align:center;margin-top:6px;display:none}
+.al{display:none;height:100vh;overflow:hidden}
+.sb{width:var(--sw);background:var(--sb);transition:width var(--tr);position:fixed;top:0;left:0;bottom:0;z-index:100;display:flex;flex-direction:column;overflow:hidden;box-shadow:2px 0 12px rgba(0,0,0,.15)}
+.sh{height:var(--hh);display:flex;align-items:center;padding:0 14px;border-bottom:1px solid rgba(255,255,255,.05);gap:8px;min-height:52px;flex-shrink:0}
+.sh .li{width:30px;height:30px;background:linear-gradient(135deg,#4a6cf7,#0ea5e9);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex-shrink:0}
+.sh .lt{color:#e2e8f0;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;letter-spacing:.5px}
+.sn{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 0}
+.ng{margin-bottom:0}
+.ngt{font-size:8.5px;color:rgba(255,255,255,.18);padding:8px 14px 3px;text-transform:uppercase;letter-spacing:1.5px;white-space:nowrap;overflow:hidden;font-weight:600}
+.ni{display:flex;align-items:center;padding:7px 14px;cursor:pointer;color:var(--st);transition:all var(--tr);font-size:11.5px;white-space:nowrap;position:relative;gap:7px;border-left:3px solid transparent;margin:0 3px;border-radius:0 5px 5px 0}
+.ni:hover{background:var(--sh);color:var(--sta)}
+.ni.ac{background:var(--sa);color:#fff;border-left-color:var(--p)}
+.ni .nic{width:15px;text-align:center;flex-shrink:0;font-size:12px;opacity:.7}
+.ni .nil{overflow:hidden;text-overflow:ellipsis;flex:1}
+.ni .nia{font-size:7px;margin-left:4px;transition:transform var(--tr);color:rgba(255,255,255,.15)}
+.ni.ex .nia{transform:rotate(90deg);opacity:.8;color:rgba(255,255,255,.4)}
+.ns{overflow:hidden;max-height:0;transition:max-height .3s ease}
+.ns.op{max-height:4000px}
+.nsi{display:flex;align-items:center;padding:5px 10px 5px 44px;cursor:pointer;color:rgba(255,255,255,.35);font-size:10.5px;transition:var(--tr);white-space:nowrap;border-left:3px solid transparent;margin:0 3px;border-radius:0 4px 4px 0}
+.nsi:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.04)}
+.nsi.ac{color:rgba(255,255,255,.9);background:rgba(255,255,255,.06);border-left-color:var(--ac)}
+.nsi .dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.15);margin-right:7px;flex-shrink:0;transition:var(--tr)}
+.nsi.ac .dot{background:var(--p);box-shadow:0 0 6px rgba(74,108,247,.5)}
+.ma{margin-left:var(--sw);transition:margin-left var(--tr);height:100vh;display:flex;flex-direction:column}
+.tb{height:var(--hh);background:var(--cb);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 18px;justify-content:space-between;z-index:50;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.bc{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--tm)}
+.bc span{color:var(--ts)}.bc .sep{color:var(--tm);margin:0 2px}.bc .cur{color:var(--tx);font-weight:600}
+.tbr{display:flex;align-items:center;gap:10px}
+.ud{position:relative}
+.nbtn{position:relative;background:none;border:none;cursor:pointer;font-size:17px;color:var(--ts);padding:4px 6px;border-radius:6px;transition:var(--tr)}
+.nbtn:hover{background:var(--bg);color:var(--tx)}
+.nbtn .bdg{position:absolute;top:-2px;right:-3px;background:var(--da);color:#fff;font-size:8px;padding:1px 5px;border-radius:10px;font-weight:600;min-width:16px;text-align:center}
+.ui{display:flex;align-items:center;gap:7px;cursor:pointer;padding:3px 7px;border-radius:8px;transition:var(--tr)}
+.ui:hover{background:var(--bg)}
+.ua{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#4a6cf7,#0ea5e9);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px;flex-shrink:0}
+.udt{line-height:1.2}.un{font-size:11.5px;font-weight:600;color:var(--tx)}.ur{font-size:9.5px;color:var(--tm)}
+.npop{display:none;position:absolute;top:100%;right:0;width:300px;background:#fff;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.12);border:1px solid var(--bd);z-index:150;max-height:320px;overflow-y:auto;margin-top:4px}
+.npop.shw{display:block}.npop .npi{padding:10px 14px;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:var(--tr)}
+.npop .npi:hover{background:#f9fafb}.npop .npit{font-size:12px;font-weight:600;color:var(--tx)}
+.npop .npid{font-size:10.5px;color:var(--ts);margin-top:2px}.npop .npitm{font-size:9px;color:var(--tm);margin-top:3px}
+.udrop{display:none;position:absolute;top:100%;right:0;width:160px;background:#fff;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.12);border:1px solid var(--bd);z-index:150;margin-top:4px}
+.udrop.shw{display:block}.udrop .udi{padding:9px 14px;cursor:pointer;font-size:11.5px;transition:var(--tr);display:flex;align-items:center;gap:6px}
+.udrop .udi:hover{background:#f9fafb}.udrop .udiv{border-top:1px solid #f3f4f6;margin:3px 0}
+.ca{flex:1;overflow-y:auto;padding:14px 18px}
+.ca h3{margin-bottom:10px;font-size:14px;color:var(--tx)}
+.tbs{display:flex;gap:0;border-bottom:2px solid var(--bd);margin-bottom:12px;overflow-x:auto;flex-wrap:wrap;background:#fff;border-radius:8px 8px 0 0;padding:0 10px}
+.tbb{padding:7px 14px;font-size:11px;cursor:pointer;color:var(--ts);border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:var(--tr);white-space:nowrap;font-family:inherit;font-weight:500}
+.tbb:hover{color:var(--tx)}.tbb.ac{color:var(--p);border-bottom-color:var(--p);font-weight:600}
+.cd{background:var(--cb);border-radius:8px;box-shadow:var(--shd);padding:14px;margin-bottom:12px}
+.cdh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cdt{font-size:13.5px;font-weight:600;color:var(--tx)}
+.sr{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px}
+.scd{background:var(--cb);border-radius:8px;box-shadow:var(--shd);padding:13px 15px;display:flex;align-items:center;gap:10px;transition:var(--tr);cursor:default;border:1px solid transparent}
+.scd:hover{transform:translateY(-2px);box-shadow:var(--shdl);border-color:var(--bd)}
+.si{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.si.bl{background:#eff6ff;color:var(--p)}.si.gr{background:#ecfdf5;color:var(--su)}
+.si.or{background:#fffbeb;color:var(--wa)}.si.rd{background:#fef2f2;color:var(--da)}.si.pu{background:#f5f3ff;color:var(--in)}
+.sv{font-size:19px;font-weight:700;line-height:1}.sl{font-size:10px;color:var(--tm);margin-top:2px}
+.tw{overflow-x:auto;border-radius:0 0 8px 8px}
+.tb1{width:100%;border-collapse:collapse;font-size:11.5px}
+.tb1 th{background:#f8fafc;padding:7px 9px;text-align:left;font-weight:600;color:var(--ts);border-bottom:2px solid var(--bd);white-space:nowrap;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.tb1 td{padding:7px 9px;border-bottom:1px solid #f3f4f6;color:var(--tx)}
+.tb1 tbody tr{transition:var(--tr)}.tb1 tbody tr:hover{background:#f0f5ff}
+.tb1 input[type=checkbox]{width:13px;height:13px;cursor:pointer}
+.ta{display:flex;gap:2px;flex-wrap:wrap}
+.bdge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:9.5px;font-weight:600;white-space:nowrap}
+.bdge.su{background:#ecfdf5;color:#065f46}.bdge.wa{background:#fffbeb;color:#92400e}
+.bdge.da{background:#fef2f2;color:#991b1b}.bdge.in{background:#eff6ff;color:#1e40af}
+.bdge.pu{background:#f5f3ff;color:#5b21b6}.bdge.te{background:#f0fdfa;color:#115e59}
+.bdge.gr{background:#f3f4f6;color:#6b7280}.bdge.bl{background:#eff6ff;color:#1e40af}
+.btn{display:inline-flex;align-items:center;gap:3px;padding:4px 10px;font-size:10.5px;font-weight:600;border-radius:5px;border:none;cursor:pointer;transition:var(--tr);font-family:inherit;white-space:nowrap}
+.btn-p{background:linear-gradient(135deg,#4a6cf7,#3651d5);color:#fff}
+.btn-p:hover{box-shadow:0 2px 8px rgba(74,108,247,.4);transform:translateY(-1px)}
+.btn-s{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.btn-s:hover{box-shadow:0 2px 8px rgba(16,185,129,.4);transform:translateY(-1px)}
+.btn-w{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+.btn-w:hover{box-shadow:0 2px 8px rgba(245,158,11,.4);transform:translateY(-1px)}
+.btn-d{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+.btn-d:hover{box-shadow:0 2px 8px rgba(239,68,68,.4);transform:translateY(-1px)}
+.btn-o{background:#fff;border:1px solid var(--bd);color:var(--ts)}
+.btn-o:hover{background:#f9fafb;border-color:#d1d5db}
+.btn-sm{padding:2px 7px;font-size:9.5px}
+.fb{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.fb input,.fb select{padding:5px 9px;border:1px solid var(--bd);border-radius:6px;font-size:10.5px;font-family:inherit;outline:none;transition:var(--tr);background:#fff}
+.fb input:focus,.fb select:focus{border-color:var(--p);box-shadow:0 0 0 2px rgba(74,108,247,.08)}
+.fb input{width:170px}
+.mo{display:none;position:fixed;inset:0;background:rgba(11,15,26,.5);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center}
+.mo.shw{display:flex}
+.md{background:#fff;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.2);width:480px;max-width:90vw;max-height:82vh;overflow-y:auto;animation:min .25s cubic-bezier(.16,1,.3,1)}
+@keyframes min{from{opacity:0;transform:scale(.94) translateY(-15px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mdh{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid #f3f4f6}
+.mdt{font-size:14.5px;font-weight:700}
+.mdc{background:none;border:none;font-size:18px;cursor:pointer;color:var(--tm);padding:3px 7px;border-radius:4px;transition:var(--tr)}
+.mdc:hover{background:var(--bg);color:var(--tx)}
+.mdb{padding:14px 16px}
+.mdf{display:flex;justify-content:flex-end;gap:5px;padding:10px 16px;border-top:1px solid #f3f4f6}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.fr.fl{grid-template-columns:1fr}
+.fr label{font-size:9.5px;font-weight:600;color:var(--ts);display:block;margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px}
+.fr input,.fr select{width:100%;padding:6px 9px;border:1px solid var(--bd);border-radius:6px;font-size:11.5px;font-family:inherit;outline:none;background:#f9fafb}
+.fr input:focus,.fr select:focus{border-color:var(--p);background:#fff}
+.pb{height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;min-width:60px;display:inline-block;vertical-align:middle;width:100%}
+.pb .fill{height:100%;border-radius:3px;transition:width .3s ease}
+.pb .fill.bl{background:var(--p)}.pb .fill.gr{background:var(--su)}.pb .fill.or{background:var(--wa)}
+.tc{position:fixed;top:14px;right:14px;z-index:300;display:flex;flex-direction:column;gap:5px}
+.to{padding:7px 14px;border-radius:8px;color:#fff;font-size:10.5px;font-weight:500;animation:tin .3s cubic-bezier(.16,1,.3,1);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.to.su{background:linear-gradient(135deg,#10b981,#059669)}.to.er{background:linear-gradient(135deg,#ef4444,#dc2626)}.to.in{background:linear-gradient(135deg,#4a6cf7,#3651d5)}
+@keyframes tin{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+.sdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;flex-shrink:0}
+.sdot.on{background:#10b981;box-shadow:0 0 5px rgba(16,185,129,.4)}
+.sdot.bs{background:#f59e0b;box-shadow:0 0 5px rgba(245,158,11,.4)}
+.sdot.of{background:#94a3b8}
+.chb{height:340px;width:100%}.chh{height:280px;width:100%}
+.pgnt{display:flex;justify-content:center;align-items:center;gap:3px;margin-top:10px}
+.pgnt button{padding:4px 8px;border:1px solid var(--bd);background:#fff;border-radius:5px;cursor:pointer;font-size:10px;transition:var(--tr);font-family:inherit}
+.pgnt button:hover{background:var(--bg)}.pgnt button.ac{background:var(--p);color:#fff;border-color:var(--p)}
+.pgnt button:disabled{opacity:.4;cursor:not-allowed}
+.em{text-align:center;padding:40px 20px;color:var(--tm)}
+.em .eic{font-size:34px;margin-bottom:8px;opacity:.6}
+.em p{font-size:11.5px}
+.chg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+.ph-card{padding:18px;background:#fff;border-radius:8px;box-shadow:var(--shd);transition:var(--tr);cursor:pointer;border:1px solid transparent}
+.ph-card:hover{border-color:var(--bd);box-shadow:var(--shdl);transform:translateY(-1px)}
+.ph-card h4{font-size:12.5px;color:var(--tx);margin-bottom:5px}
+.ph-card p{font-size:10.5px;color:var(--tm);line-height:1.5}
+.ph-card .ph-icon{font-size:20px;margin-bottom:7px;opacity:.7}
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+.agent-card{background:#fff;border-radius:8px;padding:16px;box-shadow:var(--shd);display:flex;align-items:center;gap:12px;transition:var(--tr);border:1px solid transparent}
+.agent-card:hover{box-shadow:var(--shdl);border-color:var(--bd);transform:translateY(-2px)}
+.agent-avatar{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px;flex-shrink:0}
+.agent-info{flex:1;min-width:0}.agent-info .an{font-size:12.5px;font-weight:600;color:var(--tx)}.agent-info .ad{font-size:9.5px;color:var(--tm);margin-top:2px}
+.agent-stats{text-align:right;min-width:55px}.agent-stats .as1{font-size:17px;font-weight:700;color:var(--tx)}.agent-stats .as2{font-size:9px;color:var(--tm)}
+.script-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.script-card{background:#fff;border-radius:8px;padding:15px;box-shadow:var(--shd);transition:var(--tr);border:1px solid transparent;cursor:pointer}
+.script-card:hover{border-color:var(--bd);box-shadow:var(--shdl);transform:translateY(-2px)}
+.script-card .shd{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.script-card .sht{font-size:12.5px;font-weight:600;color:var(--tx)}
+.script-card .shp{font-size:10.5px;color:var(--ts);line-height:1.6}
+.script-card .shf{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
+.script-card .shtag{padding:2px 7px;border-radius:10px;font-size:9px;background:#f3f4f6;color:var(--ts)}
+.form-block{background:#fff;border-radius:8px;padding:14px;box-shadow:var(--shd);margin-bottom:10px}
+.form-block h4{font-size:12.5px;font-weight:600;margin-bottom:10px;color:var(--tx);border-bottom:1px solid #f3f4f6;padding-bottom:7px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:7px}
+.form-row.fl{grid-template-columns:1fr}
+.form-row label{font-size:9.5px;font-weight:600;color:var(--ts);display:block;margin-bottom:2px}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:5px 9px;border:1px solid var(--bd);border-radius:6px;font-size:11.5px;font-family:inherit;outline:none;background:#f9fafb}
+.form-row textarea{resize:vertical;min-height:55px}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--p);background:#fff}
+.subtabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.subtab{padding:4px 11px;border-radius:14px;font-size:9.5px;cursor:pointer;border:1px solid var(--bd);background:#fff;transition:var(--tr);font-family:inherit;font-weight:500}
+.subtab:hover{background:#f0f5ff;color:var(--p)}
+.subtab.ac{background:var(--p);color:#fff;border-color:var(--p)}
+.ni.leaf{cursor:pointer}
+.ni.leaf:hover{color:var(--sta);background:var(--sh)}
+@media(max-width:768px){
+:root{--sw:200px}
+.chg{grid-template-columns:1fr}
+.agent-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="lc" id="loginPage">
+<div class="lb">
+<div class="ll"><div class="llogo">TX</div><h1>泰讯AI智能呼叫系统</h1><p>济南泰讯智能科技有限公司</p></div>
+<div class="fg"><label>邮箱</label><input type="text" id="le" placeholder="请输入邮箱" autocomplete="off"></div>
+<div class="fg"><label>密码</label><input type="password" id="lp" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()"></div>
+<p class="le" id="lerr">邮箱或密码错误</p>
+<button class="lbtn" onclick="doLogin()">登 录 系 统</button>
+<div class="ql"><div class="qlt">演示账号一键切换</div><div class="qa" id="qa"></div></div>
+</div>
+</div>
+
+<div class="al" id="app">
+<aside class="sb" id="sb">
+<div class="sh"><div class="li">TX</div><span class="lt">泰讯AI呼叫系统</span></div>
+<nav class="sn" id="sn"></nav>
+</aside>
+<div class="ma" id="ma">
+<header class="tb">
+<div class="bc" id="bc"></div>
+<div class="tbr">
+<div class="ud"><button class="nbtn" onclick="toggleNotif()" title="通知">🔔<span class="bdg" id="nbg">5</span></button><div class="npop" id="np"></div></div>
+<div class="ud">
+<div class="ui" onclick="toggleUMenu()"><div class="ua" id="ua">A</div><div class="udt"><div class="un" id="un">管理员</div><div class="ur" id="ur">超管</div></div></div>
+<div class="udrop" id="udm">
+<div class="udi" onclick="navTo('system-settings','personal-info')">👤 个人信息</div>
+<div class="udi" onclick="navTo('system-settings','preferences')">⚙️ 偏好设置</div>
+<div class="udiv"></div>
+<div class="udi" onclick="doLogout()">🚪 退出登录</div>
+</div>
+</div>
+</div>
+</header>
+<div class="ca" id="ca"></div>
+</div>
+</div>
+
+<div class="tc" id="tc"></div>
+<div class="mo" id="mo"><div class="md" id="md"></div></div>
+<script>
+var AC=[
+{e:'admin@taixun-ai.com',p:'TxAdmin@2025!',n:'超级管理员',r:'超级管理员',a:'管',x:'all'},
+{e:'ops-director@taixun-ai.com',p:'TxOps@2025!',n:'运营总监',r:'运营总监',a:'运',x:['call-center','ai-dialog','agent-center','data-sea','team-mgmt','system-settings','notifications']},
+{e:'sales-director@taixun-ai.com',p:'TxSales@2025!',n:'销售总监',r:'销售总监',a:'销',x:['call-center','customer-mgmt','customer-collab','contract-mgmt','sms','notifications']},
+{e:'demo@taixun-ai.com',p:'Demo@2025',n:'演示专用',r:'演示账号',a:'演',x:'all'},
+{e:'script-designer@taixun-ai.com',p:'TxScript@2025!',n:'AI话术设计师',r:'话术设计师',a:'术',x:['ai-dialog','agent-center']},
+{e:'task-admin@taixun-ai.com',p:'TxTask@2025!',n:'呼叫任务管理员',r:'任务管理员',a:'任',x:['call-center']},
+{e:'agent-leader@taixun-ai.com',p:'TxAgent@2025!',n:'坐席组长',r:'坐席组长',a:'组',x:['call-center','team-mgmt','notifications']},
+{e:'agent-01@taixun-ai.com',p:'TxAgent01!',n:'一线坐席01',r:'一线坐席',a:'座',x:['call-center-limited']},
+{e:'sales-01@taixun-ai.com',p:'TxSales01!',n:'销售专员01',r:'销售专员',a:'售',x:['customer-mgmt','customer-collab','contract-mgmt']},
+{e:'qc-auditor@taixun-ai.com',p:'TxQC@2025!',n:'质检专员',r:'质检专员',a:'质',x:['call-center','ai-dialog']}
+];
+
+var CUR=null;
+
+// ===== MENU =====
+var MN=[
+{id:'call-center',lb:'呼叫中台',ic:'📞',ch:[
+{id:'ai-call',lb:'AI呼叫',tb:['任务列表','呼叫统计','电话号码','通话记录','呼出记录','后续动作配置','任务数据统计','ABTEST','操作日志']},
+{id:'transfer-human',lb:'转人工',tb:['实时转人工','转人工自定义','AI转人工沟通','转接多种轮询模式','在忙坐席智能处理','自动接听/选择接听','坐席状态实时统计','内网FS转接技术','全对话展示','灵活推送处理','灵活客户信息处理','智能统计大屏','人工介入','人工呼叫中台','转人工通话记录查看']},
+{id:'stats-dashboard',lb:'统计看板',tb:['整体呼叫看板','呼叫趋势看板']},
+{id:'human-ai-collab',lb:'人机协同',tb:[]},
+{id:'manual-call',lb:'人工呼出',tb:['通话记录','电话盘','数据统计','批量呼出','呼叫工作台','坐席列表']},
+{id:'blacklist',lb:'黑名单',tb:[]},
+{id:'push-transfer',lb:'推送转接',tb:['外呼线索分配规则','转接及微信推送规则','电话转接记录','微信推送记录','转人工及推送统计']},
+{id:'call-settings',lb:'呼叫设置',tb:['禁呼时间','用户评分','用户标签','重呼规则','线索分配规则','智能降噪','大模型质检','语音质检','其他设置']}
+]},
+{id:'online-service',lb:'在线客服',ic:'💬',ch:[
+{id:'cs-sessions',lb:'会话列表',tb:[]},
+{id:'cs-console',lb:'客服工作台',tb:[]},
+{id:'cs-visitors',lb:'访客统计',tb:[]},
+{id:'cs-quickreply',lb:'快捷回复',tb:[]},
+{id:'cs-blacklist',lb:'拉黑管理',tb:[]}
+]},
+{id:'ticket-center',lb:'工单中心',ic:'🎫',ch:[
+{id:'tk-list',lb:'工单列表',tb:[]},
+{id:'tk-create',lb:'新建工单',tb:[]},
+{id:'tk-stats',lb:'工单统计',tb:[]},
+{id:'tk-sla',lb:'SLA时效',tb:[]}
+]},
+{id:'ai-dialog',lb:'AI对话管理',ic:'💬',ch:[
+{id:'script-design',lb:'AI话术设计',tb:['话术设计','话术分组','话术日志','意向标签','快捷配置','录音师试听','话术测试','语音合成','词槽填写','话术统计','录音小程序']},
+{id:'script-training',lb:'话术训练',tb:[]},
+{id:'knowledge-base',lb:'知识库',tb:[]},
+{id:'smart-dict',lb:'智能词典',tb:[]},
+{id:'case-audio',lb:'案例音频',tb:[]},
+{id:'aibot-market',lb:'AIBOT市场',tb:[]}
+]},
+{id:'agent-center',lb:'智能体中心',ic:'🤖',ch:[
+{id:'llm-dialog-design',lb:'大模型对话设计',tb:[]},
+{id:'agent-plaza',lb:'智能体广场',tb:[]},
+{id:'knowledge-center',lb:'知识中心',tb:[]},
+{id:'intent-tags',lb:'意向标签',tb:[]}
+]},
+{id:'data-sea',lb:'数据公海',ic:'🌊',ch:[]},
+{id:'customer-mgmt',lb:'客户管理',ic:'👥',ch:[
+{id:'leads',lb:'线索数据',tb:[]},
+{id:'custom-stage',lb:'自定义阶段',tb:[]},
+{id:'signed-customers',lb:'签约客户',tb:[]},
+{id:'data-center',lb:'数据中心',tb:[]},
+{id:'config-center',lb:'配置中心',tb:[]}
+]},
+{id:'customer-collab',lb:'客户协作',ic:'🤝',ch:[
+{id:'todo-plan',lb:'待办计划',tb:[]},
+{id:'company-wide',lb:'全公司的',tb:[]}
+]},
+{id:'contract-mgmt',lb:'合同管理',ic:'📋',ch:[
+{id:'contract-payment',lb:'签约回款中',tb:[]},
+{id:'payment-done',lb:'回款完成',tb:[]},
+{id:'renewal-remind',lb:'续约提醒',tb:[]}
+]},
+{id:'sms',lb:'短信',ic:'📱',ch:[
+{id:'sms-template',lb:'短信模板',tb:[]},
+{id:'sms-stats',lb:'数据统计',tb:[]},
+{id:'sms-send-log',lb:'发送记录',tb:[]},
+{id:'sms-schedule',lb:'定时记录',tb:[]}
+]},
+{id:'team-mgmt',lb:'团队管理',ic:'👔',ch:[
+{id:'contacts',lb:'通讯录',tb:[]},
+{id:'sub-accounts',lb:'子账户管理',tb:[]},
+{id:'perm-groups',lb:'权限组',tb:[]}
+]},
+{id:'system-settings',lb:'系统设置',ic:'⚙️',ch:[
+{id:'general',lb:'通用设置',tb:[]},
+{id:'op-logs',lb:'操作日志',tb:[]},
+{id:'preferences',lb:'偏好设置',tb:[]},
+{id:'personal-info',lb:'个人信息',tb:[]}
+]},
+{id:'privacy',lb:'隐私与安全',ic:'🔒',ch:[]},
+{id:'billing',lb:'账单模块',ic:'💰',ch:[]},
+{id:'notifications',lb:'通知列表',ic:'🔔',ch:[]}
+];
+
+var MAPI={};
+(function buildMap(){
+MN.forEach(function(g){
+MAPI[g.id]=g;
+if(g.ch) g.ch.forEach(function(s){
+MAPI[s.id]=s;
+if(s.tb) s.tb.forEach(function(t){
+var k=s.id+'/'+t;
+MAPI[k]={id:k,lb:t,parent:s,group:g};
+});
+});
+});
+})();
+
+var PERMS={};
+function canView(gid,sid){
+if(!CUR)return false;
+if(CUR.x==='all')return true;
+if(Array.isArray(CUR.x)){
+if(CUR.x.indexOf(gid)>=0)return true;
+if(sid && CUR.x.indexOf(sid)>=0)return true;
+}
+return false;
+}
+
+// ===== SIMULATED DATA =====
+var DTasks=[];
+(function genTasks(){
+var sts=['running','paused','completed','pending'];
+var names=['春节促销回访','新品发布通知','VIP客户关怀','逾期催缴提醒','满意度调查','会员升级推广','活动邀约','生日祝福','售后服务回访','问卷调查','续费提醒','节日问候'];
+var scripts=['促销话术V3','新品话术V2','VIP关怀话术','催缴标准话术','满意度调查话术','会员推广话术','活动邀约话术V1','生日祝福模板','售后回访标准','问卷话术通用','续费提醒话术','节日问候模板'];
+for(var i=0;i<12;i++){
+var total=Math.floor(Math.random()*800)+200;
+var called=Math.floor(Math.random()*total);
+var st=sts[i%4];
+DTasks.push({
+id:i+1,name:names[i],script:scripts[i],total:total,called:called,
+status:st,progress:total>0?Math.round(called/total*100):0,
+createTime:'2026-0'+(Math.floor(i/3)+1)+'-'+(10+i*2%20),creator:'管理员'});
+}
+})();
+
+var DNums=[];
+(function genNums(){
+var cities=['北京','上海','广州','深圳','杭州','成都','武汉','南京','西安','重庆','苏州','天津','长沙','郑州','青岛','济南','合肥','福州','厦门','沈阳'];
+var tags=['潜在客户','意向客户','高意向','已成交','无效号码','黑名单','待跟进','新线索'];
+var srcs=['导入','API推送','表单收集','手动添加','广告投放','转介绍'];
+var sts=['待呼叫','已呼叫','呼叫中','已完成'];
+for(var i=0;i<60;i++){
+var cid=cities[Math.floor(Math.random()*cities.length)];
+var pref={'北京':'10','上海':'21','广州':'20','深圳':'755','杭州':'571','成都':'28','武汉':'27','南京':'25','西安':'29','重庆':'23','苏州':'512','天津':'22','长沙':'731','郑州':'371','青岛':'532','济南':'531','合肥':'551','福州':'591','厦门':'592','沈阳':'24'}[cid]||'10';
+var num=pref+String(Math.floor(Math.random()*90000000)+10000000);
+var times=Math.floor(Math.random()*8);
+DNums.push({
+id:i+1,num:num,city:cid,status:sts[Math.floor(Math.random()*4)],
+tag:tags[Math.floor(Math.random()*tags.length)],
+source:srcs[Math.floor(Math.random()*srcs.length)],
+callTimes:times,lastCall:times>0?'2026-06-'+(10+Math.floor(Math.random()*7)):'-'});
+}
+})();
+
+var DCalls=[];
+(function genCalls(){
+var res=['已接通','未接通','拒接','关机','空号','正在通话中','用户挂断'];
+var intents=['高意向','中等意向','低意向','无意向','需跟进','已成交'];
+var scripts=['促销话术V3','新品话术V2','VIP关怀话术','催缴标准话术','满意度调查','会员推广','活动邀约'];
+var agents=['张明','李娟','王磊','赵丽','陈晨'];
+for(var i=0;i<40;i++){
+var d=new Date(2026,5,10+Math.floor(i/5));
+var h=9+Math.floor(Math.random()*9);
+var m=Math.floor(Math.random()*60);
+var dur=Math.floor(Math.random()*300)+10;
+DCalls.push({
+id:'TX'+String(10001+i),customer:'客户'+(i+1),
+num:DNums[i]?DNums[i].num:'13800138000',
+result:res[Math.floor(Math.random()*res.length)],
+duration:dur+'秒',
+intent:intents[Math.floor(Math.random()*intents.length)],
+script:scripts[Math.floor(Math.random()*scripts.length)],
+agent:agents[Math.floor(Math.random()*agents.length)],
+time:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')
+});
+}
+})();
+
+var DLeads=[];
+(function genLeads(){
+var stgs=['初步接触','需求确认','方案报价','商务谈判','签约','已成交','已流失'];
+var srcs=['广告投放','官网注册','转介绍','展会','电销','地推'];
+var owners=['张明','李娟','王磊','赵丽','陈晨'];
+var intents=['高','中','低','极高'];
+for(var i=0;i<25;i++){
+var bg=Math.floor(Math.random()*50)*1000+5000;
+DLeads.push({
+id:i+1,customer:'客户'+(i+1),company:'公司'+(i+1),
+phone:DNums[i]?DNums[i].num:'13800138000',
+stage:stgs[Math.floor(Math.random()*stgs.length)],
+source:srcs[Math.floor(Math.random()*srcs.length)],
+owner:owners[Math.floor(Math.random()*owners.length)],
+intent:intents[Math.floor(Math.random()*intents.length)],
+budget:bg+'元',
+time:'2026-06-'+(5+Math.floor(Math.random()*12))
+});
+}
+})();
+
+var DAgents=[
+{id:1,name:'张明',code:'AG001',dept:'呼叫一组',status:'online',calls:128,dur:'6h32m',avatar:'张',color:'#4a6cf7'},
+{id:2,name:'李娟',code:'AG002',dept:'呼叫一组',status:'busy',calls:96,dur:'5h15m',avatar:'李',color:'#10b981'},
+{id:3,name:'王磊',code:'AG003',dept:'呼叫二组',status:'online',calls:145,dur:'7h10m',avatar:'王',color:'#f59e0b'},
+{id:4,name:'赵丽',code:'AG004',dept:'呼叫二组',status:'offline',calls:0,dur:'0m',avatar:'赵',color:'#ef4444'},
+{id:5,name:'陈晨',code:'AG005',dept:'呼叫三组',status:'busy',calls:112,dur:'5h50m',avatar:'陈',color:'#8b5cf6'}
+];
+
+var DScripts=[
+{id:1,name:'促销活动话术V3',scene:'活动推广',nodes:24,ver:'v3.2',tags:['促销','活动','电商'],update:'2026-06-15'},
+{id:2,name:'VIP客户关怀话术',scene:'客户关怀',nodes:18,ver:'v2.1',tags:['VIP','关怀','回访'],update:'2026-06-12'},
+{id:3,name:'催缴标准话术',scene:'催收催缴',nodes:15,ver:'v1.5',tags:['催缴','标准','合规'],update:'2026-06-10'},
+{id:4,name:'满意度调查话术',scene:'问卷调查',nodes:22,ver:'v4.0',tags:['满意度','调查','NPS'],update:'2026-06-08'},
+{id:5,name:'新品发布会话术',scene:'通知推广',nodes:20,ver:'v2.3',tags:['新品','发布','邀约'],update:'2026-06-05'},
+{id:6,name:'续费提醒话术',scene:'续费提醒',nodes:12,ver:'v1.0',tags:['续费','提醒','会员'],update:'2026-06-01'},
+{id:7,name:'贷款营销话术',scene:'金融营销',nodes:28,ver:'v3.0',tags:['贷款','金融','营销'],update:'2026-05-28'},
+{id:8,name:'售后服务回访',scene:'售后服务',nodes:16,ver:'v2.0',tags:['售后','回访','服务'],update:'2026-05-25'}
+];
+
+function getStored(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function setStored(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+// ===== TOAST =====
+function toast(msg,type){
+type=type||'in';
+var d=document.createElement('div');d.className='to '+type;d.textContent=msg;
+document.getElementById('tc').appendChild(d);
+setTimeout(function(){d.style.opacity='0';d.style.transition='opacity .3s';setTimeout(function(){d.remove();},300);},2500);
+}
+
+// ===== MODAL =====
+function openModal(title,body,footer,width){
+document.getElementById('md').innerHTML='<div class="mdh"><span class="mdt">'+title+'</span><button class="mdc" onclick="closeModal()">✕</button></div><div class="mdb">'+body+'</div>'+(footer?'<div class="mdf">'+footer+'</div>':'');
+var md=document.getElementById('md');
+if(width)md.style.width=width;
+document.getElementById('mo').classList.add('shw');
+}
+function closeModal(){document.getElementById('mo').classList.remove('shw');}
+
+// ===== PAGINATION =====
+function renderPagination(total,page,pageSize,onPage){
+var tp=Math.ceil(total/pageSize);
+if(tp<=1)return'';
+var h='<div class="pgnt">';
+h+='<button '+(page<=1?'disabled':'')+' onclick="'+onPage+'('+(page-1)+')">&lt;</button>';
+for(var i=1;i<=tp;i++){
+if(i===1||i===tp||(i>=page-2&&i<=page+2)){
+h+='<button class="'+(i===page?'ac':'')+'" onclick="'+onPage+'('+i+')">'+i+'</button>';
+}else if(i===page-3||i===page+3){
+h+='<button disabled>...</button>';
+}
+}
+h+='<button '+(page>=tp?'disabled':'')+' onclick="'+onPage+'('+(page+1)+')">&gt;</button>';
+h+='</div>';
+return h;
+}
+
+// ===== NAVIGATION =====
+var curGroup=null,curSub=null,curTb=null;
+function navTo(gid,sid,tb){
+curGroup=gid;curSub=sid;curTb=tb||null;
+updateSidebar();
+updateBreadcrumb();
+renderContent();
+}
+function updateBreadcrumb(){
+var h='';
+if(curGroup){
+var g=MAPI[curGroup];
+h+='<span>'+g.lb+'</span>';
+if(curSub){
+var s=MAPI[curSub];
+h+='<span class="sep">></span><span>'+s.lb+'</span>';
+if(curTb){
+h+='<span class="sep">></span><span class="cur">'+curTb+'</span>';
+}
+}
+}
+document.getElementById('bc').innerHTML=h||'<span>首页</span>';
+}
+function updateSidebar(){
+var h='';
+MN.forEach(function(g){
+if(!canView(g.id))return;
+var isOpen=curGroup===g.id;
+var hasCh=g.ch&&g.ch.length>0;
+if(hasCh){
+h+='<div class="ng"><div class="ni'+(isOpen?' ex':'')+(curGroup===g.id?' ac':'')+'" onclick="toggleSidebarGroup(\''+g.id+'\')"><span class="nic">'+g.ic+'</span><span class="nil">'+g.lb+'</span><span class="nia">▶</span></div>';
+h+='<div class="ns op">';
+g.ch.forEach(function(s){
+if(s.tb&&s.tb.length>0){
+var sOpen=curSub===s.id;
+h+='<div class="ni'+(sOpen?' ex':'')+(curSub===s.id?' ac':'')+'" style="padding-left:32px" onclick="toggleSidebarSub(\''+g.id+'\',\''+s.id+'\')"><span class="nic">📁</span><span class="nil">'+s.lb+'</span><span class="nia">▶</span></div>';
+h+='<div class="ns op">';
+s.tb.forEach(function(t){
+h+='<div class="nsi'+(curTb===t&&curSub===s.id?' ac':'')+'" onclick="event.stopPropagation();navTo(\''+g.id+'\',\''+s.id+'\',\''+t+'\')"><span class="dot"></span>'+t+'</div>';
+});
+h+='</div>';
+}else{
+h+='<div class="nsi'+(curSub===s.id?' ac':'')+'" style="padding-left:32px" onclick="navTo(\''+g.id+'\',\''+s.id+'\')"><span class="dot"></span>'+s.lb+'</div>';
+}
+});
+h+='</div></div>';
+}else{
+h+='<div class="ng"><div class="ni leaf'+(curGroup===g.id?' ac':'')+'" onclick="navTo(\''+g.id+'\')"><span class="nic">'+g.ic+'</span><span class="nil">'+g.lb+'</span></div></div>';
+}
+});
+document.getElementById('sn').innerHTML=h;
+}
+function toggleSidebarGroup(gid){
+navTo(gid,MAPI[gid].ch&&MAPI[gid].ch[0]?MAPI[gid].ch[0].id:null);
+}
+function toggleSidebarSub(gid,sid){
+var s=MAPI[sid];
+if(s.tb&&s.tb.length>0){navTo(gid,sid,s.tb[0]);}
+else{navTo(gid,sid);}
+}
+
+// ===== RENDER CONTENT =====
+var taskPage=1,taskSearch='',taskStatusFilter='';
+var numPage=1,numSearch='',numStatusFilter='';
+var callPage=1,callSearch='',callResultFilter='',callIntentFilter='';
+var leadPage=1,leadSearch='',leadStageFilter='';
+
+function renderContent(){
+var ca=document.getElementById('ca');
+if(!curGroup){ca.innerHTML='<h3>欢迎使用泰讯AI智能呼叫系统</h3><p style="color:var(--tm)">请从左侧菜单选择功能模块</p>';return;}
+var key=(curSub&&curTb)?(curSub+'/'+curTb):(curSub||curGroup);
+key=key.replace(/\//g,'_');
+var fn=renderMap[key];
+if(fn){fn(ca);}else{renderPlaceholder(ca);}
+}
+
+var renderMap={
+'ai-call_任务列表':renderTaskList,
+'ai-call_呼叫统计':renderCallStats,
+'ai-call_电话号码':renderPhoneList,
+'ai-call_通话记录':renderCallLogs,
+'script-design_录音师试听':renderRecordingLib,
+'script-design_录音小程序':renderRecorder,
+'stats-dashboard_整体呼叫看板':renderOverallDashboard,
+'stats-dashboard_呼叫趋势看板':renderTrendDashboard,
+'manual-call_坐席列表':renderAgentList,
+'script-design_话术设计':renderScriptList,
+'script-design_话术分组':renderScriptGroup,
+'call-settings_禁呼时间':function(ca){renderSettingsPage(ca,'禁呼时间');},
+'call-settings_用户评分':function(ca){renderSettingsPage(ca,'用户评分');},
+'call-settings_用户标签':function(ca){renderSettingsPage(ca,'用户标签');},
+'call-settings_重呼规则':function(ca){renderSettingsPage(ca,'重呼规则');},
+'call-settings_线索分配规则':function(ca){renderSettingsPage(ca,'线索分配规则');},
+'call-settings_智能降噪':function(ca){renderSettingsPage(ca,'智能降噪');},
+'call-settings_大模型质检':function(ca){renderSettingsPage(ca,'大模型质检');},
+'call-settings_语音质检':renderQCOverview,
+'call-settings_其他设置':function(ca){renderSettingsPage(ca,'其他设置');},
+'customer-mgmt_线索数据':renderLeadList,
+'script-design_意向标签':renderIntentTags,
+'script-design_话术统计':renderScriptStats,
+'script-design_语音合成':renderTTSPage,
+'script-design_话术测试':renderScriptTest,
+'smart-dict_纠错词典':renderCorrectionDict,
+'smart-dict_打断停用词':renderStopWords,
+'agent-plaza':renderAgentPlaza,
+'agent-center_agent-plaza':renderAgentPlaza,
+'agent-center_意向标签':renderLLMIntentTags,
+'aibot-market':renderAibotMarket,
+'ai-dialog_aibot-market':renderAibotMarket,
+'knowledge-center':renderKnowledgeCenter,
+'agent-center_knowledge-center':renderKnowledgeCenter,
+'llm-design':renderLLMDesign,
+'agent-center_llm-design':renderLLMDesign,
+'cs-sessions':renderCSSessions,
+'cs-console':renderCSConsole,
+'cs-visitors':renderCSVisitors,
+'cs-quickreply':renderCSQuickReply,
+'cs-blacklist':renderCSBlacklist,
+'tk-list':renderTicketList,
+'tk-create':renderTicketCreate,
+'tk-stats':renderTicketStats,
+'tk-sla':renderTicketSLA,
+'data-center':renderDataCenter,
+'customer-mgmt_data-center':renderDataCenter
+};
+
+// ===== ONLINE CUSTOMER SERVICE (在线客服) =====
+var CSess=[];
+(function genCSess(){
+var names=['张先生','李女士','王经理','陈总','刘女士','赵先生','孙老师','周老板','吴女士','郑先生','林总','黄女士'];
+var channels=['官网','小程序','APP','公众号','H5','小程序'];
+var srcs=['产品咨询','售后问题','订单查询','售前咨询','投诉建议','技术支持','合作洽谈'];
+var msgs=['你好，我想了解一下你们的产品价格','这个系统支持定制吗？','我有个技术问题想咨询','售后服务怎么联系？','你们能提供试用吗？','订单状态怎么查询？','我想预约一次演示','费用是怎么结算的？'];
+for(var i=0;i<12;i++){
+var last=Math.floor(Math.random()*40)+1;
+var pending=Math.random()>0.4;
+CSess.push({id:'S'+(1001+i),name:names[i],channel:channels[Math.floor(Math.random()*channels.length)],source:srcs[Math.floor(Math.random()*srcs.length)],agent:DAgents[Math.floor(Math.random()*3)].name,status:pending?'waiting':'chatting',lastMsg:msgs[Math.floor(Math.random()*msgs.length)],lastTime:last+'分钟前',unread:Math.floor(Math.random()*4)+1,online:Math.random()>0.3,phone:'138'+String(Math.floor(Math.random()*90000000)+10000000),first:'2026-06-'+(5+Math.floor(Math.random()*15))});
+}
+})();
+var CSQuickReplies=[
+{id:1,cat:'通用',text:'您好，我是泰讯科技的客服，很高兴为您服务！'},
+{id:2,cat:'通用',text:'请问有什么可以帮您？'},
+{id:3,cat:'产品',text:'我们提供多个版本：基础版199元/月、专业版499元/月、企业版999元/月，可按需选择。'},
+{id:4,cat:'产品',text:'系统支持私有化部署和SaaS托管两种方式，具体可为您详细说明。'},
+{id:5,cat:'售后',text:'您的售后问题已为您记录，会有专员在1小时内联系您，请保持电话畅通。'},
+{id:6,cat:'售后',text:'请问方便提供一下您的订单号吗？我帮您查询进度。'},
+{id:7,cat:'合作',text:'感谢您对泰讯的关注，合作事宜我们会有商务经理与您详细对接。'},
+{id:8,cat:'结束',text:'感谢您的咨询，祝您生活愉快！如有需要随时联系我们。'}
+];
+var CSBlack=[];
+var csCurSid=null;
+function renderCSSessions(ca){
+var waiting=CSess.filter(function(s){return s.status==='waiting';}).length;
+var chatting=CSess.filter(function(s){return s.status==='chatting';}).length;
+var total=CSess.length;
+ca.innerHTML='<h3>在线客服 - 会话列表</h3>'+
+'<div class="sr"><div class="scd"><div class="si bl">💬</div><div><div class="sv">'+total+'</div><div class="sl">会话总数</div></div></div>'+
+'<div class="scd"><div class="si or">⏳</div><div><div class="sv">'+waiting+'</div><div class="sl">待接入</div></div></div>'+
+'<div class="scd"><div class="si gr">💬</div><div><div class="sv">'+chatting+'</div><div class="sl">咨询中</div></div></div>'+
+'<div class="scd"><div class="si pu">👥</div><div><div class="sv">'+DAgents.length+'</div><div class="sl">客服坐席</div></div></div></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">实时会话队列</span><button class="btn btn-p btn-sm" onclick="openCSNew()">+ 发起会话</button></div>'+
+'<div class="fb"><input placeholder="搜索访客/号码..." oninput="csSearch(this.value)"><select onchange="csStatusFilter(this.value)"><option value="">全部状态</option><option value="waiting">待接入</option><option value="chatting">咨询中</option></select></div>'+
+'<div class="tw"><table class="tb1"><thead><tr><th>会话ID</th><th>访客</th><th>渠道</th><th>来源</th><th>客服</th><th>状态</th><th>最近消息</th><th>时间</th><th>未读</th><th>操作</th></tr></thead><tbody id="csTbody"></tbody></table></div></div>';
+refreshCSessions();
+}
+var csPage=1,csSearchV='',csStatusV='';
+function refreshCSessions(){
+var ls=CSess;
+if(csSearchV){ls=ls.filter(function(x){return x.name.indexOf(csSearchV)>=0||x.phone.indexOf(csSearchV)>=0;});}
+if(csStatusV){ls=ls.filter(function(x){return x.status===csStatusV;});}
+var ps=8,tp=Math.ceil(ls.length/ps);
+if(csPage>tp)csPage=tp;if(csPage<1)csPage=1;
+var st=(csPage-1)*ps,pg=ls.slice(st,st+ps);
+var stBadge={waiting:'or',chatting:'gr',closed:'gr'};
+var stLabel={waiting:'待接入',chatting:'咨询中',closed:'已结束'};
+var h='';
+pg.forEach(function(s){
+h+='<tr><td>'+s.id+'</td><td><strong>'+s.name+'</strong>'+(s.online?' <span style="color:#10b981;font-size:9px">●在线</span>':' <span style="color:#9ca3af;font-size:9px">●离线</span>')+'</td><td>'+s.channel+'</td><td>'+s.source+'</td><td>'+s.agent+'</td><td><span class="bdge '+(stBadge[s.status]||'gr')+'">'+(stLabel[s.status]||s.status)+'</span></td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+s.lastMsg+'</td><td>'+s.lastTime+'</td><td>'+(s.unread>0?'<span class="bdge da">'+s.unread+'</span>':'-')+'</td>'+
+'<td class="ta"><button class="btn btn-sm btn-p" onclick="openCSChat(\''+s.id+'\')">💬 接入</button><button class="btn btn-sm btn-o" onclick="openCSDetail(\''+s.id+'\')">👤 资料</button></td></tr>';
+});
+document.getElementById('csTbody').innerHTML=h||'<tr><td colspan="10" class="em"><div class="eic">📭</div><p>暂无会话</p></td></tr>';
+document.getElementById('csPgn')&&(document.getElementById('csPgn').innerHTML=renderPagination(ls.length,csPage,ps,'goCSPage'));
+}
+function goCSPage(p){csPage=p;refreshCSessions();}
+function csSearch(v){csSearchV=v;csPage=1;refreshCSessions();}
+function csStatusFilter(v){csStatusV=v;csPage=1;refreshCSessions();}
+function openCSNew(){
+var body='<div class="fr"><label>访客姓名</label><input id="csnName" placeholder="请输入访客姓名"></div><div class="fr"><label>手机号</label><input id="csnPhone" placeholder="请输入手机号"></div><div class="fr"><label>咨询渠道</label><select id="csnCh"><option>官网</option><option>小程序</option><option>APP</option><option>公众号</option><option>H5</option></select></div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="saveCSNew()">创建会话</button>';
+openModal('发起客服会话',body,footer);
+}
+function saveCSNew(){
+var n=document.getElementById('csnName').value.trim();
+var p=document.getElementById('csnPhone').value.trim();
+if(!n){toast('请输入访客姓名','er');return;}
+var id='S'+(1000+CSess.length+1);
+CSess.unshift({id:id,name:n,phone:p,channel:document.getElementById('csnCh').value,source:'手动创建',agent:CUR.n,status:'waiting',lastMsg:'新访客进入咨询',lastTime:'刚刚',unread:1,online:true,first:'2026-06-21'});
+toast('会话 '+id+' 已创建','su');closeModal();refreshCSessions();
+}
+function openCSDetail(id){
+var s=CSess.find(function(x){return x.id===id;});if(!s)return;
+var body='<div class="fr"><label>访客</label><div style="padding:8px;background:#f8fafc;border-radius:6px">'+s.name+(s.online?' <span style="color:#10b981">●在线</span>':'')+'</div></div>'+
+'<div class="fr"><label>手机号</label><div style="padding:8px;background:#f8fafc;border-radius:6px">'+s.phone+'</div></div>'+
+'<div class="fr"><label>渠道</label><div style="padding:8px;background:#f8fafc;border-radius:6px">'+s.channel+'</div></div>'+
+'<div class="fr"><label>咨询主题</label><div style="padding:8px;background:#f8fafc;border-radius:6px">'+s.source+'</div></div>'+
+'<div class="fr"><label>首次会话</label><div style="padding:8px;background:#f8fafc;border-radius:6px">'+s.first+'</div></div>'+
+'<div class="fr"><label>接待客服</label><div style="padding:8px;background:#f8fafc;border-radius:6px">'+s.agent+'</div></div>';
+var footer='<button class="btn btn-p" onclick="closeModal();openCSChat(\''+id+'\')">💬 进入会话</button><button class="btn btn-o" onclick="closeModal()">关闭</button>';
+openModal('访客资料 - '+s.name,body,footer);
+}
+function renderCSConsole(ca){
+var list=CSess.slice(0,12);
+ca.innerHTML='<h3>客服工作台</h3>'+
+'<div style="display:flex;gap:12px;height:calc(100vh - 130px);min-height:420px">'+
+'<div style="width:260px;background:#fff;border-radius:8px;box-shadow:var(--shd);display:flex;flex-direction:column;overflow:hidden"><div style="padding:10px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:12px">💬 会话列表 <span class="bdge in">'+CSess.length+'</span></div><div id="csSide" style="flex:1;overflow-y:auto"></div></div>'+
+'<div style="flex:1;background:#fff;border-radius:8px;box-shadow:var(--shd);display:flex;flex-direction:column;overflow:hidden" id="csChatPanel">'+
+'<div id="csChatHeader" style="padding:12px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:12px">选择一个会话开始接待</div>'+
+'<div id="csChatMsgs" style="flex:1;overflow-y:auto;padding:14px;background:#f8fafc"></div>'+
+'<div style="border-top:1px solid #e5e7eb;padding:8px"><div style="display:flex;gap:6px;margin-bottom:6px" id="csQuickBar"></div><div style="display:flex;gap:6px"><input id="csMsgInput" placeholder="输入回复内容..." style="flex:1;padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px" onkeydown="if(event.key===\'Enter\')csSendMsg()"><button class="btn btn-p" onclick="csSendMsg()">发送</button><button class="btn btn-o" onclick="csCloseSession()">结束会话</button></div></div>'+
+'</div></div>';
+renderCSSide();
+}
+function renderCSSide(){
+var h='';
+CSess.forEach(function(s){
+var sc=s.id===csCurSid?'background:#eff6ff;border-left:3px solid #4a6cf7':'';
+h+='<div style="padding:10px;cursor:pointer;border-bottom:1px solid #f3f4f6;'+sc+'" onclick="selectCSChat(\''+s.id+'\')">'+
+'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:12px">'+s.name+'</span><span style="font-size:9px;color:var(--tm)">'+s.lastTime+'</span></div>'+
+'<div style="font-size:10px;color:var(--tm);margin-top:2px">'+s.source+' · '+(s.status==='waiting'?'<span style="color:#f59e0b">待接入</span>':'<span style="color:#10b981">咨询中</span>')+'</div>'+
+'<div style="font-size:10px;color:var(--ts);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.lastMsg+'</div></div>';
+});
+document.getElementById('csSide').innerHTML=h;
+}
+function selectCSChat(id){
+csCurSid=id;
+var s=CSess.find(function(x){return x.id===id;});if(!s)return;
+if(s.status==='waiting'){s.status='chatting';s.unread=0;}
+document.getElementById('csChatHeader').innerHTML='💬 '+s.name+' <span style="font-size:10px;color:var(--tm);font-weight:400">· '+s.source+' · '+s.channel+'</span> <button class="btn btn-sm btn-o" style="float:right" onclick="openCSDetail(\''+id+'\')">访客资料</button>';
+var qb=document.getElementById('csQuickBar');
+qb.innerHTML=CSQuickReplies.slice(0,5).map(function(r){return '<button class="btn btn-sm btn-o" onclick="csSendQuick(\''+r.text.replace(/'/g,'')+'\')">'+r.text.substring(0,10)+'…</button>';}).join('');
+var m=document.getElementById('csChatMsgs');
+var msgs=[{from:'v',txt:s.lastMsg,t:'刚刚'},{from:'a',txt:'您好 '+s.name+'，我是泰讯客服'+s.agent+'，很高兴为您服务！有什么可以帮您？',t:'刚刚'}];
+m.innerHTML=msgs.map(function(x){return x.from==='a'?'<div style="margin-bottom:8px;display:flex"><div style="background:#4a6cf7;color:#fff;padding:7px 10px;border-radius:8px;font-size:12px;max-width:70%">'+x.txt+'</div></div>':'<div style="margin-bottom:8px;display:flex;justify-content:flex-end"><div style="background:#fff;border:1px solid #e5e7eb;padding:7px 10px;border-radius:8px;font-size:12px;max-width:70%">'+x.txt+'</div></div>';}).join('');
+m.scrollTop=m.scrollHeight;
+renderCSSide();
+}
+function csSendQuick(t){document.getElementById('csMsgInput').value=t;}
+function csSendMsg(){
+var inp=document.getElementById('csMsgInput');
+var v=inp.value.trim();if(!v||!csCurSid)return;
+inp.value='';
+var s=CSess.find(function(x){return x.id===csCurSid;});if(s){s.lastMsg=v;s.lastTime='刚刚';s.unread=0;}
+var m=document.getElementById('csChatMsgs');
+m.insertAdjacentHTML('beforeend','<div style="margin-bottom:8px;display:flex;justify-content:flex-end"><div style="background:#4a6cf7;color:#fff;padding:7px 10px;border-radius:8px;font-size:12px;max-width:70%">'+v+'</div></div>');
+setTimeout(function(){m.insertAdjacentHTML('beforeend','<div style="margin-bottom:8px;display:flex"><div style="background:#fff;border:1px solid #e5e7eb;padding:7px 10px;border-radius:8px;font-size:12px;max-width:70%">收到，我会尽快为您处理，请稍等～</div></div>');m.scrollTop=m.scrollHeight;},800);
+m.scrollTop=m.scrollHeight;
+renderCSSide();
+}
+function csCloseSession(){
+if(!csCurSid){toast('请先选择会话','er');return;}
+var s=CSess.find(function(x){return x.id===csCurSid;});if(s){s.status='closed';s.lastMsg='会话已结束';}
+toast('会话已结束','su');csCurSid=null;
+document.getElementById('csChatHeader').innerHTML='选择一个会话开始接待';
+document.getElementById('csChatMsgs').innerHTML='';
+renderCSSide();
+}
+function renderCSVisitors(ca){
+var total=1568,online=CSess.filter(function(s){return s.online;}).length;
+var srcs={};
+CSess.forEach(function(s){srcs[s.source]=(srcs[s.source]||0)+1;});
+var top=Object.keys(srcs).sort(function(a,b){return srcs[b]-srcs[a];}).slice(0,3).join('、');
+ca.innerHTML='<h3>访客统计</h3>'+
+'<div class="sr"><div class="scd"><div class="si bl">👥</div><div><div class="sv">'+total.toLocaleString()+'</div><div class="sl">今日访客</div></div></div>'+
+'<div class="scd"><div class="si gr">🟢</div><div><div class="sv">'+online+'</div><div class="sl">当前在线</div></div></div>'+
+'<div class="scd"><div class="si pu">📈</div><div><div class="sv">'+(Math.round(total*0.23))+'</div><div class="sl">发起咨询</div></div></div>'+
+'<div class="scd"><div class="si or">🎯</div><div><div class="sv">'+top+'</div><div class="sl">热门来源</div></div></div></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">渠道访问分布</span></div><div class="chb" id="csv1" style="height:260px"></div></div>';
+setTimeout(function(){
+var c=echarts.init(document.getElementById('csv1'));
+var chs=['官网','小程序','APP','公众号','H5'];
+c.setOption({tooltip:{trigger:'axis'},xAxis:{type:'category',data:chs},yAxis:{type:'value'},series:[{type:'bar',data:[620,480,210,150,108],itemStyle:{color:'#4a6cf7'},barWidth:34}]});
+window.addEventListener('resize',function(){c.resize();});
+},200);
+}
+function renderCSQuickReply(ca){
+var cats=['通用','产品','售后','合作','结束'];
+var h='<h3>快捷回复</h3>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">💬 快捷回复话术库</span><button class="btn btn-p btn-sm" onclick="openCSQRNew()">+ 新建快捷回复</button></div>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>快捷回复功能：</b>客服在接待过程中可一键插入常用话术，提升响应效率。支持按分类管理、关键词触发。</p>';
+h+='<div class="tw"><table class="tb1"><thead><tr><th>ID</th><th>分类</th><th>快捷回复内容</th><th>使用次数</th><th>操作</th></tr></thead><tbody>';
+CSQuickReplies.forEach(function(r,i){
+h+='<tr><td>'+r.id+'</td><td><span class="bdge in">'+r.cat+'</span></td><td>'+r.text+'</td><td>'+(80+Math.floor(Math.random()*200))+'</td>'+
+'<td class="ta"><button class="btn btn-sm btn-o" onclick="toast(\'编辑快捷回复#\'+'+r.id+',\'in\')">✏️</button><button class="btn btn-sm btn-d" onclick="delCSQR('+r.id+')">🗑</button></td></tr>';
+});
+h+='</tbody></table></div></div>';
+ca.innerHTML=h;
+}
+function delCSQR(id){if(confirm('确定删除此快捷回复？')){CSQuickReplies=CSQuickReplies.filter(function(x){return x.id!==id;});toast('已删除','da');renderCSQuickReply(document.getElementById('ca'));}}
+function openCSQRNew(){
+var body='<div class="fr"><label>分类</label><select id="qrCat"><option>通用</option><option>产品</option><option>售后</option><option>合作</option><option>结束</option></select></div><div class="fr fl"><label>回复内容</label><textarea id="qrText" style="width:100%;height:70px;border:1px solid #e5e7eb;border-radius:6px;padding:8px"></textarea></div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="saveCSQR()">保存</button>';
+openModal('新建快捷回复',body,footer);
+}
+function saveCSQR(){
+var t=document.getElementById('qrText').value.trim();if(!t){toast('请输入内容','er');return;}
+var nid=CSQuickReplies.length>0?Math.max.apply(null,CSQuickReplies.map(function(x){return x.id;}))+1:1;
+CSQuickReplies.push({id:nid,cat:document.getElementById('qrCat').value,text:t});
+toast('快捷回复已创建','su');closeModal();renderCSQuickReply(document.getElementById('ca'));
+}
+function renderCSBlacklist(ca){
+var h='<h3>拉黑管理</h3>';
+h+='<div class="sr"><div class="scd"><div class="si bl">🚫</div><div><div class="sv">'+CSBlack.length+'</div><div class="sl">已拉黑</div></div></div></div>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">🚫 拉黑名单</span><button class="btn btn-p btn-sm" onclick="openCSBlackNew()">+ 拉黑访客</button></div>';
+h+='<div class="tw"><table class="tb1"><thead><tr><th>手机号</th><th>原因</th><th>操作人</th><th>拉黑时间</th><th>操作</th></tr></thead><tbody id="csbTbody"></tbody></table></div></div>';
+ca.innerHTML=h;refreshCSBlack();
+}
+function refreshCSBlack(){
+var h='';
+if(CSBlack.length===0){h='<tr><td colspan="5" class="em"><div class="eic">✅</div><p>暂无拉黑记录</p></td></tr>';}
+else{CSBlack.forEach(function(b){h+='<tr><td><strong>'+b.phone+'</strong></td><td>'+b.reason+'</td><td>'+b.op+'</td><td>'+b.time+'</td><td><button class="btn btn-sm btn-o" onclick="unbanCS(\''+b.phone+'\')">解除</button></td></tr>';});}
+document.getElementById('csbTbody').innerHTML=h;
+}
+function openCSBlackNew(){
+var body='<div class="fr"><label>手机号</label><input id="cbPhone" placeholder="13800000000"></div><div class="fr fl"><label>拉黑原因</label><textarea id="cbReason" style="width:100%;height:60px;border:1px solid #e5e7eb;border-radius:6px;padding:8px"></textarea></div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="saveCSBlack()">确认拉黑</button>';
+openModal('拉黑访客',body,footer);
+}
+function saveCSBlack(){
+var p=document.getElementById('cbPhone').value.trim();if(!p){toast('请输入手机号','er');return;}
+var r=document.getElementById('cbReason').value.trim()||'恶意骚扰';
+CSBlack.push({phone:p,reason:r,op:CUR.n,time:new Date().toISOString().slice(0,10)});
+toast('已拉黑 '+p,'su');closeModal();refreshCSBlack();
+}
+function unbanCS(p){CSBlack=CSBlack.filter(function(x){return x.phone!==p;});toast('已解除拉黑','su');refreshCSBlack();}
+
+
+function renderPlaceholder(ca){
+var title=curTb||(MAPI[curSub]?MAPI[curSub].lb:'')||(MAPI[curGroup]?MAPI[curGroup].lb:'');
+ca.innerHTML='<h3>'+title+'</h3>'+
+'<div class="cd"><div class="cdh"><span class="cdt">'+title+' - 功能概览</span></div>'+
+'<p style="color:var(--ts);margin-bottom:12px">此页面为'+title+'模块，系统支持完整的数据管理与业务操作功能。点击下方功能卡片进入对应操作。</p>'+
+'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+
+'<button class="btn btn-p" onclick="openPhNew()">+ 新建</button><button class="btn btn-o" onclick="phExport()">↓ 导出数据</button><button class="btn btn-o" onclick="renderPlaceholder(document.getElementById(\'ca\'))">↻ 刷新</button><button class="btn btn-o" onclick="toast(\'配置面板(演示)\',\'in\')">⚙ 配置</button>'+
+'</div>'+
+'<div class="ph-grid">'+
+'<div class="ph-card" style="cursor:pointer" onclick="renderPhOverview(document.getElementById(\'ca\'))"><div class="ph-icon">📊</div><h4>数据概览</h4><p>查看'+title+'相关数据统计与分析报表</p></div>'+
+'<div class="ph-card" style="cursor:pointer" onclick="renderPhSearch(document.getElementById(\'ca\'))"><div class="ph-icon">🔍</div><h4>智能搜索</h4><p>快速检索'+title+'中的相关信息与记录</p></div>'+
+'<div class="ph-card" style="cursor:pointer" onclick="renderPhBatch(document.getElementById(\'ca\'))"><div class="ph-icon">📝</div><h4>批量操作</h4><p>支持批量处理'+title+'中的业务数据</p></div>'+
+'</div>'+
+'<div style="margin-top:8px"><button class="btn btn-o" onclick="renderPlaceholder(document.getElementById(\'ca\'))">← 返回功能概览</button></div>'+
+'</div>';
+}
+
+// ===== PH 功能卡片真实实现 =====
+function phTitle(){ return curTb||(MAPI[curSub]?MAPI[curSub].lb:'')||(MAPI[curGroup]?MAPI[curGroup].lb:''); }
+function phExport(){ var t=phTitle(); var rows=['字段','值']; rows.push('模块',t); rows.push('数据条数',(localStorage.getItem('taixun_'+t)||'').length||0); rows.push('导出时间',new Date().toLocaleString()); var csv=rows.join('\n'); var b=new Blob([csv],{type:'text/csv;charset=utf-8'}); var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=t+'-导出.csv'; a.click(); toast('已导出 '+t+' 数据','su'); }
+
+function renderPhOverview(ca){
+var t=phTitle(); var h='<h3>'+t+' - 数据概览</h3>';
+h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">';
+var cards=[['总记录','1240','#5E6AD2'],['今日新增','86','#10b981'],['活跃用户','342','#f59e0b'],['转化率','6.8%','#8b5cf6']];
+cards.forEach(function(c){h+='<div class="scd" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="font-size:11px;color:var(--ts)">'+c[0]+'</div><div style="font-size:22px;font-weight:700;color:'+c[2]+'">'+c[1]+'</div></div>';});
+h+='</div><div class="cd"><div class="cdh"><span class="cdt">📊 近7日数据趋势</span></div><div id="phOverviewChart" style="height:280px"></div></div>';
+h+='<div style="margin-top:8px"><button class="btn btn-o" onclick="renderPlaceholder(document.getElementById(\'ca\'))">← 返回功能概览</button></div>';
+ca.innerHTML=h;
+setTimeout(function(){ var el=document.getElementById('phOverviewChart'); if(el&&window.echarts){ var c=echarts.init(el); c.setOption({grid:{left:40,right:20,top:30,bottom:30},tooltip:{trigger:'axis'},xAxis:{type:'category',data:['周一','周二','周三','周四','周五','周六','周日']},yAxis:{type:'value'},series:[{name:'记录数',type:'line',smooth:true,data:[120,180,150,230,190,260,240],areaStyle:{color:'rgba(94,106,210,0.15)'},itemStyle:{color:'#5E6AD2'}}]}); } },200);
+}
+
+function renderPhSearch(ca){
+var t=phTitle(); var h='<h3>'+t+' - 智能搜索</h3>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">🔍 关键词检索</span></div>';
+h+='<input id="phSearchInput" placeholder="输入关键词搜索'+t+'相关记录..." style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;margin-bottom:10px" oninput="phDoSearch()">';
+h+='<div id="phSearchResult" style="color:var(--ts);font-size:12px">共 0 条结果</div></div>';
+h+='<div style="margin-top:8px"><button class="btn btn-o" onclick="renderPlaceholder(document.getElementById(\'ca\'))">← 返回功能概览</button></div>';
+ca.innerHTML=h;
+window.phSeedData=[{n:'客户-张伟',d:'高意向客户，咨询企业版套餐',c:'客户'},{n:'话术-开场白',d:'标准开场白模板 v2',c:'话术'},{n:'工单-2026082101',d:'工单处理中',c:'工单'},{n:'音色-晓晓',d:'温柔亲切客服音色',c:'音色'},{n:'客户-李娜',d:'中等意向，需回访',c:'客户'},{n:'话术-报价',d:'报价引导话术',c:'话术'}];
+phDoSearch();
+}
+function phDoSearch(){ var q=(document.getElementById('phSearchInput')?document.getElementById('phSearchInput').value:'').trim().toLowerCase(); var data=window.phSeedData||[]; var r=data.filter(function(x){ return !q||(x.n+x.d+x.c).toLowerCase().indexOf(q)>=0; }); var box=document.getElementById('phSearchResult'); if(!box)return; var h=''; if(r.length){ h+='<div style="color:var(--ts);margin-bottom:6px">共 '+r.length+' 条结果</div>'; r.forEach(function(x){ h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:4px"><span class="bdge in">'+x.c+'</span><div><div style="font-size:13px;font-weight:600">'+x.n+'</div><div style="font-size:11px;color:var(--ts)">'+x.d+'</div></div></div>'; }); } else { h='<div style="color:var(--ts)">未找到匹配“'+q+'”的记录</div>'; } box.innerHTML=h; }
+
+function renderPhBatch(ca){
+var t=phTitle(); var h='<h3>'+t+' - 批量操作</h3>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">📝 批量处理业务数据</span></div>';
+h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><button class="btn btn-p" onclick="phBatchAction()">批量通过</button><button class="btn btn-o" onclick="phBatchAction(\'del\')">批量删除</button><button class="btn btn-o" onclick="phSelectAll()">全选/取消</button></div>';
+h+='<div id="phBatchList"></div></div>';
+h+='<div style="margin-top:8px"><button class="btn btn-o" onclick="renderPlaceholder(document.getElementById(\'ca\'))">← 返回功能概览</button></div>';
+ca.innerHTML=h;
+window.phRows=[{id:1,n:'客户-张伟',s:'待跟进'},{id:2,n:'客户-李娜',s:'待跟进'},{id:3,n:'工单-2026082101',s:'处理中'},{id:4,n:'话术-报价',s:'草稿'},{id:5,n:'音色-云希',s:'待审核'}];
+var box=document.getElementById('phBatchList'); var l='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" onchange="phSelectAll(true)"> <span style="font-size:11px;color:var(--ts)">全选</span></div>';
+phRows.forEach(function(r){ l+='<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" class="phRowCk" value="'+r.id+'"> <strong style="font-size:13px">'+r.n+'</strong> <span class="bdge wa">'+r.s+'</span></div>'; });
+box.innerHTML=l;
+}
+function phSelectAll(f){ var cks=document.querySelectorAll('.phRowCk'); if(!cks.length)return; var all=Array.prototype.every.call(cks,function(c){return c.checked;}); cks.forEach(function(c){c.checked=!all;}); }
+function phBatchAction(mode){ var cks=document.querySelectorAll('.phRowCk:checked'); if(!cks.length){ toast('请先勾选要操作的记录','er'); return; } var n=cks.length; if(mode==='del'){ cks.forEach(function(c){c.closest('div').remove();}); toast('已删除 '+n+' 条记录','su'); } else { toast('已通过 '+n+' 条记录','su'); } }
+
+// ===== INTENT TAGS (话术设计-意向标签) =====
+var intentTagRules=[{id:1,name:'高意向-明确表达购买意愿',keywords:'我要买,多少钱,怎么买,下单,购买,支付,订购,签约',action:'标记为高意向,推送销售跟进',desc:'当客户在通话中明确表达购买意愿、询问价格和购买方式时触发',examples:'"这个多少钱？我要买一份"、"怎么下单？我想现在就买"',color:'#10b981'},{id:2,name:'高意向-主动留联系方式',keywords:'加微信,我的手机号,你记一下,联系方式,加个好友',action:'标记为高意向,自动记录联系方式',desc:'客户主动提供联系方式或要求添加微信时触发',examples:'"你加我微信吧，微信号是xxx"、"我的手机号是138xxxx"',color:'#10b981'},{id:3,name:'中等意向-索取更多资料',keywords:'发资料,看一下,参考,了解,对比,考虑,考虑一下',action:'标记为中等意向,推送产品资料+48h重呼',desc:'客户表示需要更多资料、对比参考或考虑时触发',examples:'"发个资料我看看吧"、"我先对比一下"、"我再考虑考虑"',color:'#f59e0b'},{id:4,name:'中等意向-询问产品细节',keywords:'是什么,什么内容,怎么用,有什么功能,区别,哪个好',action:'标记为中等意向,智能问答+推送详细介绍',desc:'客户询问产品/服务的具体内容、功能差异时触发',examples:'"这个产品有什么功能？"、"A和B有什么区别？"',color:'#f59e0b'},{id:5,name:'低意向-礼貌婉拒',keywords:'不需要,不感兴趣,再说吧,没时间,不方便,不用了',action:'标记为低意向,30天后重呼或转入维温池',desc:'客户明确表示不需要、不感兴趣或婉拒时触发',examples:'"不需要，谢谢"、"现在没时间，以后再说吧"',color:'#6b7280'},{id:6,name:'低意向-号码无效',keywords:'打错了,不是本人,你是谁,不认识,骚扰',action:'标记为无效号码,移入黑名单候选',desc:'客户表示打错电话、不认识或投诉骚扰时触发',examples:'"你打错了"、"我不是xxx"、"不要再打了"',color:'#ef4444'},{id:7,name:'无意向-直接挂断',keywords:'',action:'标记为无意向,累计3次挂断后暂停呼叫',desc:'通话接通后在3秒内被客户直接挂断',examples:'接通后即挂断（无有效对话）',color:'#9ca3af'},{id:8,name:'已成交-客户确认下单',keywords:'成交,就这个,OK,可以,好的,没问题,就这样',action:'标记为已成交,转入签约流程+发送确认短信',desc:'客户在通话中确认成交、同意方案时触发',examples:'"好，就这个方案吧"、"可以，帮我办了吧"',color:'#8b5cf6'}];
+
+function renderIntentTags(ca){
+var h='<h3>意向标签规则配置</h3>';
+h+='<div class="sr"><div class="scd"><div class="si gr">🎯</div><div><div class="sv">'+intentTagRules.length+'</div><div class="sl">规则总数</div></div></div>';
+h+='<div class="scd"><div class="si bl">📋</div><div><div class="sv">'+intentTagRules.filter(function(r){return r.desc.indexOf('高意向')>=0;}).length+'</div><div class="sl">高意向规则</div></div></div>';
+h+='<div class="scd"><div class="si or">🔍</div><div><div class="sv">'+intentTagRules.filter(function(r){return r.desc.indexOf('中等')>=0;}).length+'</div><div class="sl">中等意向规则</div></div></div>';
+h+='<div class="scd"><div class="si rd">🚫</div><div><div class="sv">'+intentTagRules.filter(function(r){return r.desc.indexOf('低意向')>=0||r.desc.indexOf('无')>=0;}).length+'</div><div class="sl">低/无意向规则</div></div></div></div>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">📋 意向标签判定规则列表</span><button class="btn btn-p btn-sm" onclick="toast(\'新建规则(演示)\',\'in\')">+ 新建规则</button></div>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>意向标签工作原理：</b>AI在通话过程中实时识别客户语音中的<b>关键词</b>和<b>语义</b>，匹配规则库中的意向判定条件，自动给客户打上对应等级的意向标签。标签结果用于销售跟进优先级排序和后续动作触发。</p>';
+intentTagRules.forEach(function(r){
+var bc=r.color||'#6b7280';
+h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:8px;border-left:4px solid '+bc+'">';
+h+='<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px">';
+h+='<div><span style="font-weight:700;font-size:13px">#'+r.id+' '+r.name+'</span>';
+h+='<span class="bdge" style="margin-left:8px;background:'+bc+'20;color:'+bc+'">触发动作: '+r.action+'</span></div>';
+h+='<div style="display:flex;gap:4px"><button class="btn btn-sm btn-o" onclick="toast(\'编辑规则#'+r.id+'\',\'in\')">✏️</button><button class="btn btn-sm btn-o" onclick="toast(\'复制规则#'+r.id+'到其他话术\',\'in\')">📋 复制</button><button class="btn btn-sm btn-o" onclick="toast(\'测试规则#'+r.id+'\',\'in\')">🧪 测试</button></div></div>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:4px">📝 '+r.desc+'</p>';
+h+='<div style="display:flex;gap:20px;font-size:11px;flex-wrap:wrap">';
+h+='<span><b style="color:var(--tx)">关键词匹配：</b><span style="color:#4a6cf7">'+r.keywords+'</span></span>';
+h+='<span><b style="color:var(--tx)">示例：</b><span style="color:var(--tm)">'+r.examples+'</span></span></div></div>';
+});
+h+='</div>';
+ca.innerHTML=h;
+}
+
+// ===== SCRIPT STATS (话术统计) =====
+function renderScriptStats(ca){
+var h='<h3>话术统计</h3>';
+h+='<div class="sr"><div class="scd"><div class="si bl">📊</div><div><div class="sv">'+DScripts.length+'</div><div class="sl">话术总数</div></div></div>';
+h+='<div class="scd"><div class="si gr">🔢</div><div><div class="sv">'+DScripts.reduce(function(s,x){return s+x.nodes;},0)+'</div><div class="sl">总节点数</div></div></div>';
+h+='<div class="scd"><div class="si pu">📈</div><div><div class="sv">'+Math.round(DTasks.reduce(function(s,t){return s+(t.called||0);},0)/1000)+'K</div><div class="sl">累计呼叫量</div></div></div></div>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">📊 各话术命中率与节点到达统计</span></div>';
+h+='<div class="tw"><table class="tb1"><thead><tr><th>话术名称</th><th>版本</th><th>场景</th><th>总呼叫量</th><th>接通率</th><th>主流程到达率</th><th>中断率</th><th>意向命中率</th><th>平均通话时长</th><th>操作</th></tr></thead><tbody>';
+DScripts.forEach(function(s,i){
+var hit=65+Math.floor(Math.random()*30);
+var main=55+Math.floor(Math.random()*35);
+var drop=5+Math.floor(Math.random()*15);
+var intent=30+Math.floor(Math.random()*45);
+var calls=800+Math.floor(Math.random()*5000);
+h+='<tr><td><strong>'+s.name+'</strong></td><td>v'+s.ver+'</td><td>'+s.scene+'</td><td>'+calls.toLocaleString()+'</td>';
+h+='<td><div class="pb"><div class="fill gr" style="width:'+hit+'%"></div></div> <span style="font-size:10px">'+hit+'%</span></td>';
+h+='<td><div class="pb"><div class="fill bl" style="width:'+main+'%"></div></div> <span style="font-size:10px">'+main+'%</span></td>';
+h+='<td><span style="color:'+(drop>10?'#ef4444':'#10b981')+'">'+drop+'%</span></td>';
+h+='<td><span class="bdge '+(intent>60?'su':intent>40?'wa':'in')+'">'+intent+'%</span></td>';
+h+='<td>'+(Math.floor(Math.random()*120+30))+'s</td>';
+h+='<td class="ta"><button class="btn btn-sm btn-o" onclick="openScriptDetail("+i+")">📊 详情</button><button class="btn btn-sm btn-o" onclick="toast(\'导出话术报表\',\'in\')">📥 导出</button></td></tr>';
+});
+h+='</tbody></table></div></div>';
+
+ca.innerHTML=h;
+}
+
+// ===== TTS PAGE (语音合成) =====
+function renderTTSPage(ca){
+var voices=[{id:1,name:'晓晓',gender:'女',style:'温柔亲切',scene:'客服场景',sample:'您好，欢迎致电泰讯科技。请问有什么可以帮您？',voiceKey:'Xiaoxiao',rate:1.0,pitch:1.1},{id:2,name:'云希',gender:'男',style:'沉稳专业',scene:'业务推介',sample:'您好，我是泰讯科技的智能客服，今天给您介绍我们的最新产品。',voiceKey:'Yunyang',rate:0.92,pitch:0.85},{id:3,name:'晓悠',gender:'女',style:'活泼清晰',scene:'活动通知',sample:'好消息！泰讯科技周年庆活动开始啦，现在参与即可享受超值优惠！',voiceKey:'Huihui',rate:1.15,pitch:1.25},{id:4,name:'云野',gender:'男',style:'磁性温和',scene:'关怀回访',sample:'您好，我是泰讯的客户关怀专员。想了解一下您最近的使用体验。',voiceKey:'Kangkang',rate:0.88,pitch:0.75},{id:5,name:'晓辰',gender:'女',style:'知性大方',scene:'金融保险',sample:'您好，关于您的保单续期事宜，我来为您详细说明一下。',voiceKey:'Yaoyao',rate:1.0,pitch:1.0},{id:6,name:'慧慧',gender:'女',style:'甜美清脆',scene:'通知播报',sample:'尊敬的客户，您的订单已发货，请注意查收。祝您生活愉快！',voiceKey:'Huihui',rate:1.12,pitch:1.3},{id:7,name:'康康',gender:'男',style:'浑厚有力',scene:'正式公告',sample:'各位听众请注意，以下播报一则重要通知，请您认真收听。',voiceKey:'Kangkang',rate:0.85,pitch:0.7},{id:8,name:'瑶瑶',gender:'女',style:'温婉柔和',scene:'夜间服务',sample:'夜深了，感谢您依然选择我们，有任何需要请随时告诉我们。',voiceKey:'Yaoyao',rate:0.95,pitch:1.05},{id:9,name:'云扬',gender:'男',style:'阳光活力',scene:'营销推广',sample:'嗨，我是您的专属顾问，今天带来一个超划算的优惠，千万别错过哦！',voiceKey:'Yunyang',rate:1.05,pitch:1.0},{id:10,name:'汉汉',gender:'女',style:'宝岛腔调',scene:'跨区域服务',sample:'您好，這裡是客服中心，很高興為您服務，請問有什麼需要幫忙的嗎？',voiceKey:'HanHan',rate:0.95,pitch:1.05}];
+var h='<h3>语音合成 (TTS)</h3>';
+h+='<div class="sr"><div class="scd"><div class="si bl">🎙️</div><div><div class="sv">'+voices.length+'</div><div class="sl">可选音色</div></div></div>';
+h+='<div class="scd"><div class="si gr">🔊</div><div><div class="sv">10</div><div class="sl">合成模型</div></div></div></div>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">🎙️ TTS音色列表</span><button class="btn btn-p btn-sm" onclick="toast(\'新建自定义音色(演示)\',\'in\')">+ 定制克隆音</button></div>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#fefce8;padding:8px 12px;border-radius:6px;border-left:3px solid #f59e0b">💡 <b>提示：</b>支持客户定制<b>声音克隆</b>服务，提供30分钟录音样本即可克隆出专属音色，用于话术变量播报。</p>';
+voices.forEach(function(v){
+h+='<div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px;transition:var(--tr);cursor:pointer" onclick="txSpeak(v.sample,v.voiceKey,v.rate,v.pitch)">';
+h+='<div style="width:40px;height:40px;border-radius:50%;background:'+(v.gender==='女'?'#fce4ec':'#e3f2fd')+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+(v.gender==='女'?'👩':'👨')+'</div>';
+h+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">'+v.name+' <span style="font-size:10px;color:var(--tm);font-weight:400">['+v.gender+'] '+v.style+'</span></div>';
+h+='<div style="font-size:11px;color:var(--ts);margin-top:2px">场景: '+v.scene+'</div>';
+h+='<div style="font-size:10px;color:var(--tm);margin-top:2px;font-style:italic">"'+v.sample+'"</div></div>';
+h+='<button class="btn btn-sm btn-p" onclick="event.stopPropagation();txSpeak(v.sample,v.voiceKey,v.rate,v.pitch)">▶ 试听</button>';
+h+='<button class="btn btn-sm btn-o">⭐ 收藏</button></div>';
+});
+h+='</div>';
+h+='<div class="cd" style="margin-top:10px"><div class="cdh"><span class="cdt">✏️ 自定义文字试听</span></div>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:8px">输入任意文字，选择音色后点击播放，即可试听合成效果。</p>';
+h+='<textarea id="ttsCustomText" placeholder="在这里输入想要试听的文字，例如：您好，这里是菏泽翔华自动化，请问有什么可以帮您？" style="width:100%;min-height:80px;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;resize:vertical;margin-bottom:10px"></textarea>';
+h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">';
+h+='<select id="ttsCustomVoice" style="padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px">'+voices.map(function(v){return '<option value="'+v.name+'">'+v.name+'（'+v.gender+'·'+v.style+'）</option>';}).join('')+'</select>';
+h+='<button class="btn btn-p" onclick="txSpeakCustom()">▶ 播放试听</button>';
+h+='<button class="btn btn-o" onclick="document.getElementById(\'ttsCustomText\').value=\'\'">清空</button>';
+h+='</div></div>';
+ca.innerHTML=h;
+}
+
+// ===== SCRIPT TEST (话术测试) =====
+function renderScriptTest(ca){
+var h='<h3>话术测试</h3>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">🧪 模拟对话测试</span></div>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px">在下方输入客户话术，模拟实际通话场景，测试AI话术的响应和意向判定结果。</p>';
+h+='<div class="form-row"><div><label>选择测试话术</label><select>'+DScripts.map(function(s){return '<option>'+s.name+'</option>';}).join('')+'</select></div>';
+h+='<div><label>测试模式</label><select><option>文本对话</option><option>语音模拟</option></select></div></div>';
+h+='<div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:16px;min-height:300px;margin-bottom:12px">';
+h+='<div style="margin-bottom:10px"><span class="bdge in">AI机器人</span> <span style="font-size:11px;color:var(--tx);margin-left:6px">您好，我是泰讯科技的智能客服。请问您对什么产品感兴趣呢？</span></div>';
+h+='<div style="margin-bottom:10px;text-align:right"><span style="font-size:11px;color:var(--tx);margin-right:6px">我想了解一下你们的套餐</span> <span class="bdge wa">测试客户</span></div>';
+h+='<div style="margin-bottom:10px"><span class="bdge in">AI机器人</span> <span style="font-size:11px;color:var(--tx);margin-left:6px">好的！我们的套餐分为基础版（199元/月）、专业版（499元/月）和企业版（999元/月）。您想了解哪个版本呢？</span></div>';
+h+='<div style="margin-bottom:10px"><span class="bdge su">意向判定</span> <span style="font-size:10px;color:#10b981;margin-left:6px">命中规则: 中等意向-询问产品细节 → 标记为中等意向</span></div>';
+h+='<div style="text-align:center;color:var(--tm);font-size:11px;margin-top:20px">--- 等待输入 ---</div></div>';
+h+='<div style="display:flex;gap:6px"><input placeholder="输入客户对话内容进行测试..." style="flex:1;padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px"><button class="btn btn-p">发送测试</button><button class="btn btn-o">清空对话</button></div>';
+h+='</div>';
+ca.innerHTML=h;
+}
+
+// ===== CORRECTION DICT (纠错词典) =====
+function renderCorrectionDict(ca){
+var corrections=[{id:1,wrong:'泰迅',right:'泰讯',cat:'品牌名',freq:128},{id:2,wrong:'人工只能',right:'人工智能',cat:'通用术语',freq:95},{id:3,wrong:'呼出',right:'呼叫',cat:'业务术语',freq:73},{id:4,wrong:'咋办',right:'怎么办',cat:'口语修正',freq:61},{id:5,wrong:'扣费',right:'扣费（费用扣除）',cat:'同音词',freq:58},{id:6,wrong:'肿么办',right:'怎么办',cat:'口语修正',freq:52},{id:7,wrong:'吱付宝',right:'支付宝',cat:'品牌名',freq:47},{id:8,wrong:'VX',right:'微信',cat:'品牌名',freq:41},{id:9,wrong:'保废',right:'保费',cat:'同音词',freq:36},{id:10,wrong:'优费',right:'优惠',cat:'同音词',freq:29}];
+var h='<h3>纠错词典</h3>';
+h+='<div class="sr"><div class="scd"><div class="si bl">📖</div><div><div class="sv">'+corrections.length+'</div><div class="sl">纠错词条</div></div></div>';
+h+='<div class="scd"><div class="si gr">🔄</div><div><div class="sv">'+corrections.reduce(function(s,x){return s+x.freq;},0)+'</div><div class="sl">累计纠错次数</div></div></div></div>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">📖 语音识别纠错词条</span><button class="btn btn-p btn-sm" onclick="toast(\'新建纠错词条(演示)\',\'in\')">+ 新建词条</button></div>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>纠错词典功能说明：</b>语音识别(ASR)有时会将某些词汇识别错误。纠错词典预先定义了<b>"错误识别 → 正确文本"</b>的映射关系，系统在通话过程中<b>实时自动修正</b>识别结果，提升后续意向判定和对话理解的准确率。<br>例如：客户说"泰讯"，ASR可能识别为"泰迅"，纠错词典自动修正为"泰讯"。</p>';
+h+='<div class="tw"><table class="tb1"><thead><tr><th>ID</th><th>错误识别</th><th>正确文本</th><th>分类</th><th>累计修正次数</th><th>最后修正时间</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+corrections.forEach(function(c){
+h+='<tr><td>'+c.id+'</td><td><span style="color:#ef4444;text-decoration:line-through">'+c.wrong+'</span></td>';
+h+='<td><span style="color:#10b981;font-weight:600">'+c.right+'</span></td><td><span class="bdge in">'+c.cat+'</span></td>';
+h+='<td>'+c.freq.toLocaleString()+'次</td><td>2026-06-'+(10+Math.floor(Math.random()*7))+'</td>';
+h+='<td><span class="bdge su">生效中</span></td>';
+h+='<td class="ta"><button class="btn btn-sm btn-o" onclick="toast(\'编辑词条#'+c.id+'\',\'in\')">✏️</button><button class="btn btn-sm btn-d" onclick="toast(\'删除词条\',\'er\')">🗑</button></td></tr>';
+});
+h+='</tbody></table></div></div>';
+ca.innerHTML=h;
+}
+
+// ===== STOP WORDS (打断停用词) =====
+function renderStopWords(ca){
+var stopWords=[{id:1,word:'嗯',desc:'客户在AI播报过程中发出的自然应答，不应打断当前播报'},{id:2,word:'哦',desc:'客户表示听到了但不影响通话继续'},{id:3,word:'好',desc:''},{id:4,word:'对',desc:'客户表示认同但并非要插入对话'},{id:5,word:'是的',desc:'客户表示确认Continue信号'},{id:6,word:'那个',desc:'口语填充词'},{id:7,word:'然后',desc:'口语填充词'},{id:8,word:'就是',desc:'口语填充词'},{id:9,word:'额',desc:'犹豫/思考音'},{id:10,word:'嘶',desc:'犹豫/思考音'}];
+var h='<h3>打断停用词</h3>';
+h+='<div class="sr"><div class="scd"><div class="si bl">🚫</div><div><div class="sv">'+stopWords.length+'</div><div class="sl">停用词条</div></div></div></div>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">🚫 打断停用词列表</span><button class="btn btn-p btn-sm" onclick="toast(\'新建停用词(演示)\',\'in\')">+ 新建词条</button></div>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#fefce8;padding:8px 12px;border-radius:6px;border-left:3px solid #f59e0b">💡 <b>打断停用词功能说明：</b>在AI通话过程中，系统会持续监听客户声音。当客户说出某些<b>简短口语词汇</b>（如"嗯"、"哦"、"对"）时，如果系统把它当成客户要打断AI播报的信号，就会造成频繁误中断。<br>打断停用词就是告诉AI：<b>听到这些词时不要停，继续播报</b>。这能大幅提升通话流畅度和客户体验。</p>';
+h+='<div class="tw"><table class="tb1"><thead><tr><th>ID</th><th>停用词</th><th>说明</th><th>添加时间</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+stopWords.forEach(function(w){
+h+='<tr><td>'+w.id+'</td><td><span style="font-weight:700;font-size:16px;color:var(--p)">"'+w.word+'"</span></td>';
+h+='<td>'+w.desc+'</td><td>2026-05-'+(10+Math.floor(Math.random()*20))+'</td>';
+h+='<td><span class="bdge su">生效中</span></td>';
+h+='<td class="ta"><button class="btn btn-sm btn-o" onclick="toast(\'编辑停用词#'+w.id+'\',\'in\')">✏️</button><button class="btn btn-sm btn-d" onclick="toast(\'删除停用词\',\'er\')">🗑</button></td></tr>';
+});
+h+='</tbody></table></div></div>';
+ca.innerHTML=h;
+}
+
+// ===== AGENT PLAZA (智能体广场) =====
+function renderAgentPlaza(ca){
+var agents=[{id:1,name:'房产销售助手',author:'泰讯官方',downloads:3850,stars:4.8,desc:'专为房地产行业设计的AI外呼话术智能体，涵盖楼盘介绍、邀约看房、开盘通知等场景',scene:'房地产',tags:['热销','官方','精品']},{id:2,name:'保险回访专家',author:'泰讯官方',downloads:2960,stars:4.7,desc:'适配保险行业的客户回访话术，支持保单续期提醒、理赔满意度回访、新产品推荐等',scene:'保险金融',tags:['官方','精品']},{id:3,name:'教育课程顾问',author:'教育行业伙伴',downloads:2130,stars:4.6,desc:'面向教育培训机构的课程咨询智能体，支持试听邀约、课程推荐、价格谈判引导',scene:'教育培训',tags:['热门','第三方']},{id:4,name:'信贷催收管家',author:'金融行业伙伴',downloads:1870,stars:4.5,desc:'合规化信贷催收话术，内置监管合规校验，支持多种催收阶段策略',scene:'金融催收',tags:['合规','推荐']},{id:5,name:'客户满意度调查',author:'泰讯官方',downloads:5620,stars:4.9,desc:'通用型客户满意度NPS调研智能体，支持多行业模板，自动生成分析报告',scene:'通用',tags:['最热','官方','精品']},{id:6,name:'电商促销推广',author:'电商行业伙伴',downloads:1450,stars:4.4,desc:'电商大促活动外呼推广，支持双11/618/年货节等节日营销场景',scene:'电商零售',tags:['热门','第三方']},{id:7,name:'医疗预约提醒',author:'医疗行业伙伴',downloads:980,stars:4.3,desc:'医疗机构就诊预约提醒和复诊通知，支持多科室排班对接',scene:'医疗健康',tags:['专业','第三方']},{id:8,name:'政务通知外呼',author:'泰讯官方',downloads:720,stars:4.2,desc:'政务服务通知外呼，支持政策传达、办事提醒、满意度回访等',scene:'政务服务',tags:['官方','合规']}];
+var h='<h3>智能体广场</h3>';
+h+='<div class="sr"><div class="scd"><div class="si bl">🏪</div><div><div class="sv">'+agents.length+'</div><div class="sl">可用智能体</div></div></div>';
+h+='<div class="scd"><div class="si gr">📥</div><div><div class="sv">'+agents.reduce(function(s,x){return s+x.downloads;},0).toLocaleString()+'</div><div class="sl">累计下载量</div></div></div>';
+h+='<div class="scd"><div class="si pu">⭐</div><div><div class="sv">'+(agents.reduce(function(s,x){return s+x.stars;},0)/agents.length).toFixed(1)+'</div><div class="sl">平均评分</div></div></div></div>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">🏪 智能体广场 - 大模型话术市场</span><div><input placeholder="搜索智能体..." style="padding:5px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px;margin-right:6px"><button class="btn btn-o btn-sm">🔍 搜索</button></div></div>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>智能体广场说明：</b>这里汇集了泰讯官方和行业伙伴发布的<b>大模型对话智能体</b>。每个智能体是一套完整的大模型话术方案（含对话策略+知识库+意向判定规则）。您可以<b>浏览、下载并一键部署</b>到自己的呼叫任务中，大幅降低话术开发成本。</p>';
+h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">';
+agents.forEach(function(a){
+var sc=a.stars;var starStr='';for(var i=0;i<5;i++)starStr+=i<Math.floor(sc)?'⭐':(sc-i>0.5?'✨':'☆');
+h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;transition:var(--tr);cursor:pointer" onmouseover="this.style.boxShadow=\'0 8px 25px rgba(0,0,0,.1)\';this.style.borderColor=\'#4a6cf7\'" onmouseout="this.style.boxShadow=\'\';this.style.borderColor=\'#e5e7eb\'">';
+h+='<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px"><span style="font-weight:700;font-size:14px">'+a.name+'</span><span style="font-size:10px;color:var(--tm)">'+sc+'</span></div>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:6px;line-height:1.5">'+a.desc+'</p>';
+h+='<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">'+a.tags.map(function(t){var bc=t==='官方'?'#4a6cf7':t==='精品'?'#8b5cf6':t==='最热'?'#ef4444':'#10b981';return '<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:'+bc+'15;color:'+bc+';font-weight:600">'+t+'</span>';}).join('')+'</div>';
+h+='<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:10px;color:var(--tm)"><span style="color:var(--ts);font-weight:600">'+starStr+'</span> · '+a.downloads.toLocaleString()+'次下载</div><button class="btn btn-sm btn-p" onclick="event.stopPropagation();toast(\'智能体 '+a.name+' 已加入我的智能体\',\'su\')">📥 获取</button></div></div>';
+});
+h+='</div></div>';
+ca.innerHTML=h;
+}
+
+// ===== LLM INTENT TAGS (智能体中心-意向标签) =====
+function renderLLMIntentTags(ca){
+var rules=[{id:1,trigger:'客户询问价格/购买方式',level:'高意向',confidence:95,desc:'大模型分析客户语义，识别购买意图信号',keywords:'多少钱、怎么买、我要了、下单、支付、购买'},{id:2,trigger:'客户主动提供联系方式',level:'高意向',confidence:92,desc:'客户主动留微信/电话，表明确实有兴趣进一步沟通',keywords:'加微信、手机号、联系方式、加好友'},{id:3,trigger:'客户询问产品细节',level:'中等意向',confidence:85,desc:'客户想了解更多信息，处于评估阶段',keywords:'有什么功能、区别、哪个好、介绍一下'},{id:4,trigger:'客户提到对比竞品',level:'中等意向',confidence:80,desc:'客户在选择中，说明确实有需求',keywords:'别人家、竞品、对比、哪个划算'},{id:5,trigger:'客户明确拒绝/挂断',level:'低意向',confidence:98,desc:'大模型识别拒绝语义，判定客户当前无意愿',keywords:'不需要、不用了、再说吧、不感兴趣'},{id:6,trigger:'客户表示需要时间考虑',level:'待跟进',confidence:88,desc:'客户有兴趣但暂时无法决策，需要后续跟进',keywords:'考虑一下、回头再说、和家人商量、再看看'}];var h='<h3>大模型意向标签配置</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">🧠</div><div><div class="sv">'+rules.length+'</div><div class="sl">判定规则</div></div></div><div class="scd"><div class="si gr">🎯</div><div><div class="sv">'+rules.filter(function(r){return r.level==='高意向';}).length+'</div><div class="sl">高意向规则</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">🧠 大模型意向标签判定规则</span><button class="btn btn-p btn-sm" onclick="toast(\'新建规则(演示)\',\'in\')">+ 新建规则</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0fdfa;padding:8px 12px;border-radius:6px;border-left:3px solid #10b981">💡 <b>大模型意向标签与传统规则的区别：</b>大模型不只做关键词匹配，而是<b>理解客户完整语义和对话上下文</b>。例如客户说"这个套餐还不错，但我先回去跟家人商量一下"，大模型能识别这是中等意向（有兴趣）+待跟进（需要时间），而非简单地标记为低意向。大模型可以理解<b>隐含意图、情绪倾向、决策阶段</b>等复杂信号。</p>';rules.forEach(function(r){var bc=r.level==='高意向'?'#10b981':r.level==='中等意向'?'#f59e0b':r.level==='待跟进'?'#8b5cf6':'#6b7280';h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:6px;border-left:4px solid '+bc+'">';h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:12px">#'+r.id+' '+r.trigger+'</span><span class="bdge" style="background:'+bc+'20;color:'+bc+'">'+r.level+' (置信度: '+r.confidence+'%)</span></div>';h+='<p style="font-size:10px;color:var(--ts);margin-bottom:3px">🤖 '+r.desc+'</p>';h+='<span style="font-size:9px;color:var(--tm)">语义信号: '+r.keywords+'</span></div>';});h+='</div>';ca.innerHTML=h;}
+
+// ===== KNOWLEDGE CENTER (知识中心) =====
+function renderKnowledgeCenter(ca){var kbs=[{id:1,name:'产品问答知识库',type:'FAQ',docs:256,update:'2026-06-15',desc:'涵盖公司所有产品的功能、价格、政策等常见问答'},{id:2,name:'行业术语词典',type:'术语库',docs:480,update:'2026-06-10',desc:'各行业专业术语定义，辅助大模型理解客户语境'},{id:3,name:'竞品对比资料',type:'知识文档',docs:85,update:'2026-06-08',desc:'主要竞品的产品特点、价格对比参考'},{id:4,name:'政策法规库',type:'合规知识',docs:120,update:'2026-06-01',desc:'行业监管政策和法律法规知识，确保合规对话'},{id:5,name:'客户案例库',type:'案例知识',docs:64,update:'2026-05-28',desc:'过往成功案例、客户评价参考'}];var h='<h3>知识中心</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">📚</div><div><div class="sv">'+kbs.length+'</div><div class="sl">知识库</div></div></div><div class="scd"><div class="si gr">📄</div><div><div class="sv">'+kbs.reduce(function(s,x){return s+x.docs;},0)+'</div><div class="sl">总文档数</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">📚 多模态知识库</span><button class="btn btn-p btn-sm" onclick="toast(\'新建知识库(演示)\',\'in\')">+ 新建知识库</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>知识中心功能说明：</b>这里存储了供大模型外呼使用的<b>多模态知识库</b>（文本/图片/音视频）。大模型在通话过程中可以实时检索知识库获取准确答案，确保AI回复的专业性和准确性。</p>';h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px">';kbs.forEach(function(kb){h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;cursor:pointer;transition:var(--tr)" onmouseover="this.style.boxShadow=\'0 8px 25px rgba(0,0,0,.1)\';this.style.borderColor=\'#4a6cf7\'" onmouseout="this.style.boxShadow=\'\';this.style.borderColor=\'#e5e7eb\'">';h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:13px">'+kb.name+'</span><span class="bdge in">'+kb.type+'</span></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:6px">'+kb.desc+'</p><div style="font-size:10px;color:var(--tm)">📄 '+kb.docs+'篇文档 · 更新于 '+kb.update+'</div>';h+='<div style="display:flex;gap:4px;margin-top:8px"><button class="btn btn-sm btn-o" onclick="event.stopPropagation();toast(\'浏览知识库\',\'in\')">📖 浏览</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();toast(\'同步到话术\',\'in\')">🔄 同步</button></div></div>';});h+='</div></div>';ca.innerHTML=h;}
+
+// ===== LLM DESIGN (大模型对话设计) =====
+function renderLLMDesign(ca){var h='<h3>大模型对话设计</h3>';h+='<div class="cd"><div class="cdh"><span class="cdt">🧠 大模型话术配置</span><button class="btn btn-p btn-sm" onclick="toast(\'新建大模型话术(演示)\',\'in\')">+ 新建话术</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0fdfa;padding:8px 12px;border-radius:6px;border-left:3px solid #10b981">💡 <b>大模型对话设计说明：</b>与传统话术编排不同，大模型话术通过<b>系统指令(Prompt)+知识库+意图配置</b>驱动AI对话。您只需要定义角色设定、对话目标和核心信息点，大模型会根据客户的实际反应<b>智能生成</b>最合适的回复，而非按固定剧本逐句执行。</p>';h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px"><div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px"><h4 style="font-size:12px;margin-bottom:8px">📝 系统指令 (System Prompt)</h4><textarea style="width:100%;height:120px;border:1px solid #e5e7eb;border-radius:4px;padding:8px;font-size:11px;font-family:inherit;resize:vertical" placeholder="你是一个专业的房地产销售顾问AI。你需要：1. 热情友好地介绍楼盘信息 2. 了解客户的购房需求 3. 精准回答客户问题 4. 引导客户预约看房..."></textarea></div><div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px"><h4 style="font-size:12px;margin-bottom:8px">🎯 核心信息点</h4><div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10px"><input type="checkbox" checked> 楼盘位置及周边配套</label><label style="font-size:10px"><input type="checkbox" checked> 户型面积及价格区间</label><label style="font-size:10px"><input type="checkbox" checked> 优惠政策及活动</label><label style="font-size:10px"><input type="checkbox"> 交房时间</label><label style="font-size:10px"><input type="checkbox"> 贷款政策</label><label style="font-size:10px"><input type="checkbox"> 竞品对比</label></div></div></div>';h+='<div style="display:flex;gap:6px"><button class="btn btn-p" onclick="toast(\'话术已保存\',\'su\')">💾 保存话术</button><button class="btn btn-o" onclick="toast(\'分享话术链接\',\'in\')">📤 分享</button><button class="btn btn-o" onclick="toast(\'开始测试\',\'in\')">🧪 测试</button><button class="btn btn-o" onclick="toast(\'发布到智能体广场\',\'in\')">🚀 发布</button></div></div>';ca.innerHTML=h;}
+
+// ===== AIBOT MARKET (AIBOT市场) =====
+function renderAibotMarket(ca){var bots=[{id:1,name:'房地产电话营销',author:'泰讯官方',stars:4.9,uses:12800,desc:'标准房地产外呼推广话术模板，含楼盘介绍、邀约看房、开盘通知等完整流程',nodes:18,scene:'房地产'},{id:2,name:'保险客户回访',author:'泰讯官方',stars:4.8,uses:9600,desc:'保险行业回访标准话术，支持满意度调研、续保提醒、新产品推介',nodes:14,scene:'保险'},{id:3,name:'教育机构招生',author:'教育行业认证',stars:4.7,uses:7300,desc:'K12和成人教育机构招生外呼话术，含试听邀约、课程介绍',nodes:12,scene:'教育'},{id:4,name:'贷款逾期催收',author:'金融行业认证',stars:4.6,uses:5100,desc:'合规催收标准话术模板，内置监管合规校验节点',nodes:22,scene:'金融'},{id:5,name:'客户满意度NPS',author:'泰讯官方',stars:4.9,uses:18500,desc:'通用NPS净推荐值调研话术，支持多行业适配',nodes:8,scene:'通用'},{id:6,name:'电商活动通知',author:'电商行业认证',stars:4.5,uses:4200,desc:'电商大促/上新/优惠活动通知话术',nodes:10,scene:'电商'},{id:7,name:'汽车4S店邀约',author:'汽车行业认证',stars:4.6,uses:3800,desc:'汽车4S店试驾邀约、新车上市通知话术模板',nodes:16,scene:'汽车'},{id:8,name:'会员续费提醒',author:'泰讯官方',stars:4.7,uses:8900,desc:'会员到期续费提醒标准话术，含优惠引导等',nodes:9,scene:'通用'}];var h='<h3>AIBOT市场（公共AI话术市场）</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">🤖</div><div><div class="sv">'+bots.length+'</div><div class="sl">话术模板</div></div></div><div class="scd"><div class="si gr">📥</div><div><div class="sv">'+bots.reduce(function(s,x){return s+x.uses;},0).toLocaleString()+'</div><div class="sl">累计使用次数</div></div></div><div class="scd"><div class="si pu">⭐</div><div><div class="sv">'+(bots.reduce(function(s,x){return s+x.stars;},0)/bots.length).toFixed(1)+'</div><div class="sl">平均评分</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">🤖 公共AI话术市场</span><div><input placeholder="搜索话术模板..." style="padding:5px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px;margin-right:6px"><button class="btn btn-o btn-sm">🔍 搜索</button></div></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#fefce8;padding:8px 12px;border-radius:6px;border-left:3px solid #f59e0b">💡 <b>AIBOT市场说明：</b>这是一个<b>公共话术模板市场</b>，收录了各行业标准化AI呼叫话术模板。与传统话术设计不同，这里的模板由泰讯和行业专家预先设计，您可以直接<b>领取后使用或修改</b>，无需从零开始设计话术。适合快速开展业务的场景。</p>';h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px">';bots.forEach(function(b){var sc=Math.floor(b.stars);var ss='';for(var i=0;i<5;i++)ss+=i<sc?'⭐':'☆';h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;cursor:pointer;transition:var(--tr)" onmouseover="this.style.boxShadow=\'0 8px 25px rgba(0,0,0,.1)\';this.style.borderColor=\'#4a6cf7\'" onmouseout="this.style.boxShadow=\'\';this.style.borderColor=\'#e5e7eb\'">';h+='<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:4px"><span style="font-weight:700;font-size:13px">'+b.name+'</span><span style="font-size:12px">'+ss+' '+b.stars+'</span></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:6px">'+b.desc+'</p>';h+='<div style="display:flex;gap:8px;font-size:10px;color:var(--tm);margin-bottom:8px"><span>🏷 '+b.scene+'</span><span>🔢 '+b.nodes+'节点</span><span>👤 '+b.author+'</span><span>📥 '+b.uses.toLocaleString()+'次</span></div>';h+='<div style="display:flex;gap:4px"><button class="btn btn-sm btn-p" onclick="event.stopPropagation();toast(\'话术模板 '+b.name+' 已领取到我的话术\',\'su\')">📥 一键领取</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();toast(\'预览话术: '+b.name+'\',\'in\')">👁 预览</button></div></div>';});h+='</div></div>';ca.innerHTML=h;}
+// ===== TASK LIST =====
+function renderTaskList(ca){
+var ts=DTasks;
+var total=ts.length,running=ts.filter(function(x){return x.status==='running'}).length;
+var paused=ts.filter(function(x){return x.status==='paused'}).length;
+var completed=ts.filter(function(x){return x.status==='completed'}).length;
+var statusLabel={running:'运行中',paused:'已暂停',completed:'已完成',pending:'待启动'};
+var statusBadge={running:'su',paused:'wa',completed:'gr',pending:'in'};
+
+ca.innerHTML='<h3>任务列表</h3>'+
+'<div class="sr"><div class="scd"><div class="si bl">📋</div><div><div class="sv">'+total+'</div><div class="sl">任务总数</div></div></div>'+
+'<div class="scd"><div class="si gr">▶</div><div><div class="sv">'+running+'</div><div class="sl">运行中</div></div></div>'+
+'<div class="scd"><div class="si or">⏸</div><div><div class="sv">'+paused+'</div><div class="sl">已暂停</div></div></div>'+
+'<div class="scd"><div class="si pu">✓</div><div><div class="sv">'+completed+'</div><div class="sl">已完成</div></div></div></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">呼叫任务</span><button class="btn btn-p" onclick="showTaskModal()">+ 新建任务</button></div>'+
+'<div class="fb"><input placeholder="搜索任务名称..." oninput="taskSearch(this.value)"><select onchange="taskFilterStatus(this.value)"><option value="">全部状态</option><option value="running">运行中</option><option value="paused">已暂停</option><option value="completed">已完成</option><option value="pending">待启动</option></select></div>'+
+'<div class="tw"><table class="tb1"><thead><tr><th>ID</th><th>任务名称</th><th>话术</th><th>号码量</th><th>已呼叫</th><th>状态</th><th>进度</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="taskTbody"></tbody></table></div>'+
+'<div id="taskPgn"></div></div>';
+refreshTaskTable();
+}
+function refreshTaskTable(){
+var ts=DTasks;
+if(taskSearch){ts=ts.filter(function(x){return x.name.indexOf(taskSearch)>=0;});}
+if(taskStatusFilter){ts=ts.filter(function(x){return x.status===taskStatusFilter;});}
+var pageSize=8,tp=Math.ceil(ts.length/pageSize);
+if(taskPage>tp)taskPage=tp;
+if(taskPage<1)taskPage=1;
+var start=(taskPage-1)*pageSize,pg=ts.slice(start,start+pageSize);
+var statusLabel={running:'运行中',paused:'已暂停',completed:'已完成',pending:'待启动'};
+var statusBadge={running:'su',paused:'wa',completed:'gr',pending:'in'};
+var fillCls={running:'bl',paused:'or',completed:'gr',pending:'gr'};
+var h='';
+pg.forEach(function(t){
+h+='<tr><td>'+t.id+'</td><td><strong>'+t.name+'</strong></td><td>'+t.script+'</td><td>'+t.total+'</td><td>'+t.called+'</td>'+
+'<td><span class="bdge '+statusBadge[t.status]+'">'+statusLabel[t.status]+'</span></td>'+
+'<td><div class="pb"><div class="fill '+fillCls[t.status]+'" style="width:'+t.progress+'%"></div></div><span style="font-size:10px;margin-left:4px">'+t.progress+'%</span></td>'+
+'<td>'+t.createTime+'</td>'+
+'<td class="ta">'+
+(t.status==='running'?'<button class="btn btn-sm btn-w" onclick="pauseTask('+t.id+')">⏸ 暂停</button>':'')+
+(t.status==='paused'?'<button class="btn btn-sm btn-s" onclick="startTask('+t.id+')">▶ 启动</button>':'')+
+'<button class="btn btn-sm btn-o" onclick="editTask('+t.id+')">✏️</button>'+
+'<button class="btn btn-sm btn-d" onclick="deleteTask('+t.id+')">🗑</button></td></tr>';
+});
+document.getElementById('taskTbody').innerHTML=h||'<tr><td colspan="9" class="em"><div class="eic">📭</div><p>暂无匹配的任务</p></td></tr>';
+document.getElementById('taskPgn').innerHTML=renderPagination(ts.length,taskPage,pageSize,'goTaskPage');
+}
+function taskSearch(v){taskSearch=v;taskPage=1;refreshTaskTable();}
+function taskFilterStatus(v){taskStatusFilter=v;taskPage=1;refreshTaskTable();}
+function goTaskPage(p){taskPage=p;refreshTaskTable();}
+function pauseTask(id){
+var t=DTasks.find(function(x){return x.id===id;});
+if(t){t.status='paused';setStored('tx_tasks',DTasks);toast('任务"'+t.name+'"已暂停','wa');refreshTaskTable();}
+}
+function startTask(id){
+var t=DTasks.find(function(x){return x.id===id;});
+if(t){t.status='running';setStored('tx_tasks',DTasks);toast('任务"'+t.name+'"已启动','su');refreshTaskTable();}
+}
+function deleteTask(id){
+var t=DTasks.find(function(x){return x.id===id;});
+if(confirm('确定删除任务"'+t.name+'"吗？')){
+DTasks=DTasks.filter(function(x){return x.id!==id;});
+setStored('tx_tasks',DTasks);toast('任务已删除','da');refreshTaskTable();
+}
+}
+function editTask(id){showTaskModal(id);}
+function showTaskModal(id){
+var t=null;if(id){t=DTasks.find(function(x){return x.id===id;});}
+var body='<div class="fr fl"><label>任务名称</label><input id="tmName" value="'+(t?t.name:'')+'"></div>'+
+'<div class="fr"><label>话术模板</label><select id="tmScript">'+DScripts.map(function(s){return '<option value="'+s.name+'"'+(t&&t.script===s.name?' selected':'')+'>'+s.name+'</option>';}).join('')+'</select>'+
+'<label>号码数量</label><input id="tmTotal" type="number" value="'+(t?t.total:'200')+'"></div>'+
+'<div class="fr fl"><label>创建人</label><input id="tmCreator" value="'+(t?t.creator:CUR.n)+'"></div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="saveTask('+(id||0)+')">保存</button>';
+openModal(t?'编辑任务':'新建任务',body,footer);
+}
+function saveTask(id){
+var nm=document.getElementById('tmName').value.trim();
+var sc=document.getElementById('tmScript').value;
+var tot=parseInt(document.getElementById('tmTotal').value)||200;
+var cr=document.getElementById('tmCreator').value.trim();
+if(!nm){toast('请输入任务名称','er');return;}
+if(id){
+var t=DTasks.find(function(x){return x.id===id;});
+if(t){t.name=nm;t.script=sc;t.total=tot;t.creator=cr;}
+toast('任务已更新','su');
+}else{
+var nid=DTasks.length>0?Math.max.apply(null,DTasks.map(function(x){return x.id;}))+1:1;
+DTasks.push({id:nid,name:nm,script:sc,total:tot,called:0,status:'pending',progress:0,createTime:new Date().toISOString().slice(0,10),creator:cr});
+toast('任务已创建','su');
+}
+setStored('tx_tasks',DTasks);
+closeModal();refreshTaskTable();
+}
+
+// ===== PHONE LIST =====
+function renderPhoneList(ca){
+var total=DNums.length;
+var p1=DNums.filter(function(x){return x.status==='待呼叫'}).length;
+var p2=DNums.filter(function(x){return x.status==='已完成'}).length;
+ca.innerHTML='<h3>电话号码</h3>'+
+'<div class="sr"><div class="scd"><div class="si bl">📱</div><div><div class="sv">'+total+'</div><div class="sl">号码总数</div></div></div>'+
+'<div class="scd"><div class="si or">⏳</div><div><div class="sv">'+p1+'</div><div class="sl">待呼叫</div></div></div>'+
+'<div class="scd"><div class="si gr">✓</div><div><div class="sv">'+p2+'</div><div class="sl">已完成</div></div></div></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">号码列表</span><div><button class="btn btn-p btn-sm" onclick="toast(\'导入功能(演示)\',\'in\')">📥 导入号码</button><button class="btn btn-d btn-sm" onclick="batchDelNums()">🗑 批量删除</button></div></div>'+
+'<div class="fb"><input placeholder="搜索号码..." oninput="numSearchFn(this.value)"><select onchange="numStatusFn(this.value)"><option value="">全部状态</option><option value="待呼叫">待呼叫</option><option value="已呼叫">已呼叫</option><option value="呼叫中">呼叫中</option><option value="已完成">已完成</option></select></div>'+
+'<div class="tw"><table class="tb1"><thead><tr><th><input type="checkbox" onchange="toggleAllNums(this)"></th><th>ID</th><th>号码</th><th>归属地</th><th>状态</th><th>标签</th><th>来源</th><th>呼叫次数</th><th>最近呼叫</th><th>操作</th></tr></thead><tbody id="numTbody"></tbody></table></div>'+
+'<div id="numPgn"></div></div>';
+refreshNumTable();
+}
+var numSel=[];
+function refreshNumTable(){
+var ns=DNums;
+if(numSearch){ns=ns.filter(function(x){return x.num.indexOf(numSearch)>=0;});}
+if(numStatusFilter){ns=ns.filter(function(x){return x.status===numStatusFilter;});}
+var ps=8,tp=Math.ceil(ns.length/ps);
+if(numPage>tp)numPage=tp;if(numPage<1)numPage=1;
+var st=(numPage-1)*ps,pg=ns.slice(st,st+ps);
+var stBadge={待呼叫:'wa',已呼叫:'in',呼叫中:'bl',已完成:'su'};
+var h='';
+pg.forEach(function(n){
+h+='<tr><td><input type="checkbox" '+(numSel.indexOf(n.id)>=0?'checked':'')+' onchange="toggleNumSel('+n.id+',this)"></td>'+
+'<td>'+n.id+'</td><td><strong>'+n.num+'</strong></td><td>'+n.city+'</td>'+
+'<td><span class="bdge '+stBadge[n.status]+'">'+n.status+'</span></td><td>'+n.tag+'</td><td>'+n.source+'</td>'+
+'<td>'+n.callTimes+'</td><td>'+n.lastCall+'</td>'+
+'<td class="ta"><button class="btn btn-sm btn-o" onclick="editNum('+n.id+')">✏️</button>'+
+'<button class="btn btn-sm btn-d" onclick="delNum('+n.id+')">🗑</button>'+
+'<button class="btn btn-sm btn-w" onclick="blacklistNum('+n.id+')">🚫</button></td></tr>';
+});
+document.getElementById('numTbody').innerHTML=h||'<tr><td colspan="10" class="em"><div class="eic">📭</div><p>暂无号码</p></td></tr>';
+document.getElementById('numPgn').innerHTML=renderPagination(ns.length,numPage,ps,'goNumPage');
+}
+function numSearchFn(v){numSearch=v;numPage=1;refreshNumTable();}
+function numStatusFn(v){numStatusFilter=v;numPage=1;refreshNumTable();}
+function goNumPage(p){numPage=p;refreshNumTable();}
+function toggleNumSel(id,el){if(el.checked){numSel.push(id);}else{numSel=numSel.filter(function(x){return x!==id;});}}
+function toggleAllNums(el){
+var ns=DNums;if(numSearch)ns=ns.filter(function(x){return x.num.indexOf(numSearch)>=0;});
+if(numStatusFilter)ns=ns.filter(function(x){return x.status===numStatusFilter;});
+var ps=8,st=(numPage-1)*ps,pg=ns.slice(st,st+ps);
+if(el.checked){pg.forEach(function(n){if(numSel.indexOf(n.id)<0)numSel.push(n.id);});}
+else{pg.forEach(function(n){numSel=numSel.filter(function(x){return x!==n.id;});});}
+refreshNumTable();
+}
+function batchDelNums(){
+if(numSel.length===0){toast('请先选择号码','er');return;}
+if(confirm('确定删除选中的'+numSel.length+'个号码？')){
+DNums=DNums.filter(function(n){return numSel.indexOf(n.id)<0;});
+numSel=[];setStored('tx_nums',DNums);toast('已删除','da');refreshNumTable();
+}
+}
+function delNum(id){
+if(confirm('确定删除此号码？')){
+DNums=DNums.filter(function(n){return n.id!==id;});
+numSel=numSel.filter(function(x){return x!==id;});
+setStored('tx_nums',DNums);toast('号码已删除','da');refreshNumTable();
+}
+}
+function blacklistNum(id){
+var n=DNums.find(function(x){return x.id===id;});
+if(n){n.tag='黑名单';n.status='已完成';setStored('tx_nums',DNums);toast('已加入黑名单','wa');refreshNumTable();}
+}
+function editNum(id){
+var n=DNums.find(function(x){return x.id===id;});
+if(!n)return;
+var body='<div class="fr"><label>号码</label><input id="enNum" value="'+n.num+'"></div>'+
+'<div class="fr"><label>归属地</label><input id="enCity" value="'+n.city+'"></div>'+
+'<div class="fr"><label>标签</label><input id="enTag" value="'+n.tag+'"></div>'+
+'<div class="fr"><label>状态</label><select id="enStatus"><option value="待呼叫"'+(n.status==='待呼叫'?' selected':'')+'>待呼叫</option><option value="已呼叫"'+(n.status==='已呼叫'?' selected':'')+'>已呼叫</option><option value="呼叫中"'+(n.status==='呼叫中'?' selected':'')+'>呼叫中</option><option value="已完成"'+(n.status==='已完成'?' selected':'')+'>已完成</option></select></div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="saveNumEdit('+id+')">保存</button>';
+openModal('编辑号码 - ID:'+id,body,footer);
+}
+function saveNumEdit(id){
+var n=DNums.find(function(x){return x.id===id;});
+if(!n)return;
+n.num=document.getElementById('enNum').value.trim();
+n.city=document.getElementById('enCity').value.trim();
+n.tag=document.getElementById('enTag').value.trim();
+n.status=document.getElementById('enStatus').value;
+setStored('tx_nums',DNums);closeModal();toast('号码已更新','su');refreshNumTable();
+}
+
+// ===== CALL LOGS =====
+function renderCallLogs(ca){
+var total=DCalls.length;
+var answered=DCalls.filter(function(x){return x.result==='已接通'}).length;
+ca.innerHTML='<h3>通话记录</h3>'+
+'<div class="sr"><div class="scd"><div class="si bl">📞</div><div><div class="sv">'+total+'</div><div class="sl">通话总数</div></div></div>'+
+'<div class="scd"><div class="si gr">✓</div><div><div class="sv">'+answered+'</div><div class="sl">已接通</div></div></div>'+
+'<div class="scd"><div class="si or">📊</div><div><div class="sv">'+(Math.round(answered/total*100))+'%</div><div class="sl">接通率</div></div></div></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">通话记录列表</span></div>'+
+'<div class="fb"><input placeholder="搜索..." oninput="callSearchFn(this.value)"><select onchange="callResultFn(this.value)"><option value="">全部结果</option><option value="已接通">已接通</option><option value="未接通">未接通</option><option value="拒接">拒接</option></select><select onchange="callIntentFn(this.value)"><option value="">全部意向</option><option value="高意向">高意向</option><option value="中等意向">中等意向</option><option value="低意向">低意向</option></select></div>'+
+'<div class="tw"><table class="tb1"><thead><tr><th>通话编号</th><th>客户</th><th>号码</th><th>结果</th><th>时长</th><th>意向标签</th><th>话术</th><th>坐席</th><th>时间</th></tr></thead><tbody id="callTbody"></tbody></table></div>'+
+'<div id="callPgn"></div></div>';
+refreshCallTable();
+}
+function refreshCallTable(){
+var cs=DCalls;
+if(callSearch){cs=cs.filter(function(x){return x.customer.indexOf(callSearch)>=0||x.num.indexOf(callSearch)>=0;});}
+if(callResultFilter){cs=cs.filter(function(x){return x.result===callResultFilter;});}
+if(callIntentFilter){cs=cs.filter(function(x){return x.intent===callIntentFilter;});}
+var ps=8,tp=Math.ceil(cs.length/ps);
+if(callPage>tp)callPage=tp;if(callPage<1)callPage=1;
+var st=(callPage-1)*ps,pg=cs.slice(st,st+ps);
+var rBadge={已接通:'su',未接通:'wa',拒接:'da',关机:'gr',空号:'gr',正在通话中:'in',用户挂断:'wa'};
+var iBadge={高意向:'su',中等意向:'wa',低意向:'in',无意向:'gr',需跟进:'bl',已成交:'pu'};
+var h='';
+pg.forEach(function(c){
+h+='<tr><td>'+c.id+'</td><td>'+c.customer+'</td><td>'+c.num+'</td><td><span class="bdge '+(rBadge[c.result]||'gr')+'">'+c.result+'</span></td>'+
+'<td>'+c.duration+'</td><td><span class="bdge '+(iBadge[c.intent]||'gr')+'">'+c.intent+'</span></td>'+
+'<td>'+c.script+'</td><td>'+c.agent+'</td><td>'+c.time+'</td></tr>';
+});
+document.getElementById('callTbody').innerHTML=h||'<tr><td colspan="9" class="em"><div class="eic">📭</div><p>暂无记录</p></td></tr>';
+document.getElementById('callPgn').innerHTML=renderPagination(cs.length,callPage,ps,'goCallPage');
+}
+function callSearchFn(v){callSearch=v;callPage=1;refreshCallTable();}
+function callResultFn(v){callResultFilter=v;callPage=1;refreshCallTable();}
+function callIntentFn(v){callIntentFilter=v;callPage=1;refreshCallTable();}
+function goCallPage(p){callPage=p;refreshCallTable();}
+
+
+// ===== CALL STATS (ECharts) =====
+function renderCallStats(ca){
+ca.innerHTML='<h3>呼叫统计</h3><div class="chg"><div class="cd"><div class="cdh"><span class="cdt">任务状态分布</span></div><div class="chb" id="chart1"></div></div><div class="cd"><div class="cdh"><span class="cdt">呼叫进度</span></div><div class="chb" id="chart2"></div></div><div class="cd"><div class="cdh"><span class="cdt">每日呼叫趋势</span></div><div class="chb" id="chart3"></div></div><div class="cd"><div class="cdh"><span class="cdt">意向分布</span></div><div class="chb" id="chart4"></div></div></div>';
+setTimeout(function(){
+var c1=echarts.init(document.getElementById('chart1'));
+c1.setOption({tooltip:{trigger:'item'},series:[{type:'pie',radius:['40%','70%'],label:{show:true,formatter:'{b}: {c}'},data:[{name:'运行中',value:DTasks.filter(function(x){return x.status==='running'}).length},{name:'已暂停',value:DTasks.filter(function(x){return x.status==='paused'}).length},{name:'已完成',value:DTasks.filter(function(x){return x.status==='completed'}).length},{name:'待启动',value:DTasks.filter(function(x){return x.status==='pending'}).length}]}]});
+
+var c2=echarts.init(document.getElementById('chart2'));
+var tasks2=DTasks.slice(0,8);
+c2.setOption({tooltip:{},xAxis:{type:'category',data:tasks2.map(function(x){return x.name.substring(0,4)+'..';}),axisLabel:{rotate:20}},yAxis:{type:'value'},series:[{name:'号码量',type:'bar',data:tasks2.map(function(x){return x.total;}),itemStyle:{color:'#4a6cf7'}},{name:'已呼叫',type:'bar',data:tasks2.map(function(x){return x.called;}),itemStyle:{color:'#10b981'}}]});
+
+var c3=echarts.init(document.getElementById('chart3'));
+var days=[],vals=[];
+for(var i=0;i<14;i++){days.push('06-'+(1+i));vals.push(Math.floor(Math.random()*200)+50);}
+c3.setOption({tooltip:{trigger:'axis'},xAxis:{type:'category',data:days},yAxis:{type:'value'},series:[{name:'呼叫量',type:'line',data:vals,smooth:true,areaStyle:{opacity:.1},itemStyle:{color:'#4a6cf7'}}]});
+
+var c4=echarts.init(document.getElementById('chart4'));
+var im={};DCalls.forEach(function(c){im[c.intent]=(im[c.intent]||0)+1;});
+var idata=[];Object.keys(im).forEach(function(k){idata.push({name:k,value:im[k]});});
+c4.setOption({tooltip:{trigger:'item'},series:[{type:'pie',radius:'55%',data:idata,label:{formatter:'{b}: {c}'}}]});
+
+window.addEventListener('resize',function(){c1.resize();c2.resize();c3.resize();c4.resize();});
+},200);
+}
+
+// ===== DASHBOARDS =====
+function renderOverallDashboard(ca){
+ca.innerHTML='<h3>整体呼叫看板</h3><div class="chg"><div class="cd"><div class="cdh"><span class="cdt">任务完成率</span></div><div class="chh" id="db1"></div></div><div class="cd"><div class="cdh"><span class="cdt">呼叫结果分析</span></div><div class="chh" id="db2"></div></div><div class="cd"><div class="cdh"><span class="cdt">坐席工作量</span></div><div class="chh" id="db3"></div></div><div class="cd"><div class="cdh"><span class="cdt">时段分布</span></div><div class="chh" id="db4"></div></div></div>';
+setTimeout(function(){
+var d1=echarts.init(document.getElementById('db1'));
+d1.setOption({tooltip:{},series:[{type:'gauge',detail:{formatter:'{value}%'},data:[{value:Math.round(DTasks.filter(function(x){return x.status==='completed'}).length/DTasks.length*100),name:'完成率'}]}]});
+
+var d2=echarts.init(document.getElementById('db2'));
+var rm={};DCalls.forEach(function(c){rm[c.result]=(rm[c.result]||0)+1;});
+var rd=[];Object.keys(rm).forEach(function(k){rd.push({name:k,value:rm[k]});});
+d2.setOption({tooltip:{},xAxis:{type:'category',data:rd.map(function(x){return x.name;})},yAxis:{type:'value'},series:[{type:'bar',data:rd.map(function(x){return x.value;}),itemStyle:{color:'#4a6cf7'}}]});
+
+var d3=echarts.init(document.getElementById('db3'));
+d3.setOption({tooltip:{},xAxis:{type:'category',data:DAgents.map(function(x){return x.name;})},yAxis:{type:'value'},series:[{type:'bar',data:DAgents.map(function(x){return x.calls;}),itemStyle:{color:'#10b981'}}]});
+
+var d4=echarts.init(document.getElementById('db4'));
+var hmap={};DCalls.forEach(function(c){var hr=c.time.split(' ')[1].split(':')[0];hmap[hr]=(hmap[hr]||0)+1;});
+var hd=[];for(var i=8;i<=20;i++){hd.push(hmap[String(i)]||Math.floor(Math.random()*8));}
+d4.setOption({tooltip:{trigger:'axis'},xAxis:{type:'category',data:['8','9','10','11','12','13','14','15','16','17','18','19','20']},yAxis:{type:'value'},series:[{type:'line',data:hd,smooth:true,areaStyle:{opacity:.1},itemStyle:{color:'#f59e0b'}}]});
+window.addEventListener('resize',function(){d1.resize();d2.resize();d3.resize();d4.resize();});
+},200);
+}
+
+function renderTrendDashboard(ca){
+ca.innerHTML='<h3>呼叫趋势看板</h3><div class="chg"><div class="cd"><div class="cdh"><span class="cdt">近30天呼叫趋势</span></div><div class="chh" id="td1"></div></div><div class="cd"><div class="cdh"><span class="cdt">周对比分析</span></div><div class="chh" id="td2"></div></div><div class="cd"><div class="cdh"><span class="cdt">接通率趋势</span></div><div class="chh" id="td3"></div></div><div class="cd"><div class="cdh"><span class="cdt">意向转化趋势</span></div><div class="chh" id="td4"></div></div></div>';
+setTimeout(function(){
+var t1=echarts.init(document.getElementById('td1'));
+var d30=[],v30=[];
+for(var i=0;i<30;i++){d30.push('05-'+(1+i));v30.push(Math.floor(Math.random()*180)+20);}
+t1.setOption({tooltip:{trigger:'axis'},xAxis:{type:'category',data:d30,axisLabel:{rotate:45}},yAxis:{type:'value'},series:[{type:'line',data:v30,smooth:true,areaStyle:{opacity:.1},itemStyle:{color:'#4a6cf7'}}]});
+
+var t2=echarts.init(document.getElementById('td2'));
+t2.setOption({tooltip:{},xAxis:{type:'category',data:['周一','周二','周三','周四','周五','周六','周日']},yAxis:{type:'value'},series:[{name:'本周',type:'bar',data:[45,52,48,55,42,18,12],itemStyle:{color:'#4a6cf7'}},{name:'上周',type:'bar',data:[40,48,45,50,38,15,10],itemStyle:{color:'#10b981'}}]});
+
+var t3=echarts.init(document.getElementById('td3'));
+var r30=[];for(var i=0;i<30;i++){r30.push(Math.floor(Math.random()*30)+40);}
+t3.setOption({tooltip:{trigger:'axis'},xAxis:{type:'category',data:d30,axisLabel:{rotate:45}},yAxis:{type:'value',max:100},series:[{type:'line',data:r30,smooth:true,itemStyle:{color:'#10b981'}}]});
+
+var t4=echarts.init(document.getElementById('td4'));
+var c30=[],h30=[];
+for(var i=0;i<30;i++){c30.push(Math.floor(Math.random()*40)+5);h30.push(Math.floor(Math.random()*15)+2);}
+t4.setOption({tooltip:{trigger:'axis'},xAxis:{type:'category',data:d30,axisLabel:{rotate:45}},yAxis:{type:'value'},series:[{name:'转化',type:'line',data:c30,smooth:true,itemStyle:{color:'#f59e0b'}},{name:'高意向',type:'line',data:h30,smooth:true,itemStyle:{color:'#ef4444'}}]});
+window.addEventListener('resize',function(){t1.resize();t2.resize();t3.resize();t4.resize();});
+},200);
+}
+
+// ===== AGENT LIST =====
+function renderAgentList(ca){
+var online=DAgents.filter(function(x){return x.status==='online'}).length;
+var busy=DAgents.filter(function(x){return x.status==='busy'}).length;
+ca.innerHTML='<h3>坐席列表</h3>'+
+'<div class="sr"><div class="scd"><div class="si bl">👥</div><div><div class="sv">'+DAgents.length+'</div><div class="sl">坐席总数</div></div></div>'+
+'<div class="scd"><div class="si gr">🟢</div><div><div class="sv">'+online+'</div><div class="sl">在线</div></div></div>'+
+'<div class="scd"><div class="si or">🟡</div><div><div class="sv">'+busy+'</div><div class="sl">忙碌</div></div></div></div>'+
+'<div class="agent-grid">'+
+DAgents.map(function(a){
+var sc='of';var sl='离线';
+if(a.status==='online'){sc='on';sl='在线';}
+else if(a.status==='busy'){sc='bs';sl='忙碌';}
+return '<div class="agent-card"><div class="agent-avatar" style="background:'+a.color+'">'+a.avatar+'</div><div class="agent-info"><div class="an">'+a.name+' <span class="sdot '+sc+'"></span><span style="font-size:9px;color:var(--tm)">'+sl+'</span></div><div class="ad">工号:'+a.code+' | '+a.dept+'</div></div><div class="agent-stats"><div class="as1">'+a.calls+'</div><div class="as2">今日通话 | '+a.dur+'</div></div></div>';
+}).join('')+
+'</div>';
+}
+
+// ===== SCRIPT LIST =====
+function renderScriptList(ca){
+ca.innerHTML='<h3>AI话术设计</h3>'+
+'<div style="display:flex;gap:6px;margin-bottom:12px"><button class="btn btn-p">+ 新建话术</button><button class="btn btn-o">📥 导入</button><button class="btn btn-o">📤 导出</button></div>'+
+'<div class="script-grid">'+
+DScripts.map(function(s){
+return '<div class="script-card" onclick="toast(\'话术详情(演示): '+s.name+'\',\'in\')"><div class="shd"><span class="sht">'+s.name+'</span><span class="bdge in">v'+s.ver+'</span></div><div class="shp">场景: '+s.scene+' | 节点数: '+s.nodes+' | 更新: '+s.update+'</div><div class="shf">'+s.tags.map(function(t){return '<span class="shtag">'+t+'</span>';}).join('')+'</div></div>';
+}).join('')+
+'</div>';
+}
+
+// ===== SETTINGS PAGES =====
+function renderSettingsPage(ca,title){
+ca.innerHTML='<h3>'+title+'</h3>'+
+'<div class="form-block"><h4>'+title+'配置</h4>'+
+'<div class="form-row"><div><label>启用状态</label><select><option>启用</option><option>禁用</option></select></div><div><label>生效时间</label><input type="text" value="2026-06-01"></div></div>'+
+'<div class="form-row fl"><div><label>配置说明</label><textarea placeholder="请输入'+title+'相关配置说明..."></textarea></div></div>'+
+'<div style="margin-top:8px"><button class="btn btn-p">保存设置</button> <button class="btn btn-o">恢复默认</button></div>'+
+'</div>';
+}
+
+// ===== LEAD LIST (数据公海) =====
+function renderLeadList(ca){
+var total=DLeads.length;
+var high=DLeads.filter(function(x){return x.intent==='高'||x.intent==='极高'}).length;
+ca.innerHTML='<h3>线索数据</h3>'+
+'<div class="sr"><div class="scd"><div class="si bl">📇</div><div><div class="sv">'+total+'</div><div class="sl">线索总数</div></div></div>'+
+'<div class="scd"><div class="si gr">🔥</div><div><div class="sv">'+high+'</div><div class="sl">高意向</div></div></div>'+
+'<div class="scd"><div class="si pu">💰</div><div><div class="sv">'+(Math.round(DLeads.reduce(function(s,x){return s+parseInt(x.budget);},0)/10000))+'万</div><div class="sl">总预算</div></div></div></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">线索列表</span><button class="btn btn-p btn-sm" onclick="toast(\'新建线索(演示)\',\'in\')">+ 新建线索</button></div>'+
+'<div class="fb"><input placeholder="搜索客户/公司..." oninput="leadSearchFn(this.value)"><select onchange="leadStageFn(this.value)"><option value="">全部阶段</option><option value="初步接触">初步接触</option><option value="需求确认">需求确认</option><option value="方案报价">方案报价</option><option value="商务谈判">商务谈判</option></select></div>'+
+'<div class="tw"><table class="tb1"><thead><tr><th><input type="checkbox"></th><th>ID</th><th>客户</th><th>公司</th><th>电话</th><th>阶段</th><th>来源</th><th>负责人</th><th>意向</th><th>预算</th><th>时间</th><th>操作</th></tr></thead><tbody id="leadTbody"></tbody></table></div>'+
+'<div id="leadPgn"></div></div>';
+refreshLeadTable();
+}
+function refreshLeadTable(){
+var ls=DLeads;
+if(leadSearch){ls=ls.filter(function(x){return x.customer.indexOf(leadSearch)>=0||x.company.indexOf(leadSearch)>=0;});}
+if(leadStageFilter){ls=ls.filter(function(x){return x.stage===leadStageFilter;});}
+var ps=8,tp=Math.ceil(ls.length/ps);
+if(leadPage>tp)leadPage=tp;if(leadPage<1)leadPage=1;
+var st=(leadPage-1)*ps,pg=ls.slice(st,st+ps);
+var stageBadge={初步接触:'in',需求确认:'wa',方案报价:'bl',商务谈判:'pu',签约:'su',已成交:'su',已流失:'da'};
+var intentBadge={极高:'su',高:'su',中:'wa',低:'in'};
+var h='';
+pg.forEach(function(l){
+h+='<tr><td><input type="checkbox"></td><td>'+l.id+'</td><td><strong>'+l.customer+'</strong></td><td>'+l.company+'</td><td>'+l.phone+'</td>'+
+'<td><span class="bdge '+(stageBadge[l.stage]||'gr')+'">'+l.stage+'</span></td>'+
+'<td>'+l.source+'</td><td>'+l.owner+'</td>'+
+'<td><span class="bdge '+(intentBadge[l.intent]||'gr')+'">'+l.intent+'</span></td>'+
+'<td>'+l.budget+'</td><td>'+l.time+'</td>'+
+'<td class="ta"><button class="btn btn-sm btn-s" onclick="claimLead('+l.id+')">📥 领取</button>'+
+'<button class="btn btn-sm btn-o" onclick="assignLead('+l.id+')">📤 分配</button>'+
+'<button class="btn btn-sm btn-o" onclick="editLead('+l.id+')">✏️</button>'+
+'<button class="btn btn-sm btn-d" onclick="delLead('+l.id+')">🗑</button></td></tr>';
+});
+document.getElementById('leadTbody').innerHTML=h||'<tr><td colspan="12" class="em"><div class="eic">📭</div><p>暂无线索</p></td></tr>';
+document.getElementById('leadPgn').innerHTML=renderPagination(ls.length,leadPage,ps,'goLeadPage');
+}
+function leadSearchFn(v){leadSearch=v;leadPage=1;refreshLeadTable();}
+function leadStageFn(v){leadStageFilter=v;leadPage=1;refreshLeadTable();}
+function goLeadPage(p){leadPage=p;refreshLeadTable();}
+function claimLead(id){toast('线索'+id+'领取成功(演示)','su');}
+function assignLead(id){
+var body='<div class="fr fl"><label>分配给</label><select id="laTo">'+DAgents.map(function(a){return '<option value="'+a.name+'">'+a.name+' ('+a.dept+')</option>';}).join('')+'</select></div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="saveAssignLead('+id+')">确认分配</button>';
+openModal('分配线索 - ID:'+id,body,footer);
+}
+function saveAssignLead(id){closeModal();toast('线索'+id+'已分配(演示)','su');}
+function delLead(id){if(confirm('确定删除此线索?')){DLeads=DLeads.filter(function(x){return x.id!==id;});toast('已删除','da');refreshLeadTable();}}
+function editLead(id){
+var l=DLeads.find(function(x){return x.id===id;});
+if(!l)return;
+var body='<div class="fr"><label>客户名称</label><input id="elCust" value="'+l.customer+'"></div><div class="fr"><label>公司</label><input id="elComp" value="'+l.company+'"></div>'+
+'<div class="fr"><label>电话</label><input id="elPhone" value="'+l.phone+'"></div><div class="fr"><label>阶段</label><select id="elStage"><option value="初步接触"'+(l.stage==='初步接触'?' selected':'')+'>初步接触</option><option value="需求确认"'+(l.stage==='需求确认'?' selected':'')+'>需求确认</option><option value="方案报价"'+(l.stage==='方案报价'?' selected':'')+'>方案报价</option><option value="商务谈判"'+(l.stage==='商务谈判'?' selected':'')+'>商务谈判</option></select></div>'+
+'<div class="fr fl"><label>预算</label><input id="elBudget" value="'+l.budget+'"></div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="saveLeadEdit('+id+')">保存</button>';
+openModal('编辑线索 - ID:'+id,body,footer);
+}
+function saveLeadEdit(id){
+var l=DLeads.find(function(x){return x.id===id;});
+if(!l)return;
+l.customer=document.getElementById('elCust').value.trim();
+l.company=document.getElementById('elComp').value.trim();
+l.phone=document.getElementById('elPhone').value.trim();
+l.stage=document.getElementById('elStage').value;
+l.budget=document.getElementById('elBudget').value.trim();
+closeModal();toast('线索已更新','su');refreshLeadTable();
+}
+
+// ===== NOTIFICATIONS =====
+function toggleNotif(){
+var np=document.getElementById('np');
+if(np.classList.contains('shw')){np.classList.remove('shw');return;}
+document.getElementById('udm').classList.remove('shw');
+var notifs=[
+{title:'系统更新通知',desc:'AI话术引擎已升级至v4.2',time:'10分钟前',type:'info'},
+{title:'任务完成',desc:'满意度调查任务已完成',time:'30分钟前',type:'success'},
+{title:'预警提醒',desc:'促销回访任务接通率低于40%',time:'1小时前',type:'warning'},
+{title:'新线索分配',desc:'您有3条新线索待处理',time:'2小时前',type:'info'},
+{title:'坐席状态异常',desc:'坐席赵丽离线超过2小时',time:'3小时前',type:'warning'}
+];
+np.innerHTML=notifs.map(function(n){
+var ic={info:'🔵',success:'🟢',warning:'🟡'}[n.type]||'🔵';
+return '<div class="npi"><div class="npit">'+ic+' '+n.title+'</div><div class="npid">'+n.desc+'</div><div class="npitm">'+n.time+'</div></div>';
+}).join('');
+np.classList.add('shw');
+document.getElementById('nbg').textContent=notifs.length;
+}
+
+// ===== USER MENU =====
+function toggleUMenu(){
+var um=document.getElementById('udm');
+document.getElementById('np').classList.remove('shw');
+um.classList.toggle('shw');
+}
+
+// ===== CLOSE ALL POPUPS =====
+document.addEventListener('click',function(e){
+var np=document.getElementById('np'),um=document.getElementById('udm');
+if(!e.target.closest('.ud')){np.classList.remove('shw');um.classList.remove('shw');}
+});
+
+// ===== LOGIN/LOGOUT =====
+function doLogin(){
+var e=document.getElementById('le').value.trim();
+var p=document.getElementById('lp').value.trim();
+CUR=null;
+for(var i=0;i<AC.length;i++){if(AC[i].e===e&&AC[i].p===p){CUR=AC[i];break;}}
+if(!CUR){document.getElementById('lerr').style.display='block';return;}
+document.getElementById('lerr').style.display='none';
+document.getElementById('loginPage').style.display='none';
+document.getElementById('app').style.display='block';
+document.getElementById('ua').textContent=CUR.a;
+document.getElementById('un').textContent=CUR.n;
+document.getElementById('ur').textContent=CUR.r;
+toast('欢迎回来，'+CUR.n+'！','su');
+navTo('call-center','ai-call','任务列表');
+}
+function doLogout(){
+document.getElementById('app').style.display='none';
+document.getElementById('loginPage').style.display='flex';
+document.getElementById('le').value='';
+document.getElementById('lp').value='';
+CUR=null;curGroup=null;curSub=null;curTb=null;
+}
+
+// ===== INIT =====
+(function init(){
+// Build quick login buttons
+var qa=document.getElementById('qa');
+AC.forEach(function(a){
+var d=document.createElement('div');
+d.className='qac';
+d.innerHTML='<span class="rn">'+a.n+'</span><span class="re">'+a.e+'</span>';
+d.onclick=function(){document.getElementById('le').value=a.e;document.getElementById('lp').value=a.p;doLogin();};
+qa.appendChild(d);
+});
+
+// Load saved data
+var st=localStorage.getItem('tx_tasks');
+if(st){try{DTasks=JSON.parse(st);}catch(e){}}
+var sn=localStorage.getItem('tx_nums');
+if(sn){try{DNums=JSON.parse(sn);}catch(e){}}
+
+// Click modal backdrop to close
+document.getElementById('mo').addEventListener('click',function(e){if(e.target===this)closeModal();});
+})();
+
+
+// ===== TICKET CENTER (工单中心) =====
+var DTickets=[];
+(function genTickets(){
+var titles=['系统登录异常排查','话术识别准确率下降','客户反映通话中断','API接口对接咨询','坐席无法拨号','外呼号码被标记骚扰','数据分析报表定制','知识库同步失败','发票信息有误','增值功能开通申请','呼叫中心部署咨询','计费异常申诉'];
+var cats=['故障报修','服务请求','咨询建议','投诉处理','运维支持','功能开通'];
+var prios=['高','中','低'];
+var statuses=['待处理','处理中','已解决','已关闭'];
+var ags=['张明','李娟','王磊','赵丽','陈晨'];
+for(var i=0;i<12;i++){
+var st=statuses[i%4];
+var create=new Date(2026,5,1+Math.floor(i*2.4));
+var sla=24+Math.floor(Math.random()*48);
+var solved=st==='已解决'||st==='已关闭'?create.getTime()+sla*3600000:null;
+var closed=st==='已关闭'?(solved?solved+Math.random()*3600000:null):null;
+var used=Math.floor(Math.random()*sla);
+DTickets.push({
+id:'TK'+String(1001+i),title:titles[i],cat:cats[Math.floor(Math.random()*cats.length)],
+prio:prios[Math.floor(Math.random()*3)],status:st,
+reporter:'客户'+(i+1),assignee:ags[Math.floor(Math.random()*ags.length)],
+createTime:create.toISOString().slice(0,10),sla:sla+'h',usedTime:used+'h',
+desc:'用户反馈：'+titles[i]+'。需要尽快处理并反馈处理结果，涉及客户体验与服务质量。',
+comments:[{author:ags[Math.floor(Math.random()*ags.length)],text:'已收到工单，正在排查处理中',time:create.toISOString().slice(0,10)}]
+});
+}
+})();
+function renderTicketList(ca){
+var p0=DTickets.filter(function(x){return x.status==='待处理';}).length;
+var p1=DTickets.filter(function(x){return x.status==='处理中';}).length;
+var p2=DTickets.filter(function(x){return x.status==='已解决';}).length;
+var p3=DTickets.filter(function(x){return x.status==='已关闭';}).length;
+ca.innerHTML='<h3>工单中心 - 工单列表</h3>'+
+'<div class="sr"><div class="scd"><div class="si rd">📋</div><div><div class="sv">'+DTickets.length+'</div><div class="sl">工单总数</div></div></div>'+
+'<div class="scd"><div class="si or">⏳</div><div><div class="sv">'+p0+'</div><div class="sl">待处理</div></div></div>'+
+'<div class="scd"><div class="si bl">🔧</div><div><div class="sv">'+p1+'</div><div class="sl">处理中</div></div></div>'+
+'<div class="scd"><div class="si gr">✅</div><div><div class="sv">'+p2+'</div><div class="sl">已解决</div></div></div>'+
+'<div class="scd"><div class="si pu">📁</div><div><div class="sv">'+p3+'</div><div class="sl">已关闭</div></div></div></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">工单列表</span><div><button class="btn btn-p btn-sm" onclick="navTo(\'ticket-center\',\'tk-create\')">+ 新建工单</button></div></div>'+
+'<div class="fb"><input placeholder="搜索工单标题/编号..." oninput="tkSearch(this.value)"><select onchange="tkStatusFilter(this.value)"><option value="">全部状态</option><option value="待处理">待处理</option><option value="处理中">处理中</option><option value="已解决">已解决</option><option value="已关闭">已关闭</option></select><select onchange="tkPrioFilter(this.value)"><option value="">全部优先级</option><option value="高">高</option><option value="中">中</option><option value="低">低</option></select></div>'+
+'<div class="tw"><table class="tb1"><thead><tr><th>工单号</th><th>标题</th><th>分类</th><th>优先级</th><th>状态</th><th>报障人</th><th>处理人</th><th>SLA</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="tkTbody"></tbody></table></div>'+
+'<div id="tkPgn"></div></div>';
+refreshTicketList();
+}
+var tkPage=1,tkSearchV='',tkStatusV='',tkPrioV='';
+function refreshTicketList(){
+var ls=DTickets;
+if(tkSearchV){ls=ls.filter(function(x){return x.title.indexOf(tkSearchV)>=0||x.id.indexOf(tkSearchV)>=0;});}
+if(tkStatusV){ls=ls.filter(function(x){return x.status===tkStatusV;});}
+if(tkPrioV){ls=ls.filter(function(x){return x.prio===tkPrioV;});}
+var ps=8,tp=Math.ceil(ls.length/ps);
+if(tkPage>tp)tkPage=tp;if(tkPage<1)tkPage=1;
+var st=(tkPage-1)*ps,pg=ls.slice(st,st+ps);
+var sBadge={待处理:'or',处理中:'bl',已解决:'su',已关闭:'gr'};
+var pBadge={高:'da',中:'wa',低:'in'};
+var h='';
+pg.forEach(function(t){
+h+='<tr><td><strong>'+t.id+'</strong></td><td style="max-width:160px">'+t.title+'</td><td><span class="bdge pu">'+t.cat+'</span></td><td><span class="bdge '+(pBadge[t.prio]||'in')+'">'+t.prio+'</span></td><td><span class="bdge '+(sBadge[t.status]||'gr')+'">'+t.status+'</span></td><td>'+t.reporter+'</td><td>'+t.assignee+'</td><td style="font-size:10px">'+t.sla+'<br><span style="color:var(--tm)">已用'+t.usedTime+'</span></td><td>'+t.createTime+'</td>'+
+'<td class="ta"><button class="btn btn-sm btn-o" onclick="openTicketDetail(\''+t.id+'\')">👁 详情</button>'+
+(t.status==='待处理'?'<button class="btn btn-sm btn-p" onclick="tkNext(\''+t.id+'\')">▶ 开始处理</button>':'')+
+(t.status==='处理中'?'<button class="btn btn-sm btn-s" onclick="tkNext(\''+t.id+'\')">✅ 标记解决</button>':'')+
+(t.status==='已解决'?'<button class="btn btn-sm btn-o" onclick="tkNext(\''+t.id+'\')">📁 关闭</button>':'')+
+'</td></tr>';
+});
+document.getElementById('tkTbody').innerHTML=h||'<tr><td colspan="11" class="em"><div class="eic">📭</div><p>暂无工单</p></td></tr>';
+document.getElementById('tkPgn').innerHTML=renderPagination(ls.length,tkPage,ps,'goTKPage');
+}
+function goTKPage(p){tkPage=p;refreshTicketList();}
+function tkSearch(v){tkSearchV=v;tkPage=1;refreshTicketList();}
+function tkStatusFilter(v){tkStatusV=v;tkPage=1;refreshTicketList();}
+function tkPrioFilter(v){tkPrioV=v;tkPage=1;refreshTicketList();}
+function tkNext(id){
+var t=DTickets.find(function(x){return x.id===id;});if(!t)return;
+var flow={待处理:'处理中',处理中:'已解决',已解决:'已关闭'};
+if(flow[t.status]){
+var next=flow[t.status];
+t.status=next;
+if(next==='已解决'){t.comments.push({author:CUR.n,text:'工单已解决，请确认处理结果',time:new Date().toISOString().slice(0,10)});}
+if(next==='已关闭'){t.comments.push({author:CUR.n,text:'工单已关闭，感谢反馈',time:new Date().toISOString().slice(0,10)});}
+toast('工单 '+id+' 已流转为「'+next+'」','su');refreshTicketList();
+}else{toast('该工单已完成闭环，无需再流转','in');}
+}
+function openTicketDetail(id){
+var t=DTickets.find(function(x){return x.id===id;});if(!t)return;
+var sBadge={待处理:'or',处理中:'bl',已解决:'su',已关闭:'gr'};
+var body='<div class="fr"><label>工单编号</label><div style="padding:8px;background:#f8fafc;border-radius:6px"><strong>'+t.id+'</strong></div></div>'+
+'<div class="fr"><label>工单标题</label><div style="padding:8px;background:#f8fafc;border-radius:6px">'+t.title+'</div></div>'+
+'<div class="fr"><label>分类 / 优先级</label><div style="padding:8px;background:#f8fafc;border-radius:6px"><span class="bdge pu">'+t.cat+'</span> <span class="bdge '+(t.prio==='高'?'da':t.prio==='中'?'wa':'in')+'">'+t.prio+'优先级</span></div></div>'+
+'<div class="fr"><label>当前状态</label><div style="padding:8px;background:#f8fafc;border-radius:6px"><span class="bdge '+(sBadge[t.status]||'gr')+'">'+t.status+'</span></div></div>'+
+'<div class="fr"><label>报障人 / 处理人</label><div style="padding:8px;background:#f8fafc;border-radius:6px">'+t.reporter+' / '+t.assignee+'</div></div>'+
+'<div class="fr"><label>问题描述</label><div style="padding:8px;background:#f8fafc;border-radius:6px;font-size:12px">'+t.desc+'</div></div>'+
+'<div class="fr fl"><label>处理记录</label><div id="tkComments" style="padding:8px;background:#f8fafc;border-radius:6px;font-size:11px">'+t.comments.map(function(c){return '<div style="margin-bottom:4px">💬 <b>'+c.author+'</b>：'+c.text+' <span style="color:var(--tm)">('+c.time+')</span></div>';}).join('')+'<div style="margin-top:6px;display:flex;gap:4px"><input id="tkCmt" placeholder="添加处理备注..." style="flex:1;padding:6px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px"><button class="btn btn-sm btn-p" onclick="tkAddComment(\''+t.id+'\')">备注</button></div></div></div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">关闭</button>';
+openModal('工单详情 - '+t.id,body,footer);
+}
+function tkAddComment(id){
+var t=DTickets.find(function(x){return x.id===id;});if(!t)return;
+var v=document.getElementById('tkCmt').value.trim();if(!v){toast('请输入备注','er');return;}
+t.comments.push({author:CUR.n,text:v,time:new Date().toISOString().slice(0,10)});
+toast('备注已添加','su');
+openTicketDetail(id);
+}
+function renderTicketCreate(ca){
+ca.innerHTML='<h3>工单中心 - 新建工单</h3>'+
+'<div class="cd" style="max-width:640px"><div class="cdh"><span class="cdt">📝 创建工单</span></div>'+
+'<div class="fr fl"><label>工单标题</label><input id="nkTitle" placeholder="请输入问题描述标题" style="width:100%"></div>'+
+'<div class="fr"><label>工单分类</label><select id="nkCat" style="width:100%"><option>故障报修</option><option>服务请求</option><option>咨询建议</option><option>投诉处理</option><option>运维支持</option><option>功能开通</option></select></div>'+
+'<div class="fr"><label>优先级</label><select id="nkPrio" style="width:100%"><option value="中">中</option><option value="高">高</option><option value="低">低</option></select></div>'+
+'<div class="fr"><label>报障人</label><input id="nkReporter" placeholder="请输入报障人/客户名称" style="width:100%"></div>'+
+'<div class="fr"><label>处理人</label><select id="nkAssignee" style="width:100%">'+DAgents.map(function(a){return '<option value="'+a.name+'">'+a.name+' ('+a.dept+')</option>';}).join('')+'</select></div>'+
+'<div class="fr fl"><label>问题描述</label><textarea id="nkDesc" placeholder="请详细描述问题现象、影响范围等..." style="width:100%;height:100px;border:1px solid #e5e7eb;border-radius:6px;padding:8px;font-size:12px;font-family:inherit"></textarea></div>'+
+'<div style="margin-top:10px;display:flex;gap:6px"><button class="btn btn-p" onclick="saveTicket()">✅ 提交工单</button><button class="btn btn-o" onclick="toast(\'已清空表单\',\'in\')">↻ 重置</button></div>'+
+'</div>';
+}
+function saveTicket(){
+var title=document.getElementById('nkTitle').value.trim();
+if(!title){toast('请输入工单标题','er');return;}
+var reporter=document.getElementById('nkReporter').value.trim()||CUR.n;
+var nid='TK'+(1000+DTickets.length+1);
+DTickets.unshift({
+id:nid,title:title,cat:document.getElementById('nkCat').value,
+prio:document.getElementById('nkPrio').value,status:'待处理',
+reporter:reporter,assignee:document.getElementById('nkAssignee').value,
+createTime:new Date().toISOString().slice(0,10),sla:'24h',usedTime:'0h',
+desc:document.getElementById('nkDesc').value.trim()||'无详细描述',
+comments:[{author:CUR.n,text:'工单已创建，等待处理',time:new Date().toISOString().slice(0,10)}]
+});
+toast('工单 '+nid+' 创建成功','su');
+navTo('ticket-center','tk-list');
+}
+function renderTicketStats(ca){
+var open=DTickets.filter(function(x){return x.status==='待处理'||x.status==='处理中';}).length;
+var resolved=DTickets.filter(function(x){return x.status==='已解决'||x.status==='已关闭';}).length;
+var rate=DTickets.length?Math.round(resolved/DTickets.length*100):0;
+ca.innerHTML='<h3>工单统计</h3>'+
+'<div class="sr"><div class="scd"><div class="si bl">📊</div><div><div class="sv">'+DTickets.length+'</div><div class="sl">工单总数</div></div></div>'+
+'<div class="scd"><div class="si or">⏳</div><div><div class="sv">'+open+'</div><div class="sl">处理中</div></div></div>'+
+'<div class="scd"><div class="si gr">✅</div><div><div class="sv">'+resolved+'</div><div class="sl">已闭环</div></div></div>'+
+'<div class="scd"><div class="si pu">📈</div><div><div class="sv">'+rate+'%</div><div class="sl">闭环率</div></div></div></div>'+
+'<div class="chg"><div class="cd"><div class="cdh"><span class="cdt">工单状态分布</span></div><div class="chb" id="tks1"></div></div><div class="cd"><div class="cdh"><span class="cdt">工单分类统计</span></div><div class="chb" id="tks2"></div></div></div>';
+setTimeout(function(){
+var c1=echarts.init(document.getElementById('tks1'));
+var sm={};DTickets.forEach(function(t){sm[t.status]=(sm[t.status]||0)+1;});
+c1.setOption({tooltip:{trigger:'item'},series:[{type:'pie',radius:['40%','70%'],label:{formatter:'{b}: {c}'},data:Object.keys(sm).map(function(k){return {name:k,value:sm[k]};})}]});
+var c2=echarts.init(document.getElementById('tks2'));
+var cm={};DTickets.forEach(function(t){cm[t.cat]=(cm[t.cat]||0)+1;});
+c2.setOption({tooltip:{},xAxis:{type:'category',data:Object.keys(cm)},yAxis:{type:'value'},series:[{type:'bar',data:Object.keys(cm).map(function(k){return cm[k];}),itemStyle:{color:'#4a6cf7'}}]});
+window.addEventListener('resize',function(){c1.resize();c2.resize();});
+},200);
+}
+function renderTicketSLA(ca){
+var slas=[{id:1,name:'紧急故障（高优先级）',level:'高',target:'4小时响应 / 24小时解决',reach:92,overtime:3},{id:2,name:'一般故障（中优先级）',level:'中',target:'8小时响应 / 48小时解决',reach:85,overtime:7},{id:3,name:'普通咨询（低优先级）',level:'低',target:'24小时响应 / 72小时解决',reach:78,overtime:11}];
+ca.innerHTML='<h3>SLA 时效管理</h3>'+
+'<div class="cd"><div class="cdh"><span class="cdt">⏱ SLA 服务级别协议</span><button class="btn btn-p btn-sm" onclick="toast(\'新建SLA规则(演示)\',\'in\')">+ 新建规则</button></div>'+
+'<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>SLA 闭环机制：</b>工单从创建到关闭全程受 SLA 时效监控，临近超时自动预警，超时升级提醒，确保每个工单都能按时闭环处理。</p>'+
+'<div class="tw"><table class="tb1"><thead><tr><th>SLA名称</th><th>优先级</th><th>响应/解决目标</th><th>达标率</th><th>超时工单</th><th>状态</th><th>操作</th></tr></thead><tbody>'+
+slas.map(function(s){return '<tr><td><strong>'+s.name+'</strong></td><td><span class="bdge '+(s.level==='高'?'da':s.level==='中'?'wa':'in')+'">'+s.level+'</span></td><td>'+s.target+'</td><td><div class="pb"><div class="fill '+(s.reach>90?'gr':'bl')+'" style="width:'+s.reach+'%"></div></div> <span style="font-size:10px">'+s.reach+'%</span></td><td><span class="bdge '+(s.overtime>5?'da':'wa')+'">'+s.overtime+'个</span></td><td><span class="bdge su">生效中</span></td><td><button class="btn btn-sm btn-o" onclick="toast(\'编辑SLA规则\',\'in\')">✏️</button></td></tr>';}).join('')+
+'</tbody></table></div></div>';
+}
+
+// ===== DATA CENTER (数据中心 - 补全) =====
+function renderDataCenter(ca){
+ca.innerHTML='<h3>数据中心</h3>'+
+'<div class="sr"><div class="scd"><div class="si bl">📊</div><div><div class="sv">'+DCalls.length.toLocaleString()+'</div><div class="sl">本月通话</div></div></div>'+
+'<div class="scd"><div class="si gr">👥</div><div><div class="sv">'+DLeads.length+'</div><div class="sl">线索数</div></div></div>'+
+'<div class="scd"><div class="si pu">💰</div><div><div class="sv">'+(Math.round(DLeads.reduce(function(s,x){return s+parseInt(x.budget);},0)/10000))+'万</div><div class="sl">线索预算</div></div></div>'+
+'<div class="scd"><div class="si or">📈</div><div><div class="sv">'+Math.round(DCalls.filter(function(x){return x.intent==='高意向';}).length/DCalls.length*100)+'%</div><div class="sl">高意向率</div></div></div></div>'+
+'<div class="chg"><div class="cd"><div class="cdh"><span class="cdt">意向分布</span></div><div class="chb" id="dc1"></div></div><div class="cd"><div class="cdh"><span class="cdt">呼叫结果</span></div><div class="chb" id="dc2"></div></div><div class="cd"><div class="cdh"><span class="cdt">线索阶段漏斗</span></div><div class="chb" id="dc3"></div></div></div>';
+setTimeout(function(){
+var c1=echarts.init(document.getElementById('dc1'));
+var im={};DCalls.forEach(function(c){im[c.intent]=(im[c.intent]||0)+1;});
+c1.setOption({tooltip:{trigger:'item'},series:[{type:'pie',radius:['35%','65%'],label:{formatter:'{b}: {c}'},data:Object.keys(im).map(function(k){return {name:k,value:im[k]};})}]});
+var c2=echarts.init(document.getElementById('dc2'));
+var rm={};DCalls.forEach(function(c){rm[c.result]=(rm[c.result]||0)+1;});
+c2.setOption({tooltip:{},xAxis:{type:'category',data:Object.keys(rm)},yAxis:{type:'value'},series:[{type:'bar',data:Object.keys(rm).map(function(k){return rm[k];}),itemStyle:{color:'#10b981'}}]});
+var c3=echarts.init(document.getElementById('dc3'));
+var stg=['初步接触','需求确认','方案报价','商务谈判','签约','已成交'];
+var svals=stg.map(function(s){return DLeads.filter(function(l){return l.stage===s;}).length;});
+c3.setOption({tooltip:{trigger:'axis'},xAxis:{type:'category',data:stg},yAxis:{type:'value'},series:[{type:'line',data:svals,smooth:true,areaStyle:{opacity:.15},itemStyle:{color:'#8b5cf6'}}]});
+window.addEventListener('resize',function(){c1.resize();c2.resize();c3.resize();});
+},200);
+}
+
+// ===== TTS AUDIO PLAYBACK (话术试听-真实发声) =====
+function txSpeak(text,voiceName,rate,pitch){
+if(!('speechSynthesis' in window)){toast('当前浏览器不支持语音合成','er');return;}
+window.speechSynthesis.cancel();
+var u=new SpeechSynthesisUtterance(text);
+u.lang='zh-CN';
+u.rate=(rate===undefined?1:rate);
+u.pitch=(pitch===undefined?1:pitch);
+// 主动选择一个中文语音（优先本地离线语音，确保一定出声）
+var vs=window.speechSynthesis.getVoices();
+var pick=null;
+if(voiceName && vs.length){pick=vs.find(function(v){return v.name.indexOf(voiceName)>=0;});}
+if(!pick && vs.length){
+  var local=vs.filter(function(v){return v.localService && v.lang && v.lang.toLowerCase().indexOf('zh')>=0;});
+  var online=vs.filter(function(v){return v.lang && v.lang.toLowerCase().indexOf('zh')>=0;});
+  pick=(local.length?local:online)[0];
+}
+if(pick){u.voice=pick;}
+window.speechSynthesis.speak(u);
+toast('▶ 正在试听：'+text.substring(0,12)+'…','in');
+}
+
+
+
+
+// ===== TTS AUDIO PLAYBACK (真实音频播放) =====
+var txAudioEl=null;
+function txPlayVoice(src){
+  try{
+    if(txAudioEl){txAudioEl.pause();txAudioEl=null;}
+    var a=new Audio();
+    a.src=src;
+    a.play().then(function(){txAudioEl=a;toast('▶ 正在播放试听…','in');}).catch(function(e){toast('播放失败，请检查音频文件','er');});
+  }catch(e){toast('当前环境不支持音频播放','er');}
+}
+
+
+// ===== SCRIPT GROUP (话术分组) =====
+var DSGroups=[];
+(function genGroups(){
+var gnames=['营销推广组','客户关怀组','催收催缴组','售后服务组','调查问卷组','VIP维护组'];
+var scenes=['促销活动','客户回访','合规催收','售后支持','满意度调研','大客户关怀'];
+var tags=[['促销','优惠','活动'],['关怀','回访','问候'],['催缴','合规','提醒'],['售后','维修','支持'],['调查','NPS','问卷'],['VIP','维护','高价值']];
+for(var i=0;i<6;i++){
+var list=[];
+var cnt=2+Math.floor(Math.random()*4);
+for(var j=0;j<cnt;j++){
+var si=(i*3+j)%DScripts.length;
+var s=DScripts[si];
+if(s)list.push({id:si+1,name:s.name,scene:s.scene,nodes:s.nodes,ver:s.ver,status:Math.random()>0.2?'启用':'停用'});
+}
+DSGroups.push({id:'G'+(101+i),name:gnames[i],scene:scenes[i],tags:tags[i],list:list,count:list.length,creator:'管理员',time:'2026-06-'+(5+Math.floor(Math.random()*10)),desc:'面向'+scenes[i]+'场景的AI话术分组，统一管理相关话术模板。'});
+}
+})();
+function renderScriptGroup(ca){
+var total=DSGroups.length;
+var totalScript=DSGroups.reduce(function(s,g){return s+g.list.length;},0);
+ca.innerHTML='<h3>AI话术设计 - 话术分组</h3>'+
+'<div class="sr"><div class="scd"><div class="si bl">🗂</div><div><div class="sv">'+total+'</div><div class="sl">分组总数</div></div></div>'+
+'<div class="scd"><div class="si gr">📋</div><div><div class="sv">'+totalScript+'</div><div class="sl">话术总数</div></div></div>'+
+'<div class="scd"><div class="si pu">📈</div><div><div class="sv">'+(total>0?Math.round(totalScript/total):0)+'</div><div class="sl">平均每组话术</div></div></div></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">🗂 话术分组管理</span><button class="btn btn-p btn-sm" onclick="openGroupNew()">+ 新建分组</button></div>'+
+'<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>话术分组功能：</b>将相同业务场景的话术归为一组，便于统一管理、批量导入导出、快速应用到呼叫任务。点击分组可展开查看组内话术。</p>'+
+'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px">'+
+DSGroups.map(function(g){
+var tagStr=g.tags.map(function(t){return '<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:#4a6cf715;color:#4a6cf7;font-weight:600">'+t+'</span>';}).join(' ');
+return '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden">'+
+'<div style="padding:12px;display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border-bottom:1px solid #e5e7eb">'+
+'<div><div style="font-weight:700;font-size:13px">'+g.name+' <span class="bdge in">'+g.count+'个话术</span></div><div style="font-size:10px;color:var(--tm);margin-top:2px">场景: '+g.scene+' · 创建人 '+g.creator+' · '+g.time+'</div></div>'+
+'<div style="display:flex;gap:4px"><button class="btn btn-sm btn-o" onclick="event.stopPropagation();toggleGroupScripts(\''+g.id+'\',this)">👁 展开</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();openGroupNew(\''+g.id+'\')">✏️</button><button class="btn btn-sm btn-d" onclick="event.stopPropagation();delGroup(\''+g.id+'\')">🗑</button></div></div>'+
+'<div style="padding:10px;font-size:11px;color:var(--ts)">'+g.desc+'</div>'+
+'<div id="glist_'+g.id+'" style="display:none;padding:0 10px 10px;border-top:1px solid #f3f4f6">'+
+g.list.map(function(s){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed #f3f4f6"><div><span style="font-weight:600;color:var(--tx)">'+s.name+'</span> <span style="font-size:9px;color:var(--tm)">('+s.scene+', '+s.nodes+'节点)</span></div><span class="bdge '+(s.status==='启用'?'su':'gr')+'">'+s.status+'</span></div>';}).join('')+
+'<div style="margin-top:8px;display:flex;gap:4px"><button class="btn btn-sm btn-p" onclick="event.stopPropagation();toast(\'将话术应用到呼叫任务(演示)\',\'in\')">🚀 应用到任务</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();toast(\'导出该组话术\',\'in\')">📥 导出</button></div></div>'+
+'</div>';
+}).join('')+
+'</div></div>';
+}
+function toggleGroupScripts(id,btn){
+var el=document.getElementById('glist_'+id);
+if(!el)return;
+var show=el.style.display==='none';
+el.style.display=show?'block':'none';
+btn.textContent=show?'👁 收起':'👁 展开';
+}
+function delGroup(id){
+if(confirm('确定删除分组 '+id+' 吗？')){
+DSGroups=DSGroups.filter(function(g){return g.id!==id;});
+toast('分组已删除','da');
+renderScriptGroup(document.getElementById('ca'));
+}
+}
+function openGroupNew(id){
+var g=id?DSGroups.find(function(x){return x.id===id;}):null;
+var body='<div class="fr fl"><label>分组名称</label><input id="gnName" value="'+(g?g.name:'')+'" style="width:100%"></div>'+
+'<div class="fr"><label>应用场景</label><input id="gnScene" value="'+(g?g.scene:'')+'" style="width:100%"></div>'+
+'<div class="fr fl"><label>分组说明</label><textarea id="gnDesc" style="width:100%;height:70px;border:1px solid #e5e7eb;border-radius:6px;padding:8px;font-size:12px;font-family:inherit">'+(g?g.desc:'')+'</textarea></div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="saveGroup(\''+(id||'')+'\')">保存</button>';
+openModal(g?'编辑分组':'新建分组',body,footer);
+}
+function saveGroup(id){
+var n=document.getElementById('gnName').value.trim();
+if(!n){toast('请输入分组名称','er');return;}
+var s=document.getElementById('gnScene').value.trim();
+var d=document.getElementById('gnDesc').value.trim();
+if(id){
+var g=DSGroups.find(function(x){return x.id===id;});
+if(g){g.name=n;g.scene=s;g.desc=d;}
+toast('分组已更新','su');
+}else{
+var nid='G'+(100+DSGroups.length+1);
+DSGroups.push({id:nid,name:n,scene:s,desc:d,tags:[],list:[],count:0,creator:CUR.n,time:new Date().toISOString().slice(0,10)});
+toast('分组已创建','su');
+}
+closeModal();renderScriptGroup(document.getElementById('ca'));
+}
+
+
+
+// ===== VOICE QC (语音质检) =====
+var QVData=[
+{id:'QC0821-001',agent:'赵丽',customer:'张伟',num:'138****2234',dur:'2:35',date:'2026-08-21 14:20',script:'续费提醒话术',score:92,level:'优秀',warn:[],transcript:'您好，我是泰讯的客服小赵。您的会员即将到期，今天为您介绍一下续费优惠活动，现在续费可以享受八折优惠。感谢您的支持，祝您生活愉快。',dims:{attitude:95,norm:90,comm:92,prof:91}},
+{id:'QC0821-002',agent:'孙强',customer:'李娜',num:'139****7712',dur:'1:18',date:'2026-08-21 13:05',script:'促销活动话术V3',score:71,level:'合格',warn:['语速过快'],transcript:'您好，我们这边有个活动，现在下单立减一百，名额有限，您要不要考虑一下，尽快哦。',dims:{attitude:78,norm:72,comm:65,prof:70}},
+{id:'QC0821-003',agent:'王敏',customer:'陈建国',num:'137****4456',dur:'3:42',date:'2026-08-21 11:48',script:'VIP客户关怀话术',score:55,level:'待改进',warn:['服务态度冷漠','敏感词'],transcript:'你这个事情我管不了，爱找谁找谁，反正我这里办不了，你自己看着办吧。',dims:{attitude:45,norm:50,comm:55,prof:60}},
+{id:'QC0821-004',agent:'赵丽',customer:'周霞',num:'150****8890',dur:'2:08',date:'2026-08-21 10:30',script:'满意度调查话术',score:88,level:'良好',warn:[],transcript:'您好，这边想占用您两分钟做个满意度回访。请问您对我们的服务还满意吗？有什么建议可以随时反馈给我们。',dims:{attitude:90,norm:88,comm:86,prof:87}},
+{id:'QC0821-005',agent:'孙强',customer:'刘洋',num:'186****3321',dur:'0:56',date:'2026-08-21 09:15',script:'新品发布会话术',score:63,level:'合格',warn:['打断客户'],transcript:'您好我们——新品，哎您先别说，听我讲完，新品现在首发，您抓紧下单。',dims:{attitude:60,norm:58,comm:50,prof:75}}
+];
+
+function renderVoiceQC(ca){
+var total=QVData.length;
+var avg=Math.round(QVData.reduce(function(s,x){return s+x.score;},0)/total);
+var warnCnt=QVData.reduce(function(s,x){return s+x.warn.length;},0);
+var bad=QVData.filter(function(x){return x.score<60;}).length;
+ca.innerHTML='<h3>语音质检</h3>'+
+'<div class="sr"><div class="scd"><div class="si bl">🎧</div><div><div class="sv">'+total+'</div><div class="sl">已质检录音</div></div></div>'+
+'<div class="scd"><div class="si gr">📈</div><div><div class="sv">'+avg+'</div><div class="sl">平均评分</div></div></div>'+
+'<div class="scd"><div class="si or">⚠️</div><div><div class="sv">'+warnCnt+'</div><div class="sl">预警项</div></div></div>'+
+'<div class="scd"><div class="si rd">🚨</div><div><div class="sv">'+bad+'</div><div class="sl">不合格录音</div></div></div></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">⚠️ 质检预警（服务质量 / 服务态度）</span></div>'+
+QVData.filter(function(x){return x.warn.length>0;}).map(function(x,j){var idx=QVData.indexOf(x);return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #fde2e2;background:#fff5f5;border-radius:6px;margin-bottom:6px"><span style="font-size:14px">🚨</span><div style="flex:1"><div style="font-size:12px;font-weight:600">'+x.agent+' → '+x.customer+' <span style="color:#ef4444;font-weight:400">（'+x.warn.join('、')+'）</span></div><div style="font-size:10px;color:var(--ts)">'+x.id+' · '+x.date+' · '+x.dur+'</div></div><button class="btn btn-sm btn-o" onclick="openQCDetail('+idx+')">质检详情</button></div>';}).join('')+
+'</div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">🎧 录音质检列表</span></div>'+
+'<div class="tw"><table class="tb1"><thead><tr><th>质检编号</th><th>坐席</th><th>客户</th><th>话术</th><th>时长</th><th>综合评分</th><th>等级</th><th>预警</th><th>操作</th></tr></thead><tbody>'+
+QVData.map(function(x,i){var lv=x.level;var c=(lv==='优秀')?'su':(lv==='良好'?'in':(lv==='待改进'?'rd':'wa'));return '<tr><td>'+x.id+'</td><td>'+x.agent+'</td><td>'+x.customer+'</td><td>'+x.script+'</td><td>'+x.dur+'</td><td><b style="color:'+(x.score>=80?'#10b981':x.score>=60?'#f59e0b':'#ef4444')+'">'+x.score+'</b></td><td><span class="bdge '+c+'">'+lv+'</span></td><td style="font-size:11px;color:'+(x.warn.length?'#ef4444':'#9ca3af')+'">'+(x.warn.length?x.warn.join('、'):'无')+'</td><td class="ta"><button class="btn btn-sm btn-p" onclick="qcPlay('+i+')">▶ 播放</button><button class="btn btn-sm btn-o" onclick="openQCDetail('+i+')">质检详情</button></td></tr>';}).join('')+
+'</tbody></table></div></div>';
+}
+
+function qcPlay(i){
+var x=QVData[i]; if(!x)return;
+txSpeak(x.transcript);
+toast('▶ 正在播放录音：'+x.id+' ('+x.agent+'→'+x.customer+')','in');
+}
+
+function openQCDetail(i){
+var x=QVData[i]; if(!x)return;
+var dims=[['服务态度',x.dims.attitude],['服务规范',x.dims.norm],['沟通能力',x.dims.comm],['业务专业度',x.dims.prof]];
+var body='<div style="font-size:12px;line-height:1.8">';
+body+='<div style="display:flex;gap:12px;margin-bottom:12px"><div style="flex:1"><b>质检编号</b><br>'+x.id+'</div><div style="flex:1"><b>坐席</b><br>'+x.agent+'</div><div style="flex:1"><b>客户</b><br>'+x.customer+' ('+x.num+')</div><div style="flex:1"><b>综合评分</b><br><b style="color:'+(x.score>=80?'#10b981':x.score>=60?'#f59e0b':'#ef4444')+';font-size:18px">'+x.score+'</b></div></div>';
+body+='<div style="border-top:1px solid #eee;padding-top:10px;margin-bottom:10px"><b>评分维度</b></div>';
+dims.forEach(function(d){ var v=d[1]; var col=v>=80?'#10b981':v>=60?'#f59e0b':'#ef4444'; body+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="width:80px;font-size:11px">'+d[0]+'</span><div style="flex:1" class="pb"><div class="fill" style="width:'+v+'%;background:'+col+'"></div></div><span style="font-size:11px;font-weight:600;color:'+col+'">'+v+'</span></div>'; });
+body+='<div style="border-top:1px solid #eee;padding-top:10px;margin-bottom:10px"><b>通话转写</b></div>';
+body+='<div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:12px;font-size:12px;color:var(--tx);line-height:1.9;margin-bottom:10px">'+x.transcript+'</div>';
+if(x.warn.length){ body+='<div style="border-top:1px solid #fde2e2;padding-top:10px"><b style="color:#ef4444">⚠️ 质检预警：</b>'+x.warn.join('、')+'</div>'; }
+body+='</div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">关闭</button>';
+openModal('🎧 质检详情 - '+x.id, body, footer, '600px');
+}
+
+// ===== SCRIPT DETAIL (话术详情弹窗) =====
+function openScriptDetail(i){
+var s=DScripts[i]; if(!s)return;
+var body='<div style="font-size:12px;line-height:1.8">';
+body+='<div style="display:flex;gap:12px;margin-bottom:12px"><div style="flex:1"><b>话术名称</b><br>'+s.name+'</div><div style="flex:1"><b>版本</b><br>'+s.ver+'</div><div style="flex:1"><b>场景</b><br>'+s.scene+'</div><div style="flex:1"><b>节点数</b><br>'+s.nodes+'</div></div>';
+body+='<div style="display:flex;gap:12px;margin-bottom:12px"><div style="flex:1"><b>标签</b><br>'+(s.tags?s.tags.join('、'):'-')+'</div><div style="flex:1"><b>最近更新</b><br>'+s.update+'</div><div style="flex:1"><b>命中率</b><br>'+(65+Math.floor(Math.random()*30))+'%</div></div>';
+body+='<div style="border-top:1px solid #eee;padding-top:10px;margin-bottom:10px"><b>节点到达漏斗</b></div>';
+var nsteps=['开场白','需求挖掘','产品介绍','异议处理','促成成交','结束语'];
+var rates=[100,88,72,55,40,31];
+nsteps.forEach(function(ns,idx){ var r=rates[idx]; body+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:70px;font-size:11px;color:var(--ts)">'+ns+'</span><div style="flex:1" class="pb"><div class="fill bl" style="width:'+r+'%"></div></div><span style="font-size:11px">'+r+'%</span></div>'; });
+body+='</div>';
+openModal('📊 '+s.name+' - 话术详情', body, '<button class="btn btn-o" onclick="closeModal()">关闭</button>', '600px');
+}
+
+
+
+// ===== 占位页 - 新建弹窗 =====
+function openPhNew(){
+var ttl=phTitle();
+var body='<div style="font-size:12px;line-height:1.8">';
+body+='<div class="form-row"><div><label>名称</label><input id="pnName" placeholder="请输入名称" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px"></div></div>';
+body+='<div class="form-row"><div><label>类型</label><select id="pnType" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px"><option>标准类型</option><option>自定义类型</option></select></div></div>';
+body+='<div class="form-row"><div><label>备注</label><textarea id="pnDesc" placeholder="选填" style="width:100%;min-height:60px;padding:8px;border:1px solid #e5e7eb;border-radius:6px;resize:vertical"></textarea></div></div>';
+body+='</div>';
+var footer='<button class="btn btn-p" onclick="phNewSubmit()">确认新建</button><button class="btn btn-o" onclick="closeModal()">取消</button>';
+openModal('➕ 新建 - '+ttl, body, footer, '460px');
+}
+function phNewSubmit(){
+var nm=document.getElementById('pnName');var nv=nm?nm.value.trim():'';
+if(!nv){toast('请填写名称','er');return;}
+closeModal();
+toast('已创建：'+nv+'（演示）','su');
+renderPlaceholder(document.getElementById('ca'));
+}
+
+
+
+// ===== 自定义文字试听 =====
+function txSpeakCustom(){
+var el=document.getElementById('ttsCustomText');
+var txt=el?el.value.trim():'';
+if(!txt){toast('请先输入要试听的文字','er');return;}
+if(!('speechSynthesis' in window)){toast('当前浏览器不支持语音合成','er');return;}
+var vn=document.getElementById('ttsCustomVoice');
+var vname=vn?vn.value:'晓晓';
+var voices=[{name:'晓晓',voiceKey:'Xiaoxiao',rate:1.0,pitch:1.1},{name:'云希',voiceKey:'Yunyang',rate:0.92,pitch:0.85},{name:'晓悠',voiceKey:'Huihui',rate:1.15,pitch:1.25},{name:'云野',voiceKey:'Kangkang',rate:0.88,pitch:0.75},{name:'晓辰',voiceKey:'Yaoyao',rate:1.0,pitch:1.0},{name:'慧慧',voiceKey:'Huihui',rate:1.12,pitch:1.3},{name:'康康',voiceKey:'Kangkang',rate:0.85,pitch:0.7},{name:'瑶瑶',voiceKey:'Yaoyao',rate:0.95,pitch:1.05},{name:'云扬',voiceKey:'Yunyang',rate:1.05,pitch:1.0},{name:'汉汉',voiceKey:'HanHan',rate:0.95,pitch:1.05}];
+var v=voices.find(function(x){return x.name===vname;})||{voiceKey:null,rate:1,pitch:1};
+txSpeak(txt, v.voiceKey, v.rate, v.pitch);
+}
+
+// ===== 语音质检 - 行业扩展数据 =====
+var QCIndustry=[
+{ind:'水务',icon:'💧',desc:'供水报修、水表抄收、欠费催缴、漏损投诉等场景质检',items:[
+{id:'QC-SW-001',agent:'刘畅',customer:'王先生',num:'135****1122',dur:'2:12',script:'水费催缴话术',score:85,level:'良好',warn:[],dims:{attitude:88,norm:85,comm:82,prof:84},transcript:'您好，这里是水务集团客服中心。您本期水费已逾期三天，为避免停水影响您的生活，请您尽快缴纳，谢谢配合。'},
+{id:'QC-SW-002',agent:'李敏',customer:'张女士',num:'137****3344',dur:'3:05',script:'供水报修话术',score:62,level:'合格',warn:['术语过多'],dims:{attitude:70,norm:65,comm:55,prof:60},transcript:'您好，您的报修已登记，我们会在两个工作日内安排抢修，请您保持电话畅通，后续会有短信通知。'}
+]},
+{ind:'热力',icon:'🔥',desc:'供暖报修、缴费提醒、室温投诉、停暖通知等场景质检',items:[
+{id:'QC-RL-001',agent:'周凯',customer:'赵大爷',num:'138****5566',dur:'2:48',script:'供暖报修话术',score:90,level:'优秀',warn:[],dims:{attitude:92,norm:90,comm:88,prof:90},transcript:'您好，这里是热力公司。您家暖气不热的问题我们已记录，师傅会在今天下午上门检查，给您带来不便敬请谅解。'},
+{id:'QC-RL-002',agent:'吴刚',customer:'孙女士',num:'159****7788',dur:'1:40',script:'供暖缴费话术',score:58,level:'待改进',warn:['服务态度冷漠'],dims:{attitude:50,norm:55,comm:60,prof:55},transcript:'暖气费自己看着办，不交就停暖，别问我。'}
+]},
+{ind:'燃气',icon:'🔥💨',desc:'燃气安检、开户报装、用气安全提醒、抢修等场景质检',items:[
+{id:'QC-RQ-001',agent:'陈静',customer:'刘先生',num:'136****9900',dur:'3:20',script:'燃气安检话术',score:93,level:'优秀',warn:[],dims:{attitude:95,norm:92,comm:91,prof:94},transcript:'您好，这里是燃气公司。上门为您做一年一度的燃气安全检查，为了您的用气安全，请您配合，整个过程约二十分钟，完全免费。'},
+{id:'QC-RQ-002',agent:'马超',customer:'周女士',num:'150****2211',dur:'2:05',script:'燃气报装话术',score:75,level:'合格',warn:['语速过快'],dims:{attitude:78,norm:75,comm:68,prof:80},transcript:'您好报装手续是这样证件材料很快的您抓紧准备一下。'}
+]},
+{ind:'政务',icon:'🏛️',desc:'热线接听、政策咨询、办事指引、投诉反馈等场景质检',items:[
+{id:'QC-ZW-001',agent:'林芳',customer:'市民陈',num:'12345',dur:'4:10',script:'政务热线话术',score:86,level:'良好',warn:[],dims:{attitude:89,norm:87,comm:84,prof:85},transcript:'您好，这里是政务服务热线。您反映的问题我已详细记录，会转交相关部门在三个工作日内回复，感谢您的来电。'},
+{id:'QC-ZW-002',agent:'杨帆',customer:'市民王',num:'12345',dur:'1:55',script:'政策咨询话术',score:68,level:'合格',warn:['打断市民'],dims:{attitude:66,norm:70,comm:60,prof:75},transcript:'您先别说，这个政策就是这样的，具体您自己上网查查吧。'}
+]},
+{ind:'制造业',icon:'🏭',desc:'设备售后、订单催货、对账结算、客诉处理等场景质检',items:[
+{id:'QC-ZZ-001',agent:'徐强',customer:'采购李',num:'139****6677',dur:'3:35',script:'设备售后话术',score:88,level:'良好',warn:[],dims:{attitude:90,norm:86,comm:85,prof:89},transcript:'您好，贵公司的设备故障我们已收到，工程师会在今天下午远程排查，如无法解决将安排上门，请您放心。'},
+{id:'QC-ZZ-002',agent:'曹磊',customer:'客户赵',num:'185****4433',dur:'2:30',script:'订单催货话术',score:72,level:'合格',warn:['情绪急躁'],dims:{attitude:70,norm:74,comm:66,prof:78},transcript:'您的货我们已经催了，物流那边慢您找物流去，别催我们了。'}
+]},
+{ind:'物业',icon:'🏢',desc:'报修投诉、物业费催缴、停车管理、装修备案等场景质检',items:[
+{id:'QC-WY-001',agent:'何静',customer:'业主张叔',num:'135****8801',dur:'3:10',script:'物业报修话术',score:89,level:'良好',warn:[],dims:{attitude:90,norm:88,comm:86,prof:90},transcript:'您好张叔，这里是物业服务中心。您报的水管漏水问题我们已经派工程部的师傅过去了，大约二十分钟到，师傅到之前请您先别用水，避免漏水扩大，给您添麻烦了。'},
+{id:'QC-WY-002',agent:'高翔',customer:'业主李女士',num:'136****7712',dur:'2:20',script:'物业费催缴话术',score:76,level:'合格',warn:['催促语气'],dims:{attitude:74,norm:78,comm:72,prof:80},transcript:'您好李女士，您本季度的物业费还没缴，麻烦您方便的时候交一下，门口的保安和保洁都靠这个开支，谢谢您的理解支持。'}
+]},
+{ind:'4S店',icon:'🚗',desc:'保养邀约、售后回访、续保提醒、试驾邀约等场景质检',items:[
+{id:'QC-4S-001',agent:'苏瑶',customer:'车主王先生',num:'138****9902',dur:'2:55',script:'保养邀约话术',score:92,level:'优秀',warn:[],dims:{attitude:94,norm:91,comm:90,prof:93},transcript:'王先生您好，这里是xx汽车4S店售后服务中心。您的爱车公里数已接近保养周期，现在预约本周保养可享受八折优惠，还免费送一次全车检测，您看明天上午方便吗？'},
+{id:'QC-4S-002',agent:'冯军',customer:'车主刘女士',num:'150****2233',dur:'2:40',script:'售后回访话术',score:70,level:'合格',warn:['追问过度'],dims:{attitude:72,norm:70,comm:65,prof:73},transcript:'刘女士您好，上次维修后您的车况怎么样啊？有没有再出问题？您下次还来我们店吗？记得给我们好评啊。'}
+]},
+{ind:'金融',icon:'🏦',desc:'信用卡营销、贷款咨询、理财推介、风险提醒等场景质检',items:[
+{id:'QC-JR-001',agent:'郑洁',customer:'客户周先生',num:'137****3344',dur:'3:30',script:'理财咨询话术',score:87,level:'良好',warn:[],dims:{attitude:88,norm:90,comm:84,prof:85},transcript:'周先生您好，我是xx银行理财经理郑洁。根据您之前的风险测评结果，有几款稳健型理财产品比较适合您，收益和风险都给您讲清楚，您再决定是否配置，不着急。'},
+{id:'QC-JR-002',agent:'潘磊',customer:'客户陈女士',num:'188****5566',dur:'2:05',script:'信用卡营销话术',score:64,level:'合格',warn:['诱导消费'],dims:{attitude:66,norm:60,comm:68,prof:62},transcript:'陈女士，我们现在有个活动，办理白金卡可以免年费还送行李箱，名额不多，您今天不办明天就没了，机不可失。'}
+]},
+{ind:'教育',icon:'🎓',desc:'课程咨询、试听邀约、续费提醒、家长沟通等场景质检',items:[
+{id:'QC-JY-001',agent:'唐老师',customer:'家长李爸爸',num:'139****6677',dur:'3:45',script:'课程咨询话术',score:91,level:'优秀',warn:[],dims:{attitude:93,norm:90,comm:89,prof:92},transcript:'李家长您好，我是xx教育的唐老师。关于孩子数学提分这件事，我先了解下孩子目前的基础和学习习惯，再给您推荐合适的班型，本周六有一节免费试听课，可以先让孩子体验一下再决定。'},
+{id:'QC-JY-002',agent:'孟老师',customer:'家长王妈妈',num:'186****8899',dur:'2:15',script:'续费提醒话术',score:73,level:'合格',warn:['语气催促'],dims:{attitude:75,norm:72,comm:70,prof:76},transcript:'王家长您好，孩子这个学期的课程快到期了，您看要不要续费？再不续的话名额可能就给别人了，您抓紧决定一下。'}
+]},
+{ind:'医院',icon:'🏥',desc:'预约挂号、检查报告通知、随访回访、用药提醒等场景质检',items:[
+{id:'QC-YY-001',agent:'林护士',customer:'患者张阿姨',num:'136****0011',dur:'3:20',script:'检查报告通知话术',score:90,level:'优秀',warn:[],dims:{attitude:92,norm:91,comm:88,prof:89},transcript:'张阿姨您好，这里是xx医院。您的体检报告出来了，各项指标总体不错，就是血压稍微偏高，建议您下周来复查一下，平时饮食要清淡一些，少吃盐，有问题随时给我们打电话。'},
+{id:'QC-YY-002',agent:'谢医生',customer:'患者家属李女士',num:'155****2233',dur:'2:50',script:'随访回访话术',score:79,level:'良好',warn:[],dims:{attitude:82,norm:80,comm:76,prof:78},transcript:'李女士您好，我是xx医院的随访医生。您父亲出院后的恢复情况怎么样？按时吃药了吗？如果有什么不舒服，记得及时就医，不要耽搁。'}
+]},
+{ind:'旅游',icon:'✈️',desc:'线路咨询、行程变更、售后投诉、退订处理等场景质检',items:[
+{id:'QC-LY-001',agent:'顾佳',customer:'游客孙女士',num:'137****4455',dur:'3:15',script:'线路咨询话术',score:88,level:'良好',warn:[],dims:{attitude:91,norm:87,comm:86,prof:88},transcript:'孙女士您好，欢迎咨询我们的云南六日游线路。我给您介绍下行程安排，第一天昆明接机，后面大理丽江，全程无购物，住宿是四星标准，您看这个时间安排合适吗？'},
+{id:'QC-LY-002',agent:'韩先生',customer:'游客赵大爷',num:'130****6678',dur:'2:35',script:'退订处理话术',score:66,level:'合格',warn:['推诿责任'],dims:{attitude:68,norm:62,comm:65,prof:69},transcript:'赵大爷，您要退团这个我得走流程，手续费是按合同来的，退不了多少，您自己考虑清楚，回头再找我们也麻烦。'}
+]},
+{ind:'零售售后',icon:'🛒',desc:'退换货、物流查询、商品咨询、投诉处理等场景质检',items:[
+{id:'QC-LS-001',agent:'许芳',customer:'买家钱女士',num:'138****7788',dur:'2:45',script:'退换货话术',score:85,level:'良好',warn:[],dims:{attitude:88,norm:86,comm:83,prof:84},transcript:'钱女士您好，您购买的这件商品确实有质量问题，非常抱歉。您直接申请退货即可，运费我们承担，退款会在您寄出后三个工作日内原路退回，给您带来不便实在抱歉。'},
+{id:'QC-LS-002',agent:'施伟',customer:'买家马先生',num:'159****9901',dur:'1:50',script:'物流查询话术',score:71,level:'合格',warn:['回复敷衍'],dims:{attitude:72,norm:70,comm:65,prof:74},transcript:'你的快递已经在路上了，具体到哪我也不知道，你自己查下物流信息吧，催也没用，耐心等着就行。'}
+]},
+{ind:'社保',icon:'📋',desc:'政策咨询、参保办理、待遇申领、缴费查询等场景质检',items:[
+{id:'QC-SB-001',agent:'魏芳',customer:'市民周先生',num:'12333',dur:'4:05',script:'社保政策咨询话术',score:89,level:'良好',warn:[],dims:{attitude:91,norm:90,comm:87,prof:88},transcript:'周先生您好，这里是社保服务热线。关于您咨询的养老金领取条件，我给您解释一下，需要累计缴费满十五年并达到法定退休年龄，具体金额跟您的缴费年限和基数有关，我帮您查一下您的个人账户。'},
+{id:'QC-SB-002',agent:'严先生',customer:'市民刘女士',num:'12333',dur:'2:10',script:'参保办理话术',score:74,level:'合格',warn:['语速偏快'],dims:{attitude:76,norm:75,comm:68,prof:77},transcript:'您好参保需要身份证户口本先去社区登记再网上申报流程比较快您记一下。'}
+]}
+];
+
+function renderQCOverview(){
+var ca=document.getElementById('ca');
+var total=QVData.length+QCIndustry.reduce(function(s,x){return s+x.items.length;},0);
+var all=QVData.concat(QCIndustry.reduce(function(s,x){return s.concat(x.items);},[]));
+var avg=Math.round(all.reduce(function(s,x){return s+x.score;},0)/all.length);
+var bad=all.filter(function(x){return x.score<60;}).length;
+var warnCnt=all.reduce(function(s,x){return s+x.warn.length;},0);
+var h='<h3>语音质检</h3>';
+h+='<div class="sr"><div class="scd"><div class="si bl">🎧</div><div><div class="sv">'+total+'</div><div class="sl">已质检录音</div></div></div>';
+h+='<div class="scd"><div class="si gr">📈</div><div><div class="sv">'+avg+'</div><div class="sl">平均评分</div></div></div>';
+h+='<div class="scd"><div class="si or">⚠️</div><div><div class="sv">'+warnCnt+'</div><div class="sl">预警项</div></div></div>';
+h+='<div class="scd"><div class="si rd">🚨</div><div><div class="sv">'+bad+'</div><div class="sl">不合格录音</div></div></div></div>';
+
+// 行业维度卡片（含通用客服中心）
+h+='<div class="cd"><div class="cdh"><span class="cdt">🏭 分行业质检（通用客服 / 水务 / 热力 / 燃气 / 政务 / 制造 / 物业 / 4S店 / 金融 / 教育 / 医院 / 旅游 / 零售售后 / 社保）</span></div>';
+h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:6px">';
+h+='<div style="border:1px solid #5E6AD2;background:#eef0ff;border-radius:8px;padding:12px;text-align:center;cursor:pointer" onclick="renderQCIndustry(\'通用\')"><div style="font-size:24px">📞</div><div style="font-size:13px;font-weight:600;margin-top:4px">通用客服</div><div style="font-size:11px;color:var(--tm)">'+QVData.length+'条 · 均'+Math.round(QVData.reduce(function(s,x){return s+x.score;},0)/QVData.length)+'分</div><div style="font-size:10px;color:'+(QVData.reduce(function(s,x){return s+x.warn.length;},0)?'#ef4444':'#9ca3af')+'">'+QVData.reduce(function(s,x){return s+x.warn.length;},0)+'项预警</div></div>';
+QCIndustry.forEach(function(g){var its=g.items;var gavg=Math.round(its.reduce(function(s,x){return s+x.score;},0)/its.length);var gw=its.reduce(function(s,x){return s+x.warn.length;},0);h+='<div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;text-align:center;cursor:pointer" onclick="renderQCIndustry(\''+g.ind+'\')"><div style="font-size:24px">'+g.icon+'</div><div style="font-size:13px;font-weight:600;margin-top:4px">'+g.ind+'</div><div style="font-size:11px;color:var(--tm)">'+its.length+'条 · 均'+gavg+'分</div><div style="font-size:10px;color:'+(gw?'#ef4444':'#9ca3af')+'">'+(gw?gw+'项预警':'无预警')+'</div></div>';});
+h+='</div></div>';
+
+// 预警区
+h+='<div class="cd"><div class="cdh"><span class="cdt">⚠️ 质检预警（服务质量 / 服务态度）</span></div>';
+var warnHtml='';
+all.filter(function(x){return x.warn.length>0;}).forEach(function(x){var gi='通用客服';QCIndustry.forEach(function(g){g.items.forEach(function(it){if(it.id===x.id)gi=g.ind;});});warnHtml+='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #fde2e2;background:#fff5f5;border-radius:6px;margin-bottom:6px"><span style="font-size:14px">🚨</span><div style="flex:1"><div style="font-size:12px;font-weight:600">['+gi+'] '+x.agent+' → '+x.customer+' <span style="color:#ef4444;font-weight:400">（'+x.warn.join('、')+'）</span></div><div style="font-size:10px;color:var(--ts)">'+x.id+' · '+x.date+' · '+x.dur+'</div></div><button class="btn btn-sm btn-o" onclick="openQCDetail2(\''+x.id+'\')">质检详情</button></div>';});
+h+=warnHtml+'</div>';
+
+// 全部录音列表（通用 + 行业）
+h+='<div class="cd"><div class="cdh"><span class="cdt">🎧 录音质检列表（含行业，共 '+total+' 条）</span></div>';
+h+='<div class="tw"><table class="tb1"><thead><tr><th>行业</th><th>质检编号</th><th>坐席</th><th>客户</th><th>话术</th><th>时长</th><th>评分</th><th>等级</th><th>预警</th><th>操作</th></tr></thead><tbody>';
+var rows=[];QVData.forEach(function(x){rows.push({gi:'通用客服',x:x});});QCIndustry.forEach(function(g){g.items.forEach(function(x){rows.push({gi:g.ind,x:x});});});
+h+=rows.map(function(r){var x=r.x;var lv=x.level;var c=(lv==='优秀')?'su':(lv==='良好'?'in':(lv==='待改进'?'rd':'wa'));return '<tr><td><span class="bdge in">'+r.gi+'</span></td><td>'+x.id+'</td><td>'+x.agent+'</td><td>'+x.customer+'</td><td>'+x.script+'</td><td>'+x.dur+'</td><td><b style="color:'+(x.score>=80?'#10b981':x.score>=60?'#f59e0b':'#ef4444')+'">'+x.score+'</b></td><td><span class="bdge '+c+'">'+lv+'</span></td><td style="font-size:11px;color:'+(x.warn.length?'#ef4444':'#9ca3af')+'">'+(x.warn.length?x.warn.join('、'):'无')+'</td><td class="ta"><button class="btn btn-sm btn-p" onclick="qcPlay2(\''+x.id+'\')">▶ 播放</button><button class="btn btn-sm btn-o" onclick="openQCDetail2(\''+x.id+'\')">质检详情</button></td></tr>';}).join('')+
+'</tbody></table></div></div>';
+ca.innerHTML=h;
+}
+
+function renderQCIndustry(ind){
+var ca=document.getElementById('ca');
+var g=null;QCIndustry.forEach(function(x){if(x.ind===ind)g=x;});
+if(!g && ind==='通用'){ g={ind:'通用客服',icon:'📞',desc:'通用客服中心录音质检（含各类通用场景）',items:QVData}; }
+if(!g)return;
+var h='<div style="margin-bottom:10px"><button class="btn btn-o" onclick="renderQCOverview()">← 返回质检总览</button></div>';
+h+='<h3>'+g.icon+' '+g.ind+' - 语音质检</h3>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:12px">'+g.desc+'</p>';
+h+='<div class="tw"><table class="tb1"><thead><tr><th>质检编号</th><th>坐席</th><th>客户</th><th>话术</th><th>时长</th><th>评分</th><th>等级</th><th>预警</th><th>操作</th></tr></thead><tbody>';
+h+=g.items.map(function(x){var lv=x.level;var c=(lv==='优秀')?'su':(lv==='良好'?'in':(lv==='待改进'?'rd':'wa'));return '<tr><td>'+x.id+'</td><td>'+x.agent+'</td><td>'+x.customer+'</td><td>'+x.script+'</td><td>'+x.dur+'</td><td><b style="color:'+(x.score>=80?'#10b981':x.score>=60?'#f59e0b':'#ef4444')+'">'+x.score+'</b></td><td><span class="bdge '+c+'">'+lv+'</span></td><td style="font-size:11px;color:'+(x.warn.length?'#ef4444':'#9ca3af')+'">'+(x.warn.length?x.warn.join('、'):'无')+'</td><td class="ta"><button class="btn btn-sm btn-p" onclick="qcPlay2(\''+x.id+'\')">▶ 播放</button><button class="btn btn-sm btn-o" onclick="openQCDetail2(\''+x.id+'\')">质检详情</button></td></tr>';}).join('')+
+'</tbody></table></div>';
+ca.innerHTML=h;
+}
+
+function qcPlay2(id){
+var all=QVData.concat(QCIndustry.reduce(function(s,x){return s.concat(x.items);},[]));
+var x=null;all.forEach(function(it){if(it.id===id)x=it;});
+if(!x)return;
+txSpeak(x.transcript);
+toast('▶ 正在播放录音：'+x.id+' ('+x.agent+'→'+x.customer+')','in');
+}
+
+function openQCDetail2(id){
+var all=QVData.concat(QCIndustry.reduce(function(s,x){return s.concat(x.items);},[]));
+var x=null;all.forEach(function(it){if(it.id===id)x=it;});
+if(!x)return;
+var dims=[['服务态度',x.dims.attitude],['服务规范',x.dims.norm],['沟通能力',x.dims.comm],['业务专业度',x.dims.prof]];
+var body='<div style="font-size:12px;line-height:1.8">';
+body+='<div style="display:flex;gap:12px;margin-bottom:12px"><div style="flex:1"><b>质检编号</b><br>'+x.id+'</div><div style="flex:1"><b>坐席</b><br>'+x.agent+'</div><div style="flex:1"><b>客户</b><br>'+x.customer+' ('+x.num+')</div><div style="flex:1"><b>综合评分</b><br><b style="color:'+(x.score>=80?'#10b981':x.score>=60?'#f59e0b':'#ef4444')+';font-size:18px">'+x.score+'</b></div></div>';
+body+='<div style="border-top:1px solid #eee;padding-top:10px;margin-bottom:10px"><b>评分维度</b></div>';
+dims.forEach(function(d){var v=d[1];var col=v>=80?'#10b981':v>=60?'#f59e0b':'#ef4444';body+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="width:80px;font-size:11px">'+d[0]+'</span><div style="flex:1" class="pb"><div class="fill" style="width:'+v+'%;background:'+col+'"></div></div><span style="font-size:11px;font-weight:600;color:'+col+'">'+v+'</span></div>';});
+body+='<div style="border-top:1px solid #eee;padding-top:10px;margin-bottom:10px"><b>通话转写</b></div>';
+body+='<div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:12px;font-size:12px;color:var(--tx);line-height:1.9;margin-bottom:10px">'+x.transcript+'</div>';
+if(x.warn.length){body+='<div style="border-top:1px solid #fde2e2;padding-top:10px"><b style="color:#ef4444">⚠️ 质检预警：</b>'+x.warn.join('、')+'</div>';}
+body+='</div>';
+openModal('🎧 质检详情 - '+x.id, body, '<button class="btn btn-o" onclick="closeModal()">关闭</button>', '600px');
+}
+
+
+
+// ===== 录音库（录音师试听） =====
+function renderRecordingLib(ca){
+var h='<h3>录音师试听</h3>';
+h+='<p style="font-size:11px;color:var(--ts);margin-bottom:12px">🎧 真实来电通话录音：客户来电 → 机器人先接听 → 无法处理时转接人工坐席，体现完整沟通链路。</p>';
+h+='<div class="sr"><div class="scd"><div class="si bl">🎙️</div><div><div class="sv">'+CDialog.length+'</div><div class="sl">真实录音</div></div></div>';
+h+='<div class="scd"><div class="si gr">🕒</div><div><div class="sv">'+CDialog.length+'</div><div class="sl">覆盖行业</div></div></div>';
+h+='<div class="scd"><div class="si pu">🤖</div><div><div class="sv">AI</div><div class="sl">机器人接听</div></div></div>';
+h+='<div class="scd"><div class="si or">👤</div><div><div class="sv">人工</div><div class="sl">转接坐席</div></div></div></div>';
+CDialog.forEach(function(d){
+h+='<div class="cd" style="margin-bottom:8px"><div class="cdh"><span class="cdt">'+d.icon+' '+d.ind+' · '+d.customer+'来电（'+d.num+'）</span><span style="font-size:10px;color:var(--ts)">'+d.dur+'</span></div>';
+h+='<div style="font-size:11px;margin-bottom:8px"><span class="bdge in">'+d.ind+'</span> <span style="color:var(--ts)">'+d.scene+'</span></div>';
+h+='<div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:10px;font-size:11px;line-height:1.9;color:var(--tx);margin-bottom:8px">';
+d.dialog.forEach(function(seg){var nm=(seg.sp==='bot')?'🤖机器人':(seg.sp==='human'?'👤人工坐席':(seg.sp==='transfer'?'🔀转接':'📞客户'));var col=(seg.sp==='bot')?'#5E6AD2':(seg.sp==='human')?'#10b981':(seg.sp==='transfer')?'#f59e0b':'#0ea5e9';h+='<div style="margin-bottom:4px"><b style="color:'+col+'">'+nm+'：</b>'+seg.txt+'</div>';});
+h+='</div>';
+h+='<button class="btn btn-sm btn-p" onclick="recPlayDialog(\''+d.id+'\')">▶ 播放对话</button><button class="btn btn-sm btn-o" onclick="recDetailDialog(\''+d.id+'\')">📄 对话详情</button>';
+h+='</div>';
+});
+ca.innerHTML=h;
+}
+function _findDialog(id){var r=null;CDialog.forEach(function(d){if(d.id===id)r=d;});return r;}
+function recPlayDialog(id){
+var d=_findDialog(id);if(!d)return;
+if(!('speechSynthesis' in window)){toast('浏览器不支持语音','er');return;}
+window.speechSynthesis.cancel();
+var idx=0;
+function speakNext(){
+if(idx>=d.dialog.length){toast('▶ 对话播放完毕','in');return;}
+var seg=d.dialog[idx];idx++;
+var u=new SpeechSynthesisUtterance(seg.txt);
+u.lang='zh-CN';
+// 机器人=慧慧(女)，客户=康康(男)，人工=瑶瑶(女)，转接提示=默认
+var vs=window.speechSynthesis.getVoices();
+var pick=null;
+if(seg.sp==='bot'){pick=vs.find(function(v){return v.name.indexOf('Huihui')>=0;});u.pitch=1.1;u.rate=1.05;}
+else if(seg.sp==='human'){pick=vs.find(function(v){return v.name.indexOf('Yaoyao')>=0;});u.pitch=1.0;u.rate=0.95;}
+else if(seg.sp==='cust'){pick=vs.find(function(v){return v.name.indexOf('Kangkang')>=0;});u.pitch=0.9;u.rate=0.95;}
+if(!pick){var local=vs.filter(function(v){return v.localService&&v.lang&&v.lang.toLowerCase().indexOf('zh')>=0;});pick=local[0]||vs[0];}
+if(pick)u.voice=pick;
+u.onend=speakNext;
+window.speechSynthesis.speak(u);
+}
+speakNext();
+}
+function recDetailDialog(id){
+var d=_findDialog(id);if(!d)return;
+var body='<div style="font-size:12px;line-height:1.9">';
+body+='<div style="display:flex;gap:10px;margin-bottom:10px"><div><b>行业</b><br>'+d.ind+'</div><div><b>来电客户</b><br>'+d.customer+'</div><div><b>号码</b><br>'+d.num+'</div><div><b>时长</b><br>'+d.dur+'</div><div><b>场景</b><br>'+d.scene+'</div></div>';
+body+='<div style="border-top:1px solid #eee;padding-top:10px">';
+d.dialog.forEach(function(seg){var nm=(seg.sp==='bot')?'🤖机器人':(seg.sp==='human')?'👤人工坐席':(seg.sp==='transfer')?'🔀系统转接':'📞客户';var col=(seg.sp==='bot')?'#5E6AD2':(seg.sp==='human')?'#10b981':(seg.sp==='transfer')?'#f59e0b':'#0ea5e9';body+='<div style="display:flex;gap:8px;margin-bottom:8px"><span style="white-space:nowrap;font-weight:600;color:'+col+';min-width:64px">'+nm+'</span><span>'+seg.txt+'</span></div>';});
+body+='</div></div>';
+openModal('📄 通话对话详情 - '+d.id, body, '<button class="btn btn-o" onclick="closeModal()">关闭</button>','600px');
+}
+
+// ===== 录音小程序（真实录音） =====
+var _recorder=null,_recChunks=[],_recStream=null;
+function renderRecorder(ca){
+ca.innerHTML='<h3>录音小程序</h3>'+
+'<div class="cd"><div class="cdh"><span class="cdt">🎙️ 录音工具</span></div>'+
+'<p style="font-size:11px;color:var(--ts);margin-bottom:12px">使用浏览器麦克风录制一段话术，录完可试听回放（需授权麦克风权限）。</p>'+
+'<div style="text-align:center;padding:20px">'+
+'<div id="recStatus" style="font-size:14px;font-weight:600;margin-bottom:14px">● 待录音</div>'+
+'<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'+
+'<button class="btn btn-p" id="recStartBtn" onclick="recStart()">🎙️ 开始录音</button>'+
+'<button class="btn btn-o" id="recStopBtn" onclick="recStop()" disabled>⏹ 停止</button>'+
+'<button class="btn btn-o" id="recPlayBtn" onclick="recPlayback()" disabled>▶ 回放录音</button>'+
+'</div>'+
+'<div id="recTimer" style="font-size:22px;font-weight:700;color:#5E6AD2;margin-top:14px">00:00</div>'+
+'</div></div>';
+window._recAudioUrl=null;
+}
+function recStart(){
+if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('当前浏览器不支持录音','er');return;}
+navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+_recStream=stream;
+if(window.MediaRecorder){
+_recorder=new MediaRecorder(stream);_recChunks=[];
+_recorder.ondataavailable=function(e){_recChunks.push(e.data);};
+_recorder.onstop=function(){var blob=new Blob(_recChunks,{type:_recorder.mimeType||'audio/webm'});window._recAudioUrl=URL.createObjectURL(blob);var pb=document.getElementById('recPlayBtn');if(pb)pb.disabled=false;var st=document.getElementById('recStatus');if(st){st.textContent='● 录音完成';st.style.color='#10b981';}};
+_recorder.start();
+toast('开始录音','su');
+}else{toast('浏览器不支持 MediaRecorder','er');}
+}).catch(function(e){toast('无法访问麦克风：'+(e.message||'权限被拒绝'),'er');});
+var st=document.getElementById('recStatus');if(st){st.textContent='● 正在录音…';st.style.color='#ef4444';}
+document.getElementById('recStartBtn').disabled=true;
+document.getElementById('recStopBtn').disabled=false;
+recTimerStart();
+}
+function recStop(){
+if(_recorder&&_recorder.state!=='inactive'){_recorder.stop();}
+if(_recStream){_recStream.getTracks().forEach(function(tr){tr.stop();});}
+document.getElementById('recStartBtn').disabled=false;
+document.getElementById('recStopBtn').disabled=true;
+recTimerStop();
+toast('录音已停止','in');
+}
+function recPlayback(){if(window._recAudioUrl){var a=new Audio(window._recAudioUrl);a.play().then(function(){toast('▶ 正在回放录音','in');}).catch(function(){toast('回放失败','er');});}}
+var _recTimerId=null,_recSec=0;
+function recTimerStart(){_recSec=0;document.getElementById('recTimer').textContent='00:00';_recTimerId=setInterval(function(){_recSec++;var m=Math.floor(_recSec/60);var s=_recSec%60;document.getElementById('recTimer').textContent=(m<10?'0'+m:m)+':'+(s<10?'0'+s:s);},1000);}
+function recTimerStop(){if(_recTimerId){clearInterval(_recTimerId);_recTimerId=null;}}
+
+
+
+// ===== 真实来电通话对话库（机器人接听 → 转人工） =====
+var CDialog=[
+{id:'DL-GW-001',ind:'政务',icon:'🏛️',customer:'王先生',num:'138****2211',dur:'4:32',scene:'市民咨询异地就医备案政策',dialog:[
+{sp:'bot',txt:'您好，欢迎致电政务服务热线，智能助手为您服务。请问您需要办理什么业务？'},
+{sp:'cust',txt:'我想问一下，异地就医备案怎么办理啊？我人在外地，医保在老家。'},
+{sp:'bot',txt:'好的，为您查询异地就医备案相关信息。异地就医备案可通过国家医保服务平台APP在线办理，您也可以在参保地医保经办机构窗口办理。请问需要我为您详细说明操作步骤吗？'},
+{sp:'cust',txt:'操作步骤你给我讲讲吧，我手机不太会弄。'},
+{sp:'bot',txt:'抱歉，涉及您个人参保信息的具体情况，我需要为您转接人工客服做进一步解答，请稍候。'},
+{sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
+{sp:'human',txt:'您好，这里是政务服务人工坐席，工号0231，很高兴为您服务。您刚咨询的异地就医备案，我帮您详细说明一下流程……'}
+]},
+{id:'DL-SW-001',ind:'水务',icon:'💧',customer:'张女士',num:'135****8899',dur:'3:48',scene:'水费异常咨询与报修',dialog:[
+{sp:'bot',txt:'您好，欢迎致电水务集团服务热线，智能助手为您服务。请问有什么可以帮您？'},
+{sp:'cust',txt:'我这个月水费怎么比上个月多了这么多，是不是水表坏了？'},
+{sp:'bot',txt:'已为您查询，您本月用水量为15吨，较上月增加较多。请问近期是否有增加用水的情况，比如新添家庭成员或用水设备？'},
+{sp:'cust',txt:'没有啊，家里就我们两口子，跟以前一样用水。我怀疑是不是漏水了。'},
+{sp:'bot',txt:'好的，我建议您先检查家中马桶和用水设备是否有渗漏。如确有漏水嫌疑，可为您登记报修。这个情况我需要为您转接人工客服登记处理，请稍候。'},
+{sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
+{sp:'human',txt:'您好，这里是水务人工客服，工号0512。您反映水费异常和疑似漏水，我这就为您登记报修，师傅会尽快上门检查水表和管网……'}
+]},
+{id:'DL-RQ-001',ind:'燃气',icon:'🔥💨',customer:'李先生',num:'139****6677',dur:'3:55',scene:'燃气泄漏疑似报警',dialog:[
+{sp:'bot',txt:'您好，欢迎致电燃气公司服务热线。燃气安全无小事，请问有什么紧急情况需要帮助？'},
+{sp:'cust',txt:'我家里好像闻到一股煤气味，不知道是不是漏气了，怎么办啊？'},
+{sp:'bot',txt:'请保持冷静。首先请您立即关闭燃气阀门，打开门窗通风，切勿开关任何电器或使用明火。请问您现在是否已安全撤离到通风处？'},
+{sp:'cust',txt:'我已经出来了，阀门也关了，现在怎么办？'},
+{sp:'bot',txt:'好的，您处理得很正确。这是紧急情况，我立即为您转接人工客服协调抢修，请保持电话畅通。'},
+{sp:'transfer',txt:'紧急转接中，正在为您接通燃气抢修专线……'},
+{sp:'human',txt:'您好，这里是燃气抢修专线。已记录您的地址，抢修人员已出发，预计20分钟到达，期间请勿返回室内，保持通风……'}
+]},
+{id:'DL-RL-001',ind:'热力',icon:'🔥',customer:'赵大爷',num:'138****4433',dur:'4:05',scene:'供暖不热投诉报修',dialog:[
+{sp:'bot',txt:'您好，欢迎致电热力公司服务热线，智能助手为您服务。请问有什么可以帮您？'},
+{sp:'cust',txt:'小伙子，我们家暖气这几天一直不热，摸着都是凉的，孩子都冻感冒了。'},
+{sp:'bot',txt:'非常抱歉给您带来不便。请问您家中其他房间的暖气是否也是凉的？是否进行过排气操作？'},
+{sp:'cust',txt:'我都排过气了，还是不热，这都两天了，你得给我解决啊。'},
+{sp:'bot',txt:'理解您的心情。这个问题我需要为您转接人工客服登记上门检修，请稍候。'},
+{sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
+{sp:'human',txt:'赵大爷您好，这里是热力人工客服，工号0117。您家供暖不热的问题我马上登记，维修师傅今天下午就上门，会带上测温仪给您排查管道……'}
+]},
+{id:'DL-JR-001',ind:'金融',icon:'🏦',customer:'周女士',num:'137****5588',dur:'4:40',scene:'信用卡还款与分期咨询',dialog:[
+{sp:'bot',txt:'您好，欢迎致电xx银行客服热线，智能助手为您服务。请问您需要办理什么业务？'},
+{sp:'cust',txt:'我这个月信用卡账单还不上，想问问能不能分期？'},
+{sp:'bot',txt:'可以的。根据您的情况，我可以为您查询分期还款方案。请问您希望分几期？目前您的账单金额为12000元。'},
+{sp:'cust',txt:'我想分12期，手续费怎么算的？会不会影响我征信？'},
+{sp:'bot',txt:'分12期的手续费率等信息，涉及您的具体账单明细和协议条款，我需要为您转接人工客服详细说明，请稍候。'},
+{sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
+{sp:'human',txt:'周女士您好，这里是xx银行人工客服，工号0845。您咨询的账单分期，我给您算一下：分12期每月还款约1060元，按期还款不影响征信……'}
+]},
+{id:'DL-LY-001',ind:'旅游',icon:'✈️',customer:'孙女士',num:'139****1122',dur:'3:30',scene:'行程变更与退改咨询',dialog:[
+{sp:'bot',txt:'您好，欢迎致电旅行网服务热线，智能助手为您服务。请问有什么可以帮您？'},
+{sp:'cust',txt:'我订的这周六去丽江的团，因为家里有事想去不了了，能不能退？'},
+{sp:'bot',txt:'为您查询到您预订的云南六日游行程。根据退改政策，出发前7天以上退订可全额退款。请问您确定需要退订吗？'},
+{sp:'cust',txt:'我能不能改期啊，不想全退了，想换个时间再去。'},
+{sp:'bot',txt:'改期涉及线路班期和差价，需要为您转接人工客服具体处理，请稍候。'},
+{sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
+{sp:'human',txt:'孙女士您好，这里是旅行网人工客服。您想改期的话，我帮您查一下最近班期和差价，尽量给您协调到合适的团期……'}
+]},
+{id:'DL-ZZ-001',ind:'制造业',icon:'🏭',customer:'采购王经理',num:'136****9900',dur:'3:20',scene:'设备售后技术咨询',dialog:[
+{sp:'bot',txt:'您好，欢迎致电xx自动化设备公司服务热线，智能助手为您服务。请问您需要什么帮助？'},
+{sp:'cust',txt:'我们厂里那台灌装机最近老是报警停机，你们能不能安排人来看看？'},
+{sp:'bot',txt:'已为您记录设备报警问题。请问报警代码是多少？方便我们初步判断故障原因，是否已尝试重启设备？'},
+{sp:'cust',txt:'报警代码显示是E3，重启了好几次还是不行，耽误我们生产啊。'},
+{sp:'bot',txt:'E3报警通常与传感器或传动系统有关。这个问题需要专业工程师处理，我为您转接人工客服登记上门服务，请稍候。'},
+{sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
+{sp:'human',txt:'王经理您好，这里是设备售后人工客服，工号0308。您厂里的灌装机E3报警我登记了，工程师今天下午带备件上门，先做远程初步判断……'}
+]},
+{id:'DL-JY-001',ind:'教育培训',icon:'🎓',customer:'李女士',num:'150****2233',dur:'4:15',scene:'课程咨询与试听预约',dialog:[
+{sp:'bot',txt:'您好，欢迎致电xx教育咨询热线，智能助手为您服务。请问您想咨询哪方面的课程？'},
+{sp:'cust',txt:'我想给孩子报个英语班，孩子今年上五年级，基础一般。'},
+{sp:'bot',txt:'好的，五年级英语课程我们有多种班型。请问您方便说一下孩子现在英语学习的薄弱环节吗？是听说还是读写方面？'},
+{sp:'cust',txt:'主要是口语和听力不行，考试里这部分丢分多。'},
+{sp:'bot',txt:'针对听说薄弱，我们有一对一和小班两种模式。具体推荐和试听安排，我为您转接课程顾问详细沟通，请稍候。'},
+{sp:'transfer',txt:'正在为您转接课程顾问，请稍候……'},
+{sp:'human',txt:'李女士您好，我是课程顾问张老师。针对孩子听说薄弱，我建议先安排一节免费试听课，看看孩子跟老师的互动情况再定班型……'}
+]},
+{id:'DL-4S-001',ind:'4S店',icon:'🚗',customer:'刘先生',num:'138****7788',dur:'3:10',scene:'车辆保养与故障咨询',dialog:[
+{sp:'bot',txt:'您好，欢迎致电xx汽车4S店服务热线，智能助手为您服务。请问您的爱车遇到了什么问题？'},
+{sp:'cust',txt:'我的车快到保养时间了，想预约一下，顺便问问上次说的刹车有点异响是怎么回事。'},
+{sp:'bot',txt:'好的，为您查询到您的车辆上次保养时间是3个月前，确实临近保养周期。关于刹车异响，请问是踩刹车时出现还是行驶中就有？'},
+{sp:'cust',txt:'就是低速踩刹车的时候有吱吱声，开快了就没有。'},
+{sp:'bot',txt:'低速刹车异响可能与刹车片磨损或异物有关，需要专业技师检查。我为您转接售后人工预约检查，请稍候。'},
+{sp:'transfer',txt:'正在为您转接售后坐席，请稍候……'},
+{sp:'human',txt:'刘先生您好，这里是4S店售后人工坐席。您的保养和刹车异响我都帮您约好了，本周六上午九点，技师会给您做全面检查……'}
+]},
+{id:'DL-WY-001',ind:'物业',icon:'🏢',customer:'张叔',num:'135****3344',dur:'2:55',scene:'报修与费用咨询',dialog:[
+{sp:'bot',txt:'您好，欢迎致电物业服务中心，智能助手为您服务。请问有什么可以帮您？'},
+{sp:'cust',txt:'我们家卫生间下水道堵了，你们能不能派人来看看？'},
+{sp:'bot',txt:'已为您记录下水道堵塞报修。请问您现在是否已经尝试疏通？另外，您报修的是几号楼几单元？'},
+{sp:'cust',txt:'我自己弄了弄没通，是3号楼2单元502。你们快点吧。'},
+{sp:'bot',txt:'好的，我为您转接人工客服安排维修师傅，请稍候。'},
+{sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
+{sp:'human',txt:'张叔您好，这里是物业人工客服。您家下水道堵塞我登记了，师傅半小时内上门，先判断是主管道还是自家管道问题……'}
+]},
+{id:'DL-YY-001',ind:'医院',icon:'🏥',customer:'陈阿姨',num:'136****6655',dur:'3:25',scene:'挂号与检查咨询',dialog:[
+{sp:'bot',txt:'您好，欢迎致电xx医院服务热线，智能助手为您服务。请问您需要预约挂号还是咨询就诊信息？'},
+{sp:'cust',txt:'我想挂个下周的心内科专家号，顺便问一下做心脏彩超要不要空腹？'},
+{sp:'bot',txt:'心内科专家号可通过医院公众号或电话预约。关于心脏彩超，一般不需要空腹，但具体请以检查单说明为准。请问需要我为您查询可预约的专家和时间吗？'},
+{sp:'cust',txt:'你帮我查查下周有哪些专家出诊吧。'},
+{sp:'bot',txt:'好的，为您查询下周心内科专家出诊信息。具体预约操作涉及您的个人信息，我为您转接人工客服协助办理，请稍候。'},
+{sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
+{sp:'human',txt:'陈阿姨您好，这里是医院人工客服。下周心内科有两位专家出诊，我帮您查一下号源情况，再指导您在公众号预约……'}
+]},
+{id:'DL-LS-001',ind:'零售售后',icon:'🛒',customer:'钱女士',num:'158****1122',dur:'2:40',scene:'退换货与物流咨询',dialog:[
+{sp:'bot',txt:'您好，欢迎致电xx商城客服热线，智能助手为您服务。请问您有什么需要帮助的？'},
+{sp:'cust',txt:'我买的那件衣服尺码不合适想退，怎么退啊？还有快递什么时候能到？'},
+{sp:'bot',txt:'为您查询到您的订单已发货，预计明天送达。关于退换货，您可以在签收后7天内申请，运费我们承担。请问您还需要其他帮助吗？'},
+{sp:'cust',txt:'我是想能不能直接换一个尺码，别退货重买那么麻烦。'},
+{sp:'bot',txt:'换货需要确认库存和流程，我为您转接人工客服处理，请稍候。'},
+{sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
+{sp:'human',txt:'钱女士您好，这里是商城人工客服。您要换尺码的话，我帮您申请换货流程，等您签收后提交申请，我们安排换发……'}
+]},
+{id:'DL-SB-001',ind:'社保',icon:'📋',customer:'周先生',num:'12333',dur:'4:20',scene:'养老金领取条件咨询',dialog:[
+{sp:'bot',txt:'您好，欢迎致电社保服务热线，智能助手为您服务。请问您想咨询哪方面业务？'},
+{sp:'cust',txt:'我今年60了，想问问养老金怎么领，需要办什么手续？'},
+{sp:'bot',txt:'已为您查询养老金领取政策。领取养老金需满足两个条件：累计缴费满15年，且达到法定退休年龄。请问您已办理退休手续了吗？'},
+{sp:'cust',txt:'还没办，不知道去哪办，带什么材料。'},
+{sp:'bot',txt:'退休手续一般在参保地社保经办机构办理，需携带身份证、户口本、社保卡等材料。具体材料清单涉及您的参保情况，我为您转接人工客服详细说明，请稍候。'},
+{sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
+{sp:'human',txt:'周先生您好，这里是社保人工客服。您的养老金领取手续，我帮您列一下所需材料和办理地点，您也可以就近到社区服务中心咨询……'}
+]}
+];
+
+</script>
+
+</body>
+</html>
