@@ -202,7 +202,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 <div class="fg"><label>密码</label><input type="password" id="lp" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()"></div>
 <p class="le" id="lerr">邮箱或密码错误</p>
 <button class="lbtn" onclick="doLogin()">登 录 系 统</button>
-<div class="ql"><div class="qlt">演示账号一键切换</div><div class="qa" id="qa"></div></div>
+<div class="ql" id="qlbox" style="display:none"><div class="qlt">演示账号一键切换</div><div class="qa" id="qa"></div></div><div style="text-align:center;margin-top:8px"><a href="javascript:void(0)" onclick="toggleDemoQuick()" style="color:#94a3b8;font-size:10px;text-decoration:none">管理员快捷入口</a></div><div id="demoCfgLink" style="display:none;text-align:center;margin-top:6px"><a href="javascript:void(0)" onclick="openDemoCfg()" style="color:#94a3b8;font-size:10px;text-decoration:none">🔧 演示账号设置</a></div>
 </div>
 </div>
 
@@ -238,7 +238,7 @@ var AC=[
 {e:'admin@taixun-ai.com',p:'TxAdmin@2025!',n:'超级管理员',r:'超级管理员',a:'管',x:'all'},
 {e:'ops-director@taixun-ai.com',p:'TxOps@2025!',n:'运营总监',r:'运营总监',a:'运',x:['call-center','ai-dialog','agent-center','data-sea','team-mgmt','system-settings','notifications']},
 {e:'sales-director@taixun-ai.com',p:'TxSales@2025!',n:'销售总监',r:'销售总监',a:'销',x:['call-center','customer-mgmt','customer-collab','contract-mgmt','sms','notifications']},
-{e:'demo@taixun-ai.com',p:'Demo@2025',n:'演示专用',r:'演示账号',a:'演',x:'all'},
+{e:'demo@taixun-ai.com',p:'123456',n:'客户演示',r:'演示账号',a:'演',x:'all',exp:''},
 {e:'script-designer@taixun-ai.com',p:'TxScript@2025!',n:'AI话术设计师',r:'话术设计师',a:'术',x:['ai-dialog','agent-center']},
 {e:'task-admin@taixun-ai.com',p:'TxTask@2025!',n:'呼叫任务管理员',r:'任务管理员',a:'任',x:['call-center']},
 {e:'agent-leader@taixun-ai.com',p:'TxAgent@2025!',n:'坐席组长',r:'坐席组长',a:'组',x:['call-center','team-mgmt','notifications']},
@@ -1490,12 +1490,67 @@ if(!e.target.closest('.ud')){np.classList.remove('shw');um.classList.remove('shw
 });
 
 // ===== LOGIN/LOGOUT =====
+function getDemoCfg(){
+  var d={email:'demo@taixun-ai.com',pass:'123456',exp:''};
+  try{var s=localStorage.getItem('tx_demo_cfg');if(s){var o=JSON.parse(s);if(o&&o.email)d.email=o.email;if(o&&o.pass!=null)d.pass=o.pass;if(o&&o.exp!=null)d.exp=o.exp;}}catch(e){}
+  return d;
+}
+function saveDemoCfg(o){try{localStorage.setItem('tx_demo_cfg',JSON.stringify(o));}catch(e){}}
+function toggleDemoQuick(){
+  var q=document.getElementById('qlbox');var c=document.getElementById('demoCfgLink');
+  if(q){q.style.display=(q.style.display==='none')?'block':'none';}
+  if(c){c.style.display=(q.style.display==='block')?'block':'none';}
+}
+function openDemoCfg(){
+  var cfg=getDemoCfg();
+  var md=document.getElementById('md');
+  var today=new Date();var min=today.toISOString().slice(0,10);
+  md.innerHTML='<div class="mdh" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><span style="font-weight:600;font-size:15px">客户演示账号设置</span><button onclick="closeModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--tm)">×</button></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">客户账号（邮箱）</label><input id="dcEmail" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" value="'+cfg.email+'"></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">密码</label><input id="dcPass" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" value="'+cfg.pass+'"></div>'+
+  '<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">到期日期（留空=永不过期）</label><input id="dcExp" type="date" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" value="'+cfg.exp+'"></div>'+
+  '<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="saveDemoCfg2()">保存</button></div>';
+  document.getElementById('mo').style.display='flex';
+}
+function saveDemoCfg2(){
+  var email=document.getElementById('dcEmail').value.trim();
+  var pass=document.getElementById('dcPass').value.trim();
+  var exp=document.getElementById('dcExp').value;
+  if(!email||!pass){toast('账号和密码不能为空','er');return;}
+  var o={email:email,pass:pass,exp:exp};
+  saveDemoCfg(o);
+  closeModal();
+  toast('演示账号设置已保存','su');
+}
+
 function doLogin(){
 var e=document.getElementById('le').value.trim();
 var p=document.getElementById('lp').value.trim();
+var cfg=getDemoCfg();
+// 客户演示账号：用配置的密码校验 + 到期校验
+if(e===cfg.email){
+  if(p!==cfg.pass){document.getElementById('lerr').textContent='邮箱或密码错误';document.getElementById('lerr').style.display='block';return;}
+  if(cfg.exp){
+    var today=new Date();today.setHours(0,0,0,0);
+    var expD=new Date(cfg.exp);
+    if(!isNaN(expD.getTime())&&expD<today){document.getElementById('lerr').textContent='演示账号已到期，请联系管理员';document.getElementById('lerr').style.display='block';return;}
+  }
+  CUR=null;
+  for(var i=0;i<AC.length;i++){if(AC[i].e===e){CUR=AC[i];break;}}
+  if(!CUR){CUR={e:cfg.email,p:cfg.pass,n:'客户演示',r:'演示账号',a:'演',x:'all'};}
+  document.getElementById('lerr').style.display='none';
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('ua').textContent=CUR.a;
+  document.getElementById('un').textContent=CUR.n;
+  document.getElementById('ur').textContent=CUR.r;
+  toast('欢迎回来，'+CUR.n+'！','su');
+  navTo('call-center','ai-call','任务列表');
+  return;
+}
 CUR=null;
 for(var i=0;i<AC.length;i++){if(AC[i].e===e&&AC[i].p===p){CUR=AC[i];break;}}
-if(!CUR){document.getElementById('lerr').style.display='block';return;}
+if(!CUR){document.getElementById('lerr').textContent='邮箱或密码错误';document.getElementById('lerr').style.display='block';return;}
 document.getElementById('lerr').style.display='none';
 document.getElementById('loginPage').style.display='none';
 document.getElementById('app').style.display='block';
@@ -2090,18 +2145,28 @@ function recPlayDialog(id){
 var d=_findDialog(id);if(!d)return;
 if(!('speechSynthesis' in window)){toast('浏览器不支持语音','er');return;}
 window.speechSynthesis.cancel();
+var vs=window.speechSynthesis.getVoices();
+var V={huihui:vs.find(function(v){return v.name.indexOf('Huihui')>=0;}),kangkang:vs.find(function(v){return v.name.indexOf('Kangkang')>=0;}),yaoyao:vs.find(function(v){return v.name.indexOf('Yaoyao')>=0;})};
 var idx=0;
 function speakNext(){
 if(idx>=d.dialog.length){toast('▶ 对话播放完毕','in');return;}
 var seg=d.dialog[idx];idx++;
 var u=new SpeechSynthesisUtterance(seg.txt);
 u.lang='zh-CN';
-// 机器人=慧慧(女)，客户=康康(男)，人工=瑶瑶(女)，转接提示=默认
-var vs=window.speechSynthesis.getVoices();
 var pick=null;
-if(seg.sp==='bot'){pick=vs.find(function(v){return v.name.indexOf('Huihui')>=0;});u.pitch=1.1;u.rate=1.05;}
-else if(seg.sp==='human'){pick=vs.find(function(v){return v.name.indexOf('Yaoyao')>=0;});u.pitch=1.0;u.rate=0.95;}
-else if(seg.sp==='cust'){pick=vs.find(function(v){return v.name.indexOf('Kangkang')>=0;});u.pitch=0.9;u.rate=0.95;}
+if(seg.sp==='bot'){pick=V.huihui;u.pitch=1.15;u.rate=1.05;}
+else if(seg.sp==='transfer'){pick=null;u.pitch=1;u.rate=1;}
+else if(seg.sp==='human'){
+  // 人工坐席音色（中性偏专业）
+  pick=V.yaoyao||V.huihui;u.pitch=1.0;u.rate=0.95;
+}
+else if(seg.sp==='cust'){
+  // 客户按年龄/性别选音色
+  var cv=d.custVoice||'中年男';
+  if(cv.indexOf('老年')>=0){ pick=(cv.indexOf('女')>=0)?V.yaoyao:V.kangkang; u.pitch=(cv.indexOf('女')>=0)?0.75:0.6; u.rate=0.82; }
+  else if(cv.indexOf('青年')>=0){ pick=(cv.indexOf('女')>=0)?V.yaoyao:V.kangkang; u.pitch=(cv.indexOf('女')>=0)?1.35:1.1; u.rate=1.15; }
+  else { pick=(cv.indexOf('女')>=0)?V.yaoyao:V.kangkang; u.pitch=(cv.indexOf('女')>=0)?1.05:0.9; u.rate=0.98; }
+}
 if(!pick){var local=vs.filter(function(v){return v.localService&&v.lang&&v.lang.toLowerCase().indexOf('zh')>=0;});pick=local[0]||vs[0];}
 if(pick)u.voice=pick;
 u.onend=speakNext;
@@ -2170,7 +2235,7 @@ function recTimerStop(){if(_recTimerId){clearInterval(_recTimerId);_recTimerId=n
 
 // ===== 真实来电通话对话库（机器人接听 → 转人工） =====
 var CDialog=[
-{id:'DL-GW-001',ind:'政务',icon:'🏛️',customer:'王先生',num:'138****2211',dur:'4:32',scene:'市民咨询异地就医备案政策',dialog:[
+{id:'DL-GW-001',ind:'政务',icon:'🏛️',customer:'王先生',num:'138****2211',dur:'4:32',custVoice:'中年男',scene:'市民咨询异地就医备案政策',dialog:[
 {sp:'bot',txt:'您好，欢迎致电政务服务热线，智能助手为您服务。请问您需要办理什么业务？'},
 {sp:'cust',txt:'我想问一下，异地就医备案怎么办理啊？我人在外地，医保在老家。'},
 {sp:'bot',txt:'好的，为您查询异地就医备案相关信息。异地就医备案可通过国家医保服务平台APP在线办理，您也可以在参保地医保经办机构窗口办理。请问需要我为您详细说明操作步骤吗？'},
@@ -2179,7 +2244,7 @@ var CDialog=[
 {sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
 {sp:'human',txt:'您好，这里是政务服务人工坐席，工号0231，很高兴为您服务。您刚咨询的异地就医备案，我帮您详细说明一下流程……'}
 ]},
-{id:'DL-SW-001',ind:'水务',icon:'💧',customer:'张女士',num:'135****8899',dur:'3:48',scene:'水费异常咨询与报修',dialog:[
+{id:'DL-SW-001',ind:'水务',icon:'💧',customer:'张女士',num:'135****8899',dur:'3:48',custVoice:'中年女',scene:'水费异常咨询与报修',dialog:[
 {sp:'bot',txt:'您好，欢迎致电水务集团服务热线，智能助手为您服务。请问有什么可以帮您？'},
 {sp:'cust',txt:'我这个月水费怎么比上个月多了这么多，是不是水表坏了？'},
 {sp:'bot',txt:'已为您查询，您本月用水量为15吨，较上月增加较多。请问近期是否有增加用水的情况，比如新添家庭成员或用水设备？'},
@@ -2188,7 +2253,7 @@ var CDialog=[
 {sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
 {sp:'human',txt:'您好，这里是水务人工客服，工号0512。您反映水费异常和疑似漏水，我这就为您登记报修，师傅会尽快上门检查水表和管网……'}
 ]},
-{id:'DL-RQ-001',ind:'燃气',icon:'🔥💨',customer:'李先生',num:'139****6677',dur:'3:55',scene:'燃气泄漏疑似报警',dialog:[
+{id:'DL-RQ-001',ind:'燃气',icon:'🔥💨',customer:'李先生',num:'139****6677',dur:'3:55',custVoice:'青年男',scene:'燃气泄漏疑似报警',dialog:[
 {sp:'bot',txt:'您好，欢迎致电燃气公司服务热线。燃气安全无小事，请问有什么紧急情况需要帮助？'},
 {sp:'cust',txt:'我家里好像闻到一股煤气味，不知道是不是漏气了，怎么办啊？'},
 {sp:'bot',txt:'请保持冷静。首先请您立即关闭燃气阀门，打开门窗通风，切勿开关任何电器或使用明火。请问您现在是否已安全撤离到通风处？'},
@@ -2197,7 +2262,7 @@ var CDialog=[
 {sp:'transfer',txt:'紧急转接中，正在为您接通燃气抢修专线……'},
 {sp:'human',txt:'您好，这里是燃气抢修专线。已记录您的地址，抢修人员已出发，预计20分钟到达，期间请勿返回室内，保持通风……'}
 ]},
-{id:'DL-RL-001',ind:'热力',icon:'🔥',customer:'赵大爷',num:'138****4433',dur:'4:05',scene:'供暖不热投诉报修',dialog:[
+{id:'DL-RL-001',ind:'热力',icon:'🔥',customer:'赵大爷',num:'138****4433',dur:'4:05',custVoice:'老年男',scene:'供暖不热投诉报修',dialog:[
 {sp:'bot',txt:'您好，欢迎致电热力公司服务热线，智能助手为您服务。请问有什么可以帮您？'},
 {sp:'cust',txt:'小伙子，我们家暖气这几天一直不热，摸着都是凉的，孩子都冻感冒了。'},
 {sp:'bot',txt:'非常抱歉给您带来不便。请问您家中其他房间的暖气是否也是凉的？是否进行过排气操作？'},
@@ -2206,7 +2271,7 @@ var CDialog=[
 {sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
 {sp:'human',txt:'赵大爷您好，这里是热力人工客服，工号0117。您家供暖不热的问题我马上登记，维修师傅今天下午就上门，会带上测温仪给您排查管道……'}
 ]},
-{id:'DL-JR-001',ind:'金融',icon:'🏦',customer:'周女士',num:'137****5588',dur:'4:40',scene:'信用卡还款与分期咨询',dialog:[
+{id:'DL-JR-001',ind:'金融',icon:'🏦',customer:'周女士',num:'137****5588',dur:'4:40',custVoice:'青年女',scene:'信用卡还款与分期咨询',dialog:[
 {sp:'bot',txt:'您好，欢迎致电xx银行客服热线，智能助手为您服务。请问您需要办理什么业务？'},
 {sp:'cust',txt:'我这个月信用卡账单还不上，想问问能不能分期？'},
 {sp:'bot',txt:'可以的。根据您的情况，我可以为您查询分期还款方案。请问您希望分几期？目前您的账单金额为12000元。'},
@@ -2215,7 +2280,7 @@ var CDialog=[
 {sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
 {sp:'human',txt:'周女士您好，这里是xx银行人工客服，工号0845。您咨询的账单分期，我给您算一下：分12期每月还款约1060元，按期还款不影响征信……'}
 ]},
-{id:'DL-LY-001',ind:'旅游',icon:'✈️',customer:'孙女士',num:'139****1122',dur:'3:30',scene:'行程变更与退改咨询',dialog:[
+{id:'DL-LY-001',ind:'旅游',icon:'✈️',customer:'孙女士',num:'139****1122',dur:'3:30',custVoice:'中年女',scene:'行程变更与退改咨询',dialog:[
 {sp:'bot',txt:'您好，欢迎致电旅行网服务热线，智能助手为您服务。请问有什么可以帮您？'},
 {sp:'cust',txt:'我订的这周六去丽江的团，因为家里有事想去不了了，能不能退？'},
 {sp:'bot',txt:'为您查询到您预订的云南六日游行程。根据退改政策，出发前7天以上退订可全额退款。请问您确定需要退订吗？'},
@@ -2224,7 +2289,7 @@ var CDialog=[
 {sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
 {sp:'human',txt:'孙女士您好，这里是旅行网人工客服。您想改期的话，我帮您查一下最近班期和差价，尽量给您协调到合适的团期……'}
 ]},
-{id:'DL-ZZ-001',ind:'制造业',icon:'🏭',customer:'采购王经理',num:'136****9900',dur:'3:20',scene:'设备售后技术咨询',dialog:[
+{id:'DL-ZZ-001',ind:'制造业',icon:'🏭',customer:'采购王经理',num:'136****9900',dur:'3:20',custVoice:'中年男',scene:'设备售后技术咨询',dialog:[
 {sp:'bot',txt:'您好，欢迎致电xx自动化设备公司服务热线，智能助手为您服务。请问您需要什么帮助？'},
 {sp:'cust',txt:'我们厂里那台灌装机最近老是报警停机，你们能不能安排人来看看？'},
 {sp:'bot',txt:'已为您记录设备报警问题。请问报警代码是多少？方便我们初步判断故障原因，是否已尝试重启设备？'},
@@ -2233,7 +2298,7 @@ var CDialog=[
 {sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
 {sp:'human',txt:'王经理您好，这里是设备售后人工客服，工号0308。您厂里的灌装机E3报警我登记了，工程师今天下午带备件上门，先做远程初步判断……'}
 ]},
-{id:'DL-JY-001',ind:'教育培训',icon:'🎓',customer:'李女士',num:'150****2233',dur:'4:15',scene:'课程咨询与试听预约',dialog:[
+{id:'DL-JY-001',ind:'教育培训',icon:'🎓',customer:'李女士',num:'150****2233',dur:'4:15',custVoice:'青年女',scene:'课程咨询与试听预约',dialog:[
 {sp:'bot',txt:'您好，欢迎致电xx教育咨询热线，智能助手为您服务。请问您想咨询哪方面的课程？'},
 {sp:'cust',txt:'我想给孩子报个英语班，孩子今年上五年级，基础一般。'},
 {sp:'bot',txt:'好的，五年级英语课程我们有多种班型。请问您方便说一下孩子现在英语学习的薄弱环节吗？是听说还是读写方面？'},
@@ -2242,7 +2307,7 @@ var CDialog=[
 {sp:'transfer',txt:'正在为您转接课程顾问，请稍候……'},
 {sp:'human',txt:'李女士您好，我是课程顾问张老师。针对孩子听说薄弱，我建议先安排一节免费试听课，看看孩子跟老师的互动情况再定班型……'}
 ]},
-{id:'DL-4S-001',ind:'4S店',icon:'🚗',customer:'刘先生',num:'138****7788',dur:'3:10',scene:'车辆保养与故障咨询',dialog:[
+{id:'DL-4S-001',ind:'4S店',icon:'🚗',customer:'刘先生',num:'138****7788',dur:'3:10',custVoice:'青年男',scene:'车辆保养与故障咨询',dialog:[
 {sp:'bot',txt:'您好，欢迎致电xx汽车4S店服务热线，智能助手为您服务。请问您的爱车遇到了什么问题？'},
 {sp:'cust',txt:'我的车快到保养时间了，想预约一下，顺便问问上次说的刹车有点异响是怎么回事。'},
 {sp:'bot',txt:'好的，为您查询到您的车辆上次保养时间是3个月前，确实临近保养周期。关于刹车异响，请问是踩刹车时出现还是行驶中就有？'},
@@ -2251,7 +2316,7 @@ var CDialog=[
 {sp:'transfer',txt:'正在为您转接售后坐席，请稍候……'},
 {sp:'human',txt:'刘先生您好，这里是4S店售后人工坐席。您的保养和刹车异响我都帮您约好了，本周六上午九点，技师会给您做全面检查……'}
 ]},
-{id:'DL-WY-001',ind:'物业',icon:'🏢',customer:'张叔',num:'135****3344',dur:'2:55',scene:'报修与费用咨询',dialog:[
+{id:'DL-WY-001',ind:'物业',icon:'🏢',customer:'张叔',num:'135****3344',dur:'2:55',custVoice:'老年男',scene:'报修与费用咨询',dialog:[
 {sp:'bot',txt:'您好，欢迎致电物业服务中心，智能助手为您服务。请问有什么可以帮您？'},
 {sp:'cust',txt:'我们家卫生间下水道堵了，你们能不能派人来看看？'},
 {sp:'bot',txt:'已为您记录下水道堵塞报修。请问您现在是否已经尝试疏通？另外，您报修的是几号楼几单元？'},
@@ -2260,7 +2325,7 @@ var CDialog=[
 {sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
 {sp:'human',txt:'张叔您好，这里是物业人工客服。您家下水道堵塞我登记了，师傅半小时内上门，先判断是主管道还是自家管道问题……'}
 ]},
-{id:'DL-YY-001',ind:'医院',icon:'🏥',customer:'陈阿姨',num:'136****6655',dur:'3:25',scene:'挂号与检查咨询',dialog:[
+{id:'DL-YY-001',ind:'医院',icon:'🏥',customer:'陈阿姨',num:'136****6655',dur:'3:25',custVoice:'老年女',scene:'挂号与检查咨询',dialog:[
 {sp:'bot',txt:'您好，欢迎致电xx医院服务热线，智能助手为您服务。请问您需要预约挂号还是咨询就诊信息？'},
 {sp:'cust',txt:'我想挂个下周的心内科专家号，顺便问一下做心脏彩超要不要空腹？'},
 {sp:'bot',txt:'心内科专家号可通过医院公众号或电话预约。关于心脏彩超，一般不需要空腹，但具体请以检查单说明为准。请问需要我为您查询可预约的专家和时间吗？'},
@@ -2269,7 +2334,7 @@ var CDialog=[
 {sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
 {sp:'human',txt:'陈阿姨您好，这里是医院人工客服。下周心内科有两位专家出诊，我帮您查一下号源情况，再指导您在公众号预约……'}
 ]},
-{id:'DL-LS-001',ind:'零售售后',icon:'🛒',customer:'钱女士',num:'158****1122',dur:'2:40',scene:'退换货与物流咨询',dialog:[
+{id:'DL-LS-001',ind:'零售售后',icon:'🛒',customer:'钱女士',num:'158****1122',dur:'2:40',custVoice:'青年女',scene:'退换货与物流咨询',dialog:[
 {sp:'bot',txt:'您好，欢迎致电xx商城客服热线，智能助手为您服务。请问您有什么需要帮助的？'},
 {sp:'cust',txt:'我买的那件衣服尺码不合适想退，怎么退啊？还有快递什么时候能到？'},
 {sp:'bot',txt:'为您查询到您的订单已发货，预计明天送达。关于退换货，您可以在签收后7天内申请，运费我们承担。请问您还需要其他帮助吗？'},
@@ -2278,7 +2343,7 @@ var CDialog=[
 {sp:'transfer',txt:'正在为您转接人工坐席，请稍候……'},
 {sp:'human',txt:'钱女士您好，这里是商城人工客服。您要换尺码的话，我帮您申请换货流程，等您签收后提交申请，我们安排换发……'}
 ]},
-{id:'DL-SB-001',ind:'社保',icon:'📋',customer:'周先生',num:'12333',dur:'4:20',scene:'养老金领取条件咨询',dialog:[
+{id:'DL-SB-001',ind:'社保',icon:'📋',customer:'周先生',num:'12333',dur:'4:20',custVoice:'老年男',scene:'养老金领取条件咨询',dialog:[
 {sp:'bot',txt:'您好，欢迎致电社保服务热线，智能助手为您服务。请问您想咨询哪方面业务？'},
 {sp:'cust',txt:'我今年60了，想问问养老金怎么领，需要办什么手续？'},
 {sp:'bot',txt:'已为您查询养老金领取政策。领取养老金需满足两个条件：累计缴费满15年，且达到法定退休年龄。请问您已办理退休手续了吗？'},
