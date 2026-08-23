@@ -471,7 +471,7 @@ var md=document.getElementById('md');
 if(width)md.style.width=width;
 document.getElementById('mo').classList.add('shw');
 }
-function closeModal(){document.getElementById('mo').classList.remove('shw');}
+function closeModal(){var mo=document.getElementById('mo');mo.classList.remove('shw');mo.style.display='none';}
 
 // ===== PAGINATION =====
 function renderPagination(total,page,pageSize,onPage){
@@ -573,6 +573,8 @@ var renderMap={
 'ai-call_呼叫统计':renderCallStats,
 'ai-call_电话号码':renderPhoneList,
 'ai-call_通话记录':renderCallLogs,
+'transfer-human_实时转人工':renderRealTimeTransfer,
+'transfer-human_AI转人工沟通':renderAITransfer,
 'script-design_录音师试听':renderRecordingLib,
 'script-design_录音小程序':renderRecorder,
 'stats-dashboard_整体呼叫看板':renderOverallDashboard,
@@ -1053,7 +1055,7 @@ function renderLLMIntentTags(ca){
 var rules=[{id:1,trigger:'客户询问价格/购买方式',level:'高意向',confidence:95,desc:'大模型分析客户语义，识别购买意图信号',keywords:'多少钱、怎么买、我要了、下单、支付、购买'},{id:2,trigger:'客户主动提供联系方式',level:'高意向',confidence:92,desc:'客户主动留微信/电话，表明确实有兴趣进一步沟通',keywords:'加微信、手机号、联系方式、加好友'},{id:3,trigger:'客户询问产品细节',level:'中等意向',confidence:85,desc:'客户想了解更多信息，处于评估阶段',keywords:'有什么功能、区别、哪个好、介绍一下'},{id:4,trigger:'客户提到对比竞品',level:'中等意向',confidence:80,desc:'客户在选择中，说明确实有需求',keywords:'别人家、竞品、对比、哪个划算'},{id:5,trigger:'客户明确拒绝/挂断',level:'低意向',confidence:98,desc:'大模型识别拒绝语义，判定客户当前无意愿',keywords:'不需要、不用了、再说吧、不感兴趣'},{id:6,trigger:'客户表示需要时间考虑',level:'待跟进',confidence:88,desc:'客户有兴趣但暂时无法决策，需要后续跟进',keywords:'考虑一下、回头再说、和家人商量、再看看'}];var h='<h3>大模型意向标签配置</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">🧠</div><div><div class="sv">'+rules.length+'</div><div class="sl">判定规则</div></div></div><div class="scd"><div class="si gr">🎯</div><div><div class="sv">'+rules.filter(function(r){return r.level==='高意向';}).length+'</div><div class="sl">高意向规则</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">🧠 大模型意向标签判定规则</span><button class="btn btn-p btn-sm" onclick="toast(\'新建规则(演示)\',\'in\')">+ 新建规则</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0fdfa;padding:8px 12px;border-radius:6px;border-left:3px solid #10b981">💡 <b>大模型意向标签与传统规则的区别：</b>大模型不只做关键词匹配，而是<b>理解客户完整语义和对话上下文</b>。例如客户说"这个套餐还不错，但我先回去跟家人商量一下"，大模型能识别这是中等意向（有兴趣）+待跟进（需要时间），而非简单地标记为低意向。大模型可以理解<b>隐含意图、情绪倾向、决策阶段</b>等复杂信号。</p>';rules.forEach(function(r){var bc=r.level==='高意向'?'#10b981':r.level==='中等意向'?'#f59e0b':r.level==='待跟进'?'#8b5cf6':'#6b7280';h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:6px;border-left:4px solid '+bc+'">';h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:12px">#'+r.id+' '+r.trigger+'</span><span class="bdge" style="background:'+bc+'20;color:'+bc+'">'+r.level+' (置信度: '+r.confidence+'%)</span></div>';h+='<p style="font-size:10px;color:var(--ts);margin-bottom:3px">🤖 '+r.desc+'</p>';h+='<span style="font-size:9px;color:var(--tm)">语义信号: '+r.keywords+'</span></div>';});h+='</div>';ca.innerHTML=h;}
 
 // ===== KNOWLEDGE CENTER (知识中心) =====
-function renderKnowledgeCenter(ca){var kbs=[{id:1,name:'产品问答知识库',type:'FAQ',docs:256,update:'2026-06-15',desc:'涵盖公司所有产品的功能、价格、政策等常见问答'},{id:2,name:'行业术语词典',type:'术语库',docs:480,update:'2026-06-10',desc:'各行业专业术语定义，辅助大模型理解客户语境'},{id:3,name:'竞品对比资料',type:'知识文档',docs:85,update:'2026-06-08',desc:'主要竞品的产品特点、价格对比参考'},{id:4,name:'政策法规库',type:'合规知识',docs:120,update:'2026-06-01',desc:'行业监管政策和法律法规知识，确保合规对话'},{id:5,name:'客户案例库',type:'案例知识',docs:64,update:'2026-05-28',desc:'过往成功案例、客户评价参考'}];var h='<h3>知识中心</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">📚</div><div><div class="sv">'+kbs.length+'</div><div class="sl">知识库</div></div></div><div class="scd"><div class="si gr">📄</div><div><div class="sv">'+kbs.reduce(function(s,x){return s+x.docs;},0)+'</div><div class="sl">总文档数</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">📚 多模态知识库</span><button class="btn btn-p btn-sm" onclick="toast(\'新建知识库(演示)\',\'in\')">+ 新建知识库</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>知识中心功能说明：</b>这里存储了供大模型外呼使用的<b>多模态知识库</b>（文本/图片/音视频）。大模型在通话过程中可以实时检索知识库获取准确答案，确保AI回复的专业性和准确性。</p>';h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px">';kbs.forEach(function(kb){h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;cursor:pointer;transition:var(--tr)" onmouseover="this.style.boxShadow=\'0 8px 25px rgba(0,0,0,.1)\';this.style.borderColor=\'#4a6cf7\'" onmouseout="this.style.boxShadow=\'\';this.style.borderColor=\'#e5e7eb\'">';h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:13px">'+kb.name+'</span><span class="bdge in">'+kb.type+'</span></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:6px">'+kb.desc+'</p><div style="font-size:10px;color:var(--tm)">📄 '+kb.docs+'篇文档 · 更新于 '+kb.update+'</div>';h+='<div style="display:flex;gap:4px;margin-top:8px"><button class="btn btn-sm btn-o" onclick="event.stopPropagation();toast(\'浏览知识库\',\'in\')">📖 浏览</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();toast(\'同步到话术\',\'in\')">🔄 同步</button></div></div>';});h+='</div></div>';ca.innerHTML=h;}
+function renderKnowledgeCenter(ca){var kbs=[{id:1,name:'产品问答知识库',type:'FAQ',docs:256,update:'2026-06-15',desc:'涵盖公司所有产品的功能、价格、政策等常见问答'},{id:2,name:'行业术语词典',type:'术语库',docs:480,update:'2026-06-10',desc:'各行业专业术语定义，辅助大模型理解客户语境'},{id:3,name:'竞品对比资料',type:'知识文档',docs:85,update:'2026-06-08',desc:'主要竞品的产品特点、价格对比参考'},{id:4,name:'政策法规库',type:'合规知识',docs:120,update:'2026-06-01',desc:'行业监管政策和法律法规知识，确保合规对话'},{id:5,name:'客户案例库',type:'案例知识',docs:64,update:'2026-05-28',desc:'过往成功案例、客户评价参考'}];var h='<h3>知识中心</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">📚</div><div><div class="sv">'+kbs.length+'</div><div class="sl">知识库</div></div></div><div class="scd"><div class="si gr">📄</div><div><div class="sv">'+kbs.reduce(function(s,x){return s+x.docs;},0)+'</div><div class="sl">总文档数</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">📚 多模态知识库</span><button class="btn btn-p btn-sm" onclick="kbCreate()">+ 新建知识库</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>知识中心功能说明：</b>这里存储了供大模型外呼使用的<b>多模态知识库</b>（文本/图片/音视频）。大模型在通话过程中可以实时检索知识库获取准确答案，确保AI回复的专业性和准确性。</p>';h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px">';kbs.forEach(function(kb){h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;cursor:pointer;transition:var(--tr)" onmouseover="this.style.boxShadow=\'0 8px 25px rgba(0,0,0,.1)\';this.style.borderColor=\'#4a6cf7\'" onmouseout="this.style.boxShadow=\'\';this.style.borderColor=\'#e5e7eb\'">';h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:13px">'+kb.name+'</span><span class="bdge in">'+kb.type+'</span></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:6px">'+kb.desc+'</p><div style="font-size:10px;color:var(--tm)">📄 '+kb.docs+'篇文档 · 更新于 '+kb.update+'</div>';h+='<div style="display:flex;gap:4px;margin-top:8px"><button class="btn btn-sm btn-o" onclick="event.stopPropagation();kbBrowse(kb.id)">📖 浏览</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();kbSync(kb.id)">🔄 同步</button></div></div>';});h+='</div></div>';ca.innerHTML=h;}
 
 // ===== LLM DESIGN (大模型对话设计) =====
 function renderLLMDesign(ca){var h='<h3>大模型对话设计</h3>';h+='<div class="cd"><div class="cdh"><span class="cdt">🧠 大模型话术配置</span><button class="btn btn-p btn-sm" onclick="toast(\'新建大模型话术(演示)\',\'in\')">+ 新建话术</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0fdfa;padding:8px 12px;border-radius:6px;border-left:3px solid #10b981">💡 <b>大模型对话设计说明：</b>与传统话术编排不同，大模型话术通过<b>系统指令(Prompt)+知识库+意图配置</b>驱动AI对话。您只需要定义角色设定、对话目标和核心信息点，大模型会根据客户的实际反应<b>智能生成</b>最合适的回复，而非按固定剧本逐句执行。</p>';h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px"><div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px"><h4 style="font-size:12px;margin-bottom:8px">📝 系统指令 (System Prompt)</h4><textarea style="width:100%;height:120px;border:1px solid #e5e7eb;border-radius:4px;padding:8px;font-size:11px;font-family:inherit;resize:vertical" placeholder="你是一个专业的房地产销售顾问AI。你需要：1. 热情友好地介绍楼盘信息 2. 了解客户的购房需求 3. 精准回答客户问题 4. 引导客户预约看房..."></textarea></div><div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px"><h4 style="font-size:12px;margin-bottom:8px">🎯 核心信息点</h4><div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10px"><input type="checkbox" checked> 楼盘位置及周边配套</label><label style="font-size:10px"><input type="checkbox" checked> 户型面积及价格区间</label><label style="font-size:10px"><input type="checkbox" checked> 优惠政策及活动</label><label style="font-size:10px"><input type="checkbox"> 交房时间</label><label style="font-size:10px"><input type="checkbox"> 贷款政策</label><label style="font-size:10px"><input type="checkbox"> 竞品对比</label></div></div></div>';h+='<div style="display:flex;gap:6px"><button class="btn btn-p" onclick="toast(\'话术已保存\',\'su\')">💾 保存话术</button><button class="btn btn-o" onclick="toast(\'分享话术链接\',\'in\')">📤 分享</button><button class="btn btn-o" onclick="toast(\'开始测试\',\'in\')">🧪 测试</button><button class="btn btn-o" onclick="toast(\'发布到智能体广场\',\'in\')">🚀 发布</button></div></div>';ca.innerHTML=h;}
@@ -1162,7 +1164,7 @@ ca.innerHTML='<h3>电话号码</h3>'+
 '<div class="sr"><div class="scd"><div class="si bl">📱</div><div><div class="sv">'+total+'</div><div class="sl">号码总数</div></div></div>'+
 '<div class="scd"><div class="si or">⏳</div><div><div class="sv">'+p1+'</div><div class="sl">待呼叫</div></div></div>'+
 '<div class="scd"><div class="si gr">✓</div><div><div class="sv">'+p2+'</div><div class="sl">已完成</div></div></div></div>'+
-'<div class="cd"><div class="cdh"><span class="cdt">号码列表</span><div><button class="btn btn-p btn-sm" onclick="toast(\'导入功能(演示)\',\'in\')">📥 导入号码</button><button class="btn btn-d btn-sm" onclick="batchDelNums()">🗑 批量删除</button></div></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">号码列表</span><div><button class="btn btn-p btn-sm" onclick="importNums()">📥 导入号码</button><button class="btn btn-d btn-sm" onclick="batchDelNums()">🗑 批量删除</button></div></div>'+
 '<div class="fb"><input placeholder="搜索号码..." oninput="numSearchFn(this.value)"><select onchange="numStatusFn(this.value)"><option value="">全部状态</option><option value="待呼叫">待呼叫</option><option value="已呼叫">已呼叫</option><option value="呼叫中">呼叫中</option><option value="已完成">已完成</option></select></div>'+
 '<div class="tw"><table class="tb1"><thead><tr><th><input type="checkbox" onchange="toggleAllNums(this)"></th><th>ID</th><th>号码</th><th>归属地</th><th>状态</th><th>标签</th><th>来源</th><th>呼叫次数</th><th>最近呼叫</th><th>操作</th></tr></thead><tbody id="numTbody"></tbody></table></div>'+
 '<div id="numPgn"></div></div>';
@@ -2415,7 +2417,7 @@ function renderAIDemo(ca){
   var tran=calls.filter(function(c){return c.result==='转人工';}).length;
   var tickets=calls.filter(function(c){return c.ticket;}).length;
   ca.innerHTML='<h3>🎯 智能呼叫演示台</h3>'+
-  '<p style="color:var(--tm);margin-bottom:12px">贴近真实场景：<b>水务 · 热力 · 燃气 · 政务 · 制造业</b> 等公用事业高价值客户深度服务。体验「AI应答 → 触发词识别 → 智能转人工 / 自动生成工单」完整闭环。</p>'+
+  '<p style="color:var(--tm);margin-bottom:12px">体验「AI应答 → 触发词识别 → 智能转人工 / 自动生成工单」完整闭环。</p>'+
   '<div class="sr" style="margin-bottom:14px">'+
     '<div class="scd"><div class="si bl">📞</div><div><div class="sv">'+calls.length+'</div><div class="sl">演示通话</div></div></div>'+
     '<div class="scd"><div class="si gr">🔄</div><div><div class="sv">'+tran+'</div><div class="sl">转人工</div></div></div>'+
@@ -2559,6 +2561,179 @@ function aiOpenTickets(){
   '<div style="max-height:340px;overflow:auto">'+(calls.map(function(c){return '<div style="padding:8px;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px"><div><b>'+c.ticket+'</b> <span class="bdge in">'+c.kw+'</span> <span style="color:var(--tm)">'+c.time+'</span></div><div style="margin-top:4px">客户反馈：“'+c.text+'” → 派单至 <b>'+c.target+'</b></div></div>';}).join('')||'<div style="color:var(--tm)">暂无工单，先模拟一个报修/投诉场景</div>')+'</div>'+
   '<div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-p" onclick="closeModal()">关闭</button></div>';
   document.getElementById('mo').style.display='flex';
+}
+
+// ============================================================
+// 转人工模块真实化 (复用智能呼叫演示台数据)
+// ============================================================
+function renderRealTimeTransfer(ca){
+  var calls=getAICalls();
+  var pending=calls.filter(function(c){return (c.result==='转人工'||c.result==='生成工单')&&(c.status==='待处理'||c.status==='待派工');});
+  var done=calls.filter(function(c){return c.result==='转人工'||c.result==='生成工单';}).length;
+  ca.innerHTML='<h3>实时转人工</h3>'+
+  '<p style="color:var(--tm);margin-bottom:12px">实时展示客户通话中命中触发词、自动转人工/生成工单的记录，坐席可即时接单处理。</p>'+
+  '<div class="sr" style="margin-bottom:14px">'+
+    '<div class="scd"><div class="si or">⏳</div><div><div class="sv">'+pending.length+'</div><div class="sl">待处理</div></div></div>'+
+    '<div class="scd"><div class="si gr">🔄</div><div><div class="sv">'+done+'</div><div class="sl">已转人工/工单</div></div></div>'+
+    '<div class="scd"><div class="si bl">🎯</div><div><div class="sv">'+getAIRules().length+'</div><div class="sl">触发词规则</div></div></div>'+
+  '</div>'+
+  '<div class="cd"><div class="cdh"><span class="cdt">🔴 待处理转人工</span><button class="btn btn-o btn-sm" onclick="navTo(\'call-center\',\'ai-demo\')">去模拟一通</button></div>'+
+    '<div id="rtPending" style="font-size:13px"></div>'+
+  '</div>'+
+  '<div class="cd" style="margin-top:12px"><div class="cdh"><span class="cdt">📋 全部转人工记录</span></div>'+
+    '<div id="rtAll" style="font-size:12px"></div>'+
+  '</div>';
+  var pb=document.getElementById('rtPending');
+  pb.innerHTML=pending.length?pending.map(function(c){
+    return '<div style="padding:10px;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px;background:#fff">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center"><div><b>'+c.kw+'</b> <span style="color:var(--tm)">→ '+c.result+'（'+c.target+'）</span>'+(c.ticket?' <span class="bdge in">'+c.ticket+'</span>':'')+'</div><span style="color:var(--tm);font-size:11px">'+c.time+'</span></div>'+
+    '<div style="color:#64748b;font-size:12px;margin:6px 0">客户原话：“'+c.text+'”</div>'+
+    '<div><button class="btn btn-p btn-sm" onclick="aiHandle(\''+c.time+'\',\'已处理\');renderRealTimeTransfer(document.getElementById(\'ca\'))">接单处理</button></div></div>';
+  }).join(''):'<div style="color:var(--tm);padding:12px 0">当前没有待处理的转人工。<a href="javascript:void(0)" onclick="navTo(\'call-center\',\'ai-demo\')" style="color:#2563eb">去智能呼叫演示台模拟一通通话</a>，触发词命中后会自动出现在这里。</div>';
+  var ab=document.getElementById('rtAll');
+  ab.innerHTML='<table style="width:100%;border-collapse:collapse"><tr style="color:var(--tm);text-align:left"><th style="padding:5px">时间</th><th>命中词</th><th>客户原话</th><th>结果</th><th>派单</th><th>状态</th></tr>'+
+  (calls.filter(function(c){return c.result==='转人工'||c.result==='生成工单';}).map(function(c){return '<tr style="border-top:1px solid var(--bd)"><td style="padding:5px">'+c.time+'</td><td>'+c.kw+'</td><td>“'+c.text+'”</td><td>'+c.result+'</td><td>'+c.target+'</td><td>'+c.status+'</td></tr>';}).join('')||'<tr><td colspan="6" style="padding:10px;color:var(--tm)">暂无记录</td></tr>')+'</table>';
+}
+function renderAITransfer(ca){
+  ca.innerHTML='<h3>AI转人工沟通</h3>'+
+  '<p style="color:var(--tm);margin-bottom:12px">AI在与客户对话中识别到转人工意图时，会先安抚客户、说明转接原因，再平滑转接给人工坐席，避免生硬中断，提升客户体验。</p>'+
+  '<div class="cd"><div class="cdh"><span class="cdt">💬 AI 转人工沟通演示</span></div>'+
+  '<div style="margin-bottom:8px"><input id="aiTransInp" placeholder="输入客户说的话，如：我要投诉" style="width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px;font-size:13px"></div>'+
+  '<button class="btn btn-p" onclick="aiTransferChat()">▶ 模拟转人工沟通</button>'+
+  '<div id="aiTransChat" style="background:#f8fafc;border:1px solid var(--bd);border-radius:10px;padding:12px;margin-top:12px;min-height:120px;font-size:13px;line-height:1.7"></div>'+
+  '</div>';
+}
+function aiTransferChat(){
+  var inp=document.getElementById('aiTransInp');
+  var text=inp?inp.value.trim():'';
+  if(!text){toast('请输入客户说的话','er');return;}
+  var hit=matchAIKeyword(text);
+  var box=document.getElementById('aiTransChat');
+  var t=new Date();
+  var time=(t.getMonth()+1)+'/'+t.getDate()+' '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');
+  box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#64748b">📞 客户['+time+']：</span><b>'+text+'</b></div>';
+  if(!hit){
+    box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#2563eb">🤖 AI：</span>您好，请问有什么可以帮您？</div>';
+  } else if(hit.action==='转人工'){
+    box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#2563eb">🤖 AI：</span>非常理解您的心情，我马上为您转接人工坐席（'+hit.target+'），请稍候，不要挂机哦～</div>';
+    box.innerHTML+='<div style="margin:6px 0;padding:6px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px">🔁 正在转接 <b>'+hit.target+'</b> ... 人工坐席已接入：您好，这里是'+hit.target+'，请问有什么可以帮您？</div>';
+  } else {
+    box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#2563eb">🤖 AI：</span>好的，这个问题我可以直接为您处理～（命中【'+hit.kw+'】'+hit.action+'）</div>';
+  }
+  box.scrollTop=box.scrollHeight;
+  inp.value='';
+}
+
+// ============================================================
+// 导入号码（真实）
+// ============================================================
+function importNums(){
+  var md=document.getElementById('md');
+  md.innerHTML='<div class="mdh" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><span style="font-weight:600;font-size:15px">📥 导入号码</span><button onclick="closeModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--tm)">×</button></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">粘贴号码（每行一个，支持手机/座机）</label><textarea id="impNums" rows="8" placeholder="13800001234&#10;010-88886666&#10;13911112222" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px;resize:vertical"></textarea></div>'+
+  '<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="doImportNums()">导入</button></div>';
+  document.getElementById('mo').style.display='flex';
+}
+function doImportNums(){
+  var raw=document.getElementById('impNums').value;
+  var lines=raw.split(/[\r\n,;，；]+/).map(function(s){return s.replace(/[^\d]/g,'').trim();}).filter(function(s){return s.length>=7&&s.length<=12;});
+  if(!lines.length){toast('未识别到有效号码','er');return;}
+  var start=DNums.length?Math.max.apply(null,DNums.map(function(n){return n.id;}))+1:1;
+  var cities=['北京','上海','广州','深圳','杭州','成都','武汉','南京','西安','重庆','济南'];
+  var tags=['导入'];
+  lines.forEach(function(num,i){
+    DNums.push({id:start+i,num:num,city:cities[Math.floor(Math.random()*cities.length)],status:'待呼叫',tag:'新导入',source:'导入',callTimes:0,lastCall:'-'});
+  });
+  setStored('tx_nums',DNums);
+  closeModal();
+  toast('成功导入 '+lines.length+' 个号码','su');
+  if(typeof refreshNumTable==='function')refreshNumTable();
+  if(typeof renderPhoneList==='function')renderPhoneList(document.getElementById('ca'));
+}
+// ============================================================
+// 知识库（真实）
+// ============================================================
+function getKBs(){
+  var def=[
+    {id:1,name:'产品问答知识库',type:'FAQ',docs:256,update:'2026-06-15',desc:'涵盖公司所有产品的功能、价格、政策等常见问答'},
+    {id:2,name:'行业术语词典',type:'术语库',docs:480,update:'2026-06-10',desc:'各行业专业术语定义，辅助大模型理解客户语境'},
+    {id:3,name:'竞品对比资料',type:'知识文档',docs:85,update:'2026-06-08',desc:'主要竞品的产品特点、价格对比参考'},
+    {id:4,name:'政策法规库',type:'合规知识',docs:120,update:'2026-06-01',desc:'行业监管政策和法律法规知识，确保合规对话'},
+    {id:5,name:'客户案例库',type:'案例知识',docs:64,update:'2026-05-28',desc:'过往成功案例、客户评价参考'}
+  ];
+  try{var s=localStorage.getItem('tx_kbs');if(s){var o=JSON.parse(s);if(Array.isArray(o)&&o.length)return o;}}catch(e){}
+  return def;
+}
+function saveKBs(k){try{localStorage.setItem('tx_kbs',JSON.stringify(k));}catch(e){}}
+function kbCreate(){
+  var md=document.getElementById('md');
+  md.innerHTML='<div class="mdh" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><span style="font-weight:600;font-size:15px">➕ 新建知识库</span><button onclick="closeModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--tm)">×</button></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">知识库名称</label><input id="kbName" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如：供水业务指南"></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">类型</label><select id="kbType" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option>FAQ</option><option>术语库</option><option>知识文档</option><option>合规知识</option><option>案例知识</option></select></div>'+
+  '<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">描述</label><textarea id="kbDesc" rows="3" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="知识库用途说明"></textarea></div>'+
+  '<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="kbSave()">保存</button></div>';
+  document.getElementById('mo').style.display='flex';
+}
+function kbSave(){
+  var n=document.getElementById('kbName').value.trim();
+  if(!n){toast('请填写知识库名称','er');return;}
+  var kbs=getKBs();
+  var id=kbs.length?Math.max.apply(null,kbs.map(function(k){return k.id;}))+1:1;
+  kbs.push({id:id,name:n,type:document.getElementById('kbType').value,docs:0,update:'2026-08-23',desc:document.getElementById('kbDesc').value.trim()});
+  saveKBs(kbs);
+  closeModal();
+  toast('知识库「'+n+'」已创建','su');
+  renderKnowledgeCenter(document.getElementById('ca'));
+}
+function kbBrowse(id){
+  var kbs=getKBs();
+  var kb=null;for(var i=0;i<kbs.length;i++){if(kbs[i].id===id){kb=kbs[i];break;}}
+  if(!kb)return;
+  var md=document.getElementById('md');
+  md.innerHTML='<div class="mdh" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><span style="font-weight:600;font-size:15px">📖 '+kb.name+'</span><button onclick="closeModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--tm)">×</button></div>'+
+  '<div style="margin-bottom:10px"><input id="kbSearch" placeholder="搜索文档..." oninput="kbSearchFn(this.value,'+id+')" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+  '<div id="kbDocList" style="max-height:320px;overflow:auto;font-size:13px">'+
+  (kb.docs?kbDocsHtml(kb.id,''):'<div style="color:var(--tm);padding:12px 0">暂无文档，可点击下方「新增文档」添加</div>')+
+  '</div>'+
+  '<div style="margin-top:10px;display:flex;gap:6px"><button class="btn btn-p btn-sm" onclick="kbAddDoc('+id+')">+ 新增文档</button><button class="btn btn-o btn-sm" onclick="closeModal()">关闭</button></div>';
+  document.getElementById('mo').style.display='flex';
+}
+function kbDocsHtml(id,q){
+  var kbs=getKBs();var kb=null;for(var i=0;i<kbs.length;i++){if(kbs[i].id===id){kb=kbs[i];break;}}
+  var docs=(kb&&kb.docsArr)?kb.docsArr:[];
+  var f=docs.filter(function(d){return !q||d.t.indexOf(q)>=0||d.a.indexOf(q)>=0;});
+  if(!f.length)return '<div style="color:var(--tm);padding:12px 0">暂无匹配文档</div>';
+  return f.map(function(d){return '<div style="padding:8px;border:1px solid var(--bd);border-radius:8px;margin-bottom:6px"><div style="font-weight:600">'+d.t+'</div><div style="color:var(--tm);font-size:12px">'+d.a+'</div></div>';}).join('');
+}
+function kbSearchFn(q,id){
+  var box=document.getElementById('kbDocList');
+  if(box)box.innerHTML=kbDocsHtml(id,q);
+}
+function kbAddDoc(id){
+  var md=document.getElementById('md');
+  md.innerHTML='<div class="mdh" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><span style="font-weight:600;font-size:15px">➕ 新增文档</span><button onclick="closeModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--tm)">×</button></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">标题</label><input id="kdTitle" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+  '<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">内容（AI检索用）</label><textarea id="kdAns" rows="5" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></textarea></div>'+
+  '<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="kbSaveDoc('+id+')">保存</button></div>';
+  document.getElementById('mo').style.display='flex';
+}
+function kbSaveDoc(id){
+  var t=document.getElementById('kdTitle').value.trim();
+  var a=document.getElementById('kdAns').value.trim();
+  if(!t||!a){toast('标题和内容必填','er');return;}
+  var kbs=getKBs();
+  for(var i=0;i<kbs.length;i++){if(kbs[i].id===id){if(!kbs[i].docsArr)kbs[i].docsArr=[];kbs[i].docsArr.push({t:t,a:a});kbs[i].docs++;kbs[i].update='2026-08-23';break;}}
+  saveKBs(kbs);
+  closeModal();
+  toast('文档已添加','su');
+  kbBrowse(id);
+}
+function kbSync(id){
+  var kbs=getKBs();
+  for(var i=0;i<kbs.length;i++){if(kbs[i].id===id){kbs[i].update='2026-08-23';break;}}
+  saveKBs(kbs);
+  toast('已同步到最新版本','su');
+  renderKnowledgeCenter(document.getElementById('ca'));
 }
 </script>
 
