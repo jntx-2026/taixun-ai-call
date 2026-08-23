@@ -253,6 +253,7 @@ var CUR=null;
 var MN=[
 {id:'call-center',lb:'呼叫中台',ic:'📞',ch:[
 {id:'ai-call',lb:'AI呼叫',tb:['任务列表','呼叫统计','电话号码','通话记录','呼出记录','后续动作配置','任务数据统计','ABTEST','操作日志']},
+{id:'ai-demo',lb:'智能呼叫演示',ic:'🎯',tb:[]},
 {id:'transfer-human',lb:'转人工',tb:['实时转人工','转人工自定义','AI转人工沟通','转接多种轮询模式','在忙坐席智能处理','自动接听/选择接听','坐席状态实时统计','内网FS转接技术','全对话展示','灵活推送处理','灵活客户信息处理','智能统计大屏','人工介入','人工呼叫中台','转人工通话记录查看']},
 {id:'stats-dashboard',lb:'统计看板',tb:['整体呼叫看板','呼叫趋势看板']},
 {id:'human-ai-collab',lb:'人机协同',tb:[]},
@@ -567,6 +568,7 @@ if(fn){fn(ca);}else{renderPlaceholder(ca);}
 }
 
 var renderMap={
+'ai-demo':renderAIDemo,
 'ai-call_任务列表':renderTaskList,
 'ai-call_呼叫统计':renderCallStats,
 'ai-call_电话号码':renderPhoneList,
@@ -2357,6 +2359,207 @@ var CDialog=[
 ]}
 ];
 
+
+// ============================================================
+// 智能呼叫演示台 (AI Demo) —— 核心业务闭环
+// 场景：水务/热力/燃气/政务/制造业 等公用事业 + 高价值行业深度服务
+// ============================================================
+// ---- 触发词规则数据（localStorage 持久化） ----
+function getAIRules(){
+  var def=[
+    {id:1,kw:'转人工',words:['转人工','找人工','人工服务','真人'],action:'转人工',target:'客服中心',prio:1},
+    {id:2,kw:'投诉',words:['投诉','态度差','服务差','不满','举报'],action:'转人工',target:'投诉处理组',prio:1},
+    {id:3,kw:'报修',words:['漏水','爆管','不热','打不着火','坏了','停水','报修'],action:'生成工单',target:'维修班组',prio:1},
+    {id:4,kw:'售后',words:['退款','退货','换货','维修','赔付'],action:'生成工单',target:'售后组',prio:1},
+    {id:5,kw:'咨询',words:['营业厅','怎么缴费','水费多少','哪里查','地址','电话多少'],action:'AI解答',target:'知识库',prio:2},
+    {id:6,kw:'催缴',words:['欠费','逾期','没交','什么时候交','滞纳金'],action:'AI解答',target:'催缴话术',prio:2},
+    {id:7,kw:'价格',words:['多少钱','价格','优惠','套餐','便宜'],action:'转人工',target:'销售组',prio:2},
+    {id:8,kw:'结束',words:['谢谢','再见','没事了','可以','好的'],action:'结束通话',target:'',prio:3}
+  ];
+  try{var s=localStorage.getItem('tx_ai_rules');if(s){var o=JSON.parse(s);if(Array.isArray(o)&&o.length)return o;}}catch(e){}
+  return def;
+}
+function saveAIRules(r){try{localStorage.setItem('tx_ai_rules',JSON.stringify(r));}catch(e){}}
+// ---- 通话记录数据 ----
+function getAICalls(){
+  try{var s=localStorage.getItem('tx_ai_calls');if(s){var o=JSON.parse(s);if(Array.isArray(o))return o;}}catch(e){}
+  return [];
+}
+function saveAICalls(c){try{localStorage.setItem('tx_ai_calls',JSON.stringify(c));}catch(e){}}
+// ---- 场景例句 ----
+var AI_SCENES=[
+  {name:'水费报修',icon:'🚰',ex:['我家水管漏水了，赶紧派人来修','小区停水了怎么回事','水龙头一直滴水，可以报修吗']},
+  {name:'暖气报修',icon:'🔥',ex:['家里暖气不热，能来检修吗','暖气漏水了','温度一直上不去']},
+  {name:'燃气咨询',icon:'⛽',ex:['燃气打不着火了','在哪里交燃气费','想开通燃气']},
+  {name:'政务咨询',icon:'🏛️',ex:['怎么办居住证','需要带什么材料','营业时间几点']},
+  {name:'投诉建议',icon:'📢',ex:['我要投诉你们服务太差','上次问题一直没解决','你们态度很不好']},
+  {name:'催缴提醒',icon:'💳',ex:['我水费欠了多少','这个月怎么还没扣费','滞纳金怎么算']}
+];
+// ---- 命中触发词 ----
+function matchAIKeyword(text){
+  var rules=getAIRules();
+  var hit=null;
+  for(var i=0;i<rules.length;i++){
+    var r=rules[i];
+    for(var j=0;j<r.words.length;j++){
+      if(text.indexOf(r.words[j])>=0){ if(!hit||r.prio<hit.prio){hit=r;} break; }
+    }
+  }
+  return hit;
+}
+// ---- 渲染主页面 ----
+function renderAIDemo(ca){
+  var rules=getAIRules();
+  var calls=getAICalls();
+  var done=calls.filter(function(c){return c.status==='已处理';}).length;
+  var tran=calls.filter(function(c){return c.result==='转人工';}).length;
+  var tickets=calls.filter(function(c){return c.ticket;}).length;
+  ca.innerHTML='<h3>🎯 智能呼叫演示台</h3>'+
+  '<p style="color:var(--tm);margin-bottom:12px">贴近真实场景：<b>水务 · 热力 · 燃气 · 政务 · 制造业</b> 等公用事业高价值客户深度服务。体验「AI应答 → 触发词识别 → 智能转人工 / 自动生成工单」完整闭环。</p>'+
+  '<div class="sr" style="margin-bottom:14px">'+
+    '<div class="scd"><div class="si bl">📞</div><div><div class="sv">'+calls.length+'</div><div class="sl">演示通话</div></div></div>'+
+    '<div class="scd"><div class="si gr">🔄</div><div><div class="sv">'+tran+'</div><div class="sl">转人工</div></div></div>'+
+    '<div class="scd"><div class="si pu">🎫</div><div><div class="sv">'+tickets+'</div><div class="sl">生成工单</div></div></div>'+
+    '<div class="scd"><div class="si or">✅</div><div><div class="sv">'+done+'</div><div class="sl">已处理</div></div></div>'+
+  '</div>'+
+  '<div class="cd"><div class="cdh"><span class="cdt">1️⃣ 模拟一通真实通话</span></div>'+
+    '<div style="margin-bottom:8px;font-size:12px;color:var(--tm)">选择场景，模拟客户来电说的话（也可手动输入），系统实时识别触发词并响应：</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">'+
+      AI_SCENES.map(function(s,i){return '<button class="btn btn-o btn-sm" onclick="aiPickScene('+i+')">'+s.icon+' '+s.name+'</button>';}).join('')+
+    '</div>'+
+    '<div id="aiSceneSel" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:10px">'+
+      '<input id="aiInput" placeholder="输入客户说的话，如：我家水管漏水了" style="flex:1;padding:9px;border:1px solid var(--bd);border-radius:8px;font-size:13px">'+
+      '<button class="btn btn-p" onclick="aiSimCall()">▶ 模拟呼叫</button>'+
+    '</div>'+
+    '<div id="aiChatBox" style="background:#f8fafc;border:1px solid var(--bd);border-radius:10px;padding:12px;min-height:120px;max-height:260px;overflow:auto;font-size:13px;line-height:1.7"></div>'+
+  '</div>'+
+  '<div style="display:flex;gap:12px;margin-top:12px">'+
+    '<div class="cd" style="flex:1"><div class="cdh"><span class="cdt">2️⃣ 转人工处理台</span><button class="btn btn-p btn-sm" onclick="aiOpenTickets()">查看工单</button></div><div id="aiTransBox" style="font-size:13px"></div></div>'+
+    '<div class="cd" style="flex:1"><div class="cdh"><span class="cdt">3️⃣ 触发词规则</span><button class="btn btn-o btn-sm" onclick="aiAddRule()">+ 新增</button></div><div id="aiRuleBox" style="font-size:12px"></div></div>'+
+  '</div>'+
+  '<div class="cd" style="margin-top:12px"><div class="cdh"><span class="cdt">📋 通话记录</span></div><div id="aiCallLog" style="font-size:12px"></div></div>';
+  aiRenderSceneSel();
+  aiRenderRules();
+  aiRenderTrans();
+  aiRenderCallLog();
+}
+function aiPickScene(i){
+  var s=AI_SCENES[i];
+  var h=s.ex.map(function(x,j){return '<button class="btn btn-o btn-sm" onclick="document.getElementById(\'aiInput\').value=\''+x+'\'">“'+x+'”</button>';}).join('');
+  document.getElementById('aiSceneSel').innerHTML=h;
+  document.getElementById('aiInput').placeholder='已选场景：'+s.name+'，点上方例句或手动输入';
+}
+function aiRenderSceneSel(){}
+function aiRenderRules(){
+  var box=document.getElementById('aiRuleBox');
+  if(!box)return;
+  var rules=getAIRules();
+  box.innerHTML=rules.map(function(r){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd)">'+
+    '<div><b>'+r.kw+'</b> <span style="color:var(--tm)">→ '+r.action+(r.target?'（'+r.target+'）':'')+'</span><div style="color:var(--tm);font-size:11px">'+r.words.join(' / ')+'</div></div>'+
+    '<button class="btn btn-o btn-sm" onclick="aiDelRule('+r.id+')">删除</button></div>';
+  }).join('')||'<div style="color:var(--tm)">暂无规则</div>';
+}
+function aiAddRule(){
+  var md=document.getElementById('md');
+  md.innerHTML='<div class="mdh" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><span style="font-weight:600;font-size:15px">新增触发词规则</span><button onclick="closeModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--tm)">×</button></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">规则名称</label><input id="arName" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如：故障报修"></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">触发词（多个用 / 分隔）</label><input id="arWords" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如：漏水/爆管/坏了"></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">动作</label><select id="arAction" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option value="转人工">转人工</option><option value="生成工单">生成工单</option><option value="AI解答">AI解答</option><option value="结束通话">结束通话</option></select></div>'+
+  '<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">转接目标</label><input id="arTarget" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如：维修班组 / 投诉处理组"></div>'+
+  '<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="aiSaveRule()">保存</button></div>';
+  document.getElementById('mo').style.display='flex';
+}
+function aiSaveRule(){
+  var n=document.getElementById('arName').value.trim();
+  var w=document.getElementById('arWords').value.trim();
+  if(!n||!w){toast('名称和触发词必填','er');return;}
+  var rules=getAIRules();
+  var id=rules.length?Math.max.apply(null,rules.map(function(r){return r.id;}))+1:1;
+  rules.push({id:id,kw:n,words:w.split(/[\/\/\s]+/).filter(Boolean),action:document.getElementById('arAction').value,target:document.getElementById('arTarget').value.trim(),prio:0});
+  saveAIRules(rules);
+  closeModal();
+  aiRenderRules();
+  toast('触发词规则已保存','su');
+}
+function aiDelRule(id){
+  var rules=getAIRules().filter(function(r){return r.id!==id;});
+  saveAIRules(rules);
+  aiRenderRules();
+  toast('规则已删除','in');
+}
+// ---- 模拟通话 ----
+function aiSimCall(){
+  var inp=document.getElementById('aiInput');
+  var text=inp?inp.value.trim():'';
+  if(!text){toast('请输入客户说的话','er');return;}
+  var box=document.getElementById('aiChatBox');
+  var hit=matchAIKeyword(text);
+  var t=new Date();
+  var time=(t.getMonth()+1)+'/'+t.getDate()+' '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');
+  // AI 应答
+  var aiReply='';
+  if(!hit){ aiReply='您好，请问有什么可以帮您？'; }
+  else if(hit.action==='AI解答'){ aiReply='好的，这个问题我可以为您解答，请稍等～'; }
+  else if(hit.action==='转人工'){ aiReply='好的，我马上为您转接人工坐席，请稍候。'; }
+  else if(hit.action==='生成工单'){ aiReply='收到，我这就为您登记并安排处理，请保持电话畅通。'; }
+  else { aiReply='好的，感谢您的来电，再见！'; }
+  box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#64748b">📞 客户['+time+']：</span><b>'+text+'</b></div>';
+  box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#2563eb">🤖 AI：</span>'+aiReply+'</div>';
+  // 记录
+  var rec={time:time,text:text,result:hit?'转人工':'AI应答',kw:hit?hit.kw:'',target:hit?hit.target:'',status:'待处理',ticket:null,scene:document.getElementById('aiInput').placeholder||''};
+  var calls=getAICalls();
+  if(hit&&(hit.action==='转人工'||hit.action==='生成工单')){rec.result=hit.action;rec.kw=hit.kw;rec.target=hit.target;
+    if(hit.action==='生成工单'){rec.ticket='TK'+String(2001+calls.length);rec.status='待派工';}
+  }else{rec.result='AI应答';rec.status='已完成';}
+  calls.unshift(rec);
+  saveAICalls(calls);
+  if(hit&&(hit.action==='转人工'||hit.action==='生成工单')){
+    box.innerHTML+='<div style="margin:6px 0;padding:6px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px">🔔 <b>命中触发词【'+hit.kw+'】→ '+hit.action+'（'+hit.target+'）</b></div>';
+  }
+  box.scrollTop=box.scrollHeight;
+  aiRenderTrans();
+  aiRenderCallLog();
+  inp.value='';
+}
+// ---- 转人工处理台 ----
+function aiRenderTrans(){
+  var box=document.getElementById('aiTransBox');
+  if(!box)return;
+  var calls=getAICalls().filter(function(c){return c.result==='转人工'||c.result==='生成工单';});
+  box.innerHTML=calls.map(function(c){
+    var ctl=(c.status==='待处理'||c.status==='待派工')?
+      '<button class="btn btn-p btn-sm" onclick="aiHandle(\''+c.time+'\',\'已处理\')">接单处理</button>':'<span style="color:#16a34a">✅ '+c.status+'</span>';
+    return '<div style="padding:6px 0;border-bottom:1px solid var(--bd)"><div><b>'+c.kw+'</b> <span style="color:var(--tm)">→ '+c.result+'（'+c.target+'）</span>'+(c.ticket?' <span class="bdge in">'+c.ticket+'</span>':'')+'</div><div style="color:var(--tm);font-size:11px">客户原话：“'+c.text+'” · '+c.time+'</div><div style="margin-top:4px">'+ctl+'</div></div>';
+  }).join('')||'<div style="color:var(--tm);padding:8px 0">暂无转人工/工单记录</div>';
+}
+function aiHandle(time,st){
+  var calls=getAICalls();
+  for(var i=0;i<calls.length;i++){if(calls[i].time===time){calls[i].status=st;break;}}
+  saveAICalls(calls);
+  aiRenderTrans();
+  aiRenderCallLog();
+  toast('已接单处理','su');
+}
+// ---- 通话记录 ----
+function aiRenderCallLog(){
+  var box=document.getElementById('aiCallLog');
+  if(!box)return;
+  var calls=getAICalls();
+  if(!calls.length){box.innerHTML='<div style="color:var(--tm);padding:8px 0">暂无通话记录，先在上方模拟一通试试</div>';return;}
+  box.innerHTML='<table style="width:100%;border-collapse:collapse"><tr style="color:var(--tm);text-align:left"><th style="padding:5px">时间</th><th>客户原话</th><th>命中词</th><th>结果</th><th>状态</th><th>工单</th></tr>'+
+  calls.slice(0,20).map(function(c){return '<tr style="border-top:1px solid var(--bd)"><td style="padding:5px">'+c.time+'</td><td>“'+c.text+'”</td><td>'+(c.kw||'-')+'</td><td>'+c.result+'</td><td>'+c.status+'</td><td>'+(c.ticket||'-')+'</td></tr>';}).join('')+'</table>';
+}
+// ---- 查看工单 ----
+function aiOpenTickets(){
+  var calls=getAICalls().filter(function(c){return c.ticket;});
+  var md=document.getElementById('md');
+  md.innerHTML='<div class="mdh" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><span style="font-weight:600;font-size:15px">🎫 自动生成的工单</span><button onclick="closeModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--tm)">×</button></div>'+
+  '<div style="max-height:340px;overflow:auto">'+(calls.map(function(c){return '<div style="padding:8px;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px"><div><b>'+c.ticket+'</b> <span class="bdge in">'+c.kw+'</span> <span style="color:var(--tm)">'+c.time+'</span></div><div style="margin-top:4px">客户反馈：“'+c.text+'” → 派单至 <b>'+c.target+'</b></div></div>';}).join('')||'<div style="color:var(--tm)">暂无工单，先模拟一个报修/投诉场景</div>')+'</div>'+
+  '<div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-p" onclick="closeModal()">关闭</button></div>';
+  document.getElementById('mo').style.display='flex';
+}
 </script>
 
 </body>
