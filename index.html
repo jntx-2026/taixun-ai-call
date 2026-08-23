@@ -1399,7 +1399,7 @@ ca.innerHTML='<h3>线索数据</h3>'+
 '<div class="sr"><div class="scd"><div class="si bl">📇</div><div><div class="sv">'+total+'</div><div class="sl">线索总数</div></div></div>'+
 '<div class="scd"><div class="si gr">🔥</div><div><div class="sv">'+high+'</div><div class="sl">高意向</div></div></div>'+
 '<div class="scd"><div class="si pu">💰</div><div><div class="sv">'+(Math.round(DLeads.reduce(function(s,x){return s+parseInt(x.budget);},0)/10000))+'万</div><div class="sl">总预算</div></div></div></div>'+
-'<div class="cd"><div class="cdh"><span class="cdt">线索列表</span><button class="btn btn-p btn-sm" onclick="toast(\'新建线索(演示)\',\'in\')">+ 新建线索</button></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">线索列表</span><button class="btn btn-p btn-sm" onclick="leadCreate()">+ 新建线索</button></div>'+
 '<div class="fb"><input placeholder="搜索客户/公司..." oninput="leadSearchFn(this.value)"><select onchange="leadStageFn(this.value)"><option value="">全部阶段</option><option value="初步接触">初步接触</option><option value="需求确认">需求确认</option><option value="方案报价">方案报价</option><option value="商务谈判">商务谈判</option></select></div>'+
 '<div class="tw"><table class="tb1"><thead><tr><th><input type="checkbox"></th><th>ID</th><th>客户</th><th>公司</th><th>电话</th><th>阶段</th><th>来源</th><th>负责人</th><th>意向</th><th>预算</th><th>时间</th><th>操作</th></tr></thead><tbody id="leadTbody"></tbody></table></div>'+
 '<div id="leadPgn"></div></div>';
@@ -2734,6 +2734,36 @@ function kbSync(id){
   saveKBs(kbs);
   toast('已同步到最新版本','su');
   renderKnowledgeCenter(document.getElementById('ca'));
+}
+
+// ===== 线索新建（真实） =====
+function leadCreate(){
+  var md=document.getElementById('md');
+  md.innerHTML='<div class="mdh" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><span style="font-weight:600;font-size:15px">➕ 新建线索</span><button onclick="closeModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--tm)">×</button></div>'+
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+  '<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">客户名称</label><input id="ldName" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+  '<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">公司名称</label><input id="ldComp" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+  '<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">联系电话</label><input id="ldPhone" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+  '<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">预算(元)</label><input id="ldBudget" type="number" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="50000"></div>'+
+  '<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">阶段</label><select id="ldStage" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option>初步接触</option><option>需求确认</option><option>方案报价</option><option>商务谈判</option><option>签约</option></select></div>'+
+  '<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">意向</label><select id="ldIntent" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option>高</option><option>中</option><option>低</option><option>极高</option></select></div>'+
+  '</div>'+
+  '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="leadSave()">保存线索</button></div>';
+  document.getElementById('mo').style.display='flex';
+}
+function leadSave(){
+  var nm=document.getElementById('ldName').value.trim();
+  var cp=document.getElementById('ldComp').value.trim();
+  var ph=document.getElementById('ldPhone').value.trim();
+  if(!nm||!cp){toast('请填写客户和公司名称','er');return;}
+  var id=DLeads.length?Math.max.apply(null,DLeads.map(function(l){return l.id;}))+1:1;
+  var srcs=['手动添加','转介绍','电销','官网注册'];
+  var owners=['张明','李娟','王磊','赵丽','陈晨'];
+  DLeads.push({id:id,customer:nm,company:cp,phone:ph||'13800138000',stage:document.getElementById('ldStage').value,source:srcs[Math.floor(Math.random()*srcs.length)],owner:owners[Math.floor(Math.random()*owners.length)],intent:document.getElementById('ldIntent').value,budget:parseInt(document.getElementById('ldBudget').value)||10000,time:'2026-08-24'});
+  try{localStorage.setItem('tx_leads',JSON.stringify(DLeads));}catch(e){}
+  closeModal();
+  toast('线索已创建','su');
+  renderLeadList(document.getElementById('ca'));
 }
 </script>
 
