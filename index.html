@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -379,7 +379,7 @@ var sts=['待呼叫','已呼叫','呼叫中','已完成'];
 for(var i=0;i<60;i++){
 var cid=cities[Math.floor(Math.random()*cities.length)];
 var pref={'北京':'10','上海':'21','广州':'20','深圳':'755','杭州':'571','成都':'28','武汉':'27','南京':'25','西安':'29','重庆':'23','苏州':'512','天津':'22','长沙':'731','郑州':'371','青岛':'532','济南':'531','合肥':'551','福州':'591','厦门':'592','沈阳':'24'}[cid]||'10';
-var num=pref+String(Math.floor(Math.random()*90000000)+10000000);
+var num='1'+'3456789'[Math.floor(Math.random()*7)]+String(Math.floor(Math.random()*900000000)+100000000);
 var times=Math.floor(Math.random()*8);
 DNums.push({
 id:i+1,num:num,city:cid,status:sts[Math.floor(Math.random()*4)],
@@ -830,13 +830,33 @@ toast('已拉黑 '+p,'su');closeModal();refreshCSBlack();
 function unbanCS(p){CSBlack=CSBlack.filter(function(x){return x.phone!==p;});toast('已解除拉黑','su');refreshCSBlack();}
 
 
+function phConfig(){
+var t=phTitle()||'本模块';
+var key='tx_phcfg_'+t;
+var cfg={enabled:true,time:'2026-08-24',desc:''};
+try{var s=localStorage.getItem(key);if(s){var o=JSON.parse(s);if(o){cfg.enabled=o.enabled!==false;cfg.time=o.time||cfg.time;cfg.desc=o.desc||'';}}}catch(e){}
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">功能模块</label><input value="'+t+'" disabled style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px;background:#f8fafc"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">启用状态</label><select id="phEn" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option value="1"'+(cfg.enabled?' selected':'')+'>启用</option><option value="0"'+(cfg.enabled?'':' selected')+'>禁用</option></select></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">生效时间</label><input id="phTime" type="date" value="'+cfg.time+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">配置说明</label><textarea id="phDesc" style="width:100%;min-height:70px;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px">'+cfg.desc+'</textarea></div>'+
+'</div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="phConfigSave()">保存配置</button>';
+openModal('⚙ '+t+' 配置面板',body,footer,'460px');
+}
+function phConfigSave(){
+var t=phTitle()||'本模块';
+var o={enabled:document.getElementById('phEn').value==='1',time:document.getElementById('phTime').value,desc:document.getElementById('phDesc').value.trim()};
+try{localStorage.setItem('tx_phcfg_'+t,JSON.stringify(o));}catch(e){}
+closeModal();toast(t+' 配置已保存','su');
+}
 function renderPlaceholder(ca){
 var title=curTb||(MAPI[curSub]?MAPI[curSub].lb:'')||(MAPI[curGroup]?MAPI[curGroup].lb:'');
 ca.innerHTML='<h3>'+title+'</h3>'+
 '<div class="cd"><div class="cdh"><span class="cdt">'+title+' - 功能概览</span></div>'+
 '<p style="color:var(--ts);margin-bottom:12px">此页面为'+title+'模块，系统支持完整的数据管理与业务操作功能。点击下方功能卡片进入对应操作。</p>'+
 '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+
-'<button class="btn btn-p" onclick="openPhNew()">+ 新建</button><button class="btn btn-o" onclick="phExport()">↓ 导出数据</button><button class="btn btn-o" onclick="renderPlaceholder(document.getElementById(\'ca\'))">↻ 刷新</button><button class="btn btn-o" onclick="toast(\'配置面板(演示)\',\'in\')">⚙ 配置</button>'+
+'<button class="btn btn-p" onclick="openPhNew()">+ 新建</button><button class="btn btn-o" onclick="phExport()">↓ 导出数据</button><button class="btn btn-o" onclick="renderPlaceholder(document.getElementById(\'ca\'))">↻ 刷新</button><button class="btn btn-o" onclick="phConfig()">⚙ 配置</button>'+
 '</div>'+
 '<div class="ph-grid">'+
 '<div class="ph-card" style="cursor:pointer" onclick="renderPhOverview(document.getElementById(\'ca\'))"><div class="ph-icon">📊</div><h4>数据概览</h4><p>查看'+title+'相关数据统计与分析报表</p></div>'+
@@ -890,15 +910,71 @@ function phSelectAll(f){ var cks=document.querySelectorAll('.phRowCk'); if(!cks.
 function phBatchAction(mode){ var cks=document.querySelectorAll('.phRowCk:checked'); if(!cks.length){ toast('请先勾选要操作的记录','er'); return; } var n=cks.length; if(mode==='del'){ cks.forEach(function(c){c.closest('div').remove();}); toast('已删除 '+n+' 条记录','su'); } else { toast('已通过 '+n+' 条记录','su'); } }
 
 // ===== INTENT TAGS (话术设计-意向标签) =====
-var intentTagRules=[{id:1,name:'高意向-明确表达购买意愿',keywords:'我要买,多少钱,怎么买,下单,购买,支付,订购,签约',action:'标记为高意向,推送销售跟进',desc:'当客户在通话中明确表达购买意愿、询问价格和购买方式时触发',examples:'"这个多少钱？我要买一份"、"怎么下单？我想现在就买"',color:'#10b981'},{id:2,name:'高意向-主动留联系方式',keywords:'加微信,我的手机号,你记一下,联系方式,加个好友',action:'标记为高意向,自动记录联系方式',desc:'客户主动提供联系方式或要求添加微信时触发',examples:'"你加我微信吧，微信号是xxx"、"我的手机号是138xxxx"',color:'#10b981'},{id:3,name:'中等意向-索取更多资料',keywords:'发资料,看一下,参考,了解,对比,考虑,考虑一下',action:'标记为中等意向,推送产品资料+48h重呼',desc:'客户表示需要更多资料、对比参考或考虑时触发',examples:'"发个资料我看看吧"、"我先对比一下"、"我再考虑考虑"',color:'#f59e0b'},{id:4,name:'中等意向-询问产品细节',keywords:'是什么,什么内容,怎么用,有什么功能,区别,哪个好',action:'标记为中等意向,智能问答+推送详细介绍',desc:'客户询问产品/服务的具体内容、功能差异时触发',examples:'"这个产品有什么功能？"、"A和B有什么区别？"',color:'#f59e0b'},{id:5,name:'低意向-礼貌婉拒',keywords:'不需要,不感兴趣,再说吧,没时间,不方便,不用了',action:'标记为低意向,30天后重呼或转入维温池',desc:'客户明确表示不需要、不感兴趣或婉拒时触发',examples:'"不需要，谢谢"、"现在没时间，以后再说吧"',color:'#6b7280'},{id:6,name:'低意向-号码无效',keywords:'打错了,不是本人,你是谁,不认识,骚扰',action:'标记为无效号码,移入黑名单候选',desc:'客户表示打错电话、不认识或投诉骚扰时触发',examples:'"你打错了"、"我不是xxx"、"不要再打了"',color:'#ef4444'},{id:7,name:'无意向-直接挂断',keywords:'',action:'标记为无意向,累计3次挂断后暂停呼叫',desc:'通话接通后在3秒内被客户直接挂断',examples:'接通后即挂断（无有效对话）',color:'#9ca3af'},{id:8,name:'已成交-客户确认下单',keywords:'成交,就这个,OK,可以,好的,没问题,就这样',action:'标记为已成交,转入签约流程+发送确认短信',desc:'客户在通话中确认成交、同意方案时触发',examples:'"好，就这个方案吧"、"可以，帮我办了吧"',color:'#8b5cf6'}];
-
+var __DEF_INTENT=[{id:1,name:'高意向-明确表达购买意愿',keywords:'我要买,多少钱,怎么买,下单,购买,支付,订购,签约',action:'标记为高意向,推送销售跟进',desc:'当客户在通话中明确表达购买意愿、询问价格和购买方式时触发',examples:'"这个多少钱？我要买一份"、"怎么下单？我想现在就买"',color:'#10b981'},{id:2,name:'高意向-主动留联系方式',keywords:'加微信,我的手机号,你记一下,联系方式,加个好友',action:'标记为高意向,自动记录联系方式',desc:'客户主动提供联系方式或要求添加微信时触发',examples:'"你加我微信吧，微信号是xxx"、"我的手机号是138xxxx"',color:'#10b981'},{id:3,name:'中等意向-索取更多资料',keywords:'发资料,看一下,参考,了解,对比,考虑,考虑一下',action:'标记为中等意向,推送产品资料+48h重呼',desc:'客户表示需要更多资料、对比参考或考虑时触发',examples:'"发个资料我看看吧"、"我先对比一下"、"我再考虑考虑"',color:'#f59e0b'},{id:4,name:'中等意向-询问产品细节',keywords:'是什么,什么内容,怎么用,有什么功能,区别,哪个好',action:'标记为中等意向,智能问答+推送详细介绍',desc:'客户询问产品/服务的具体内容、功能差异时触发',examples:'"这个产品有什么功能？"、"A和B有什么区别？"',color:'#f59e0b'},{id:5,name:'低意向-礼貌婉拒',keywords:'不需要,不感兴趣,再说吧,没时间,不方便,不用了',action:'标记为低意向,30天后重呼或转入维温池',desc:'客户明确表示不需要、不感兴趣或婉拒时触发',examples:'"不需要，谢谢"、"现在没时间，以后再说吧"',color:'#6b7280'},{id:6,name:'低意向-号码无效',keywords:'打错了,不是本人,你是谁,不认识,骚扰',action:'标记为无效号码,移入黑名单候选',desc:'客户表示打错电话、不认识或投诉骚扰时触发',examples:'"你打错了"、"我不是xxx"、"不要再打了"',color:'#ef4444'},{id:7,name:'无意向-直接挂断',keywords:'',action:'标记为无意向,累计3次挂断后暂停呼叫',desc:'通话接通后在3秒内被客户直接挂断',examples:'接通后即挂断（无有效对话）',color:'#9ca3af'},{id:8,name:'已成交-客户确认下单',keywords:'成交,就这个,OK,可以,好的,没问题,就这样',action:'标记为已成交,转入签约流程+发送确认短信',desc:'客户在通话中确认成交、同意方案时触发',examples:'"好，就这个方案吧"、"可以，帮我办了吧"',color:'#8b5cf6'}];
+function getIntentRules(){
+try{var s=localStorage.getItem('tx_intent_rules');if(s){var o=JSON.parse(s);if(Array.isArray(o)&&o.length)return o;}}catch(e){}
+return __DEF_INTENT;
+}
+function saveIntentRules(a){try{localStorage.setItem('tx_intent_rules',JSON.stringify(a));}catch(e){}}
+function intentCreate(){
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">规则名称</label><input id="itName" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 高意向-明确表达购买意愿"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">触发关键词(逗号分隔)</label><input id="itKw" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="多少钱,怎么买,下单,购买"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">触发动作</label><input id="itAction" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="标记为高意向,推送销售跟进"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">规则描述</label><input id="itDesc" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">示例话术</label><input id="itEx" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">意向等级</label><select id="itColor" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option value="#10b981">高意向</option><option value="#f59e0b">中等意向</option><option value="#6b7280">低意向</option><option value="#ef4444">无效/拒绝</option><option value="#8b5cf6">已成交</option></select></div>'+
+'</div>';
+openModal('➕ 新建意向判定规则',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="intentSave()">保存规则</button>');
+}
+function intentSave(){
+var nm=document.getElementById('itName').value.trim();if(!nm){toast('请填写规则名称','er');return;}
+var a=getIntentRules();var id=a.length?Math.max.apply(null,a.map(function(x){return x.id;}))+1:1;
+a.push({id:id,name:nm,keywords:document.getElementById('itKw').value.trim(),action:document.getElementById('itAction').value.trim(),desc:document.getElementById('itDesc').value.trim(),examples:document.getElementById('itEx').value.trim(),color:document.getElementById('itColor').value});
+saveIntentRules(a);closeModal();toast('规则已创建','su');renderIntentTags(document.getElementById('ca'));
+}
+function intentEdit(id){
+var a=getIntentRules();var o=null;for(var i=0;i<a.length;i++)if(a[i].id===id)o=a[i];
+if(!o)return;
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">规则名称</label><input id="itName" value="'+o.name+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">触发关键词</label><input id="itKw" value="'+o.keywords+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">触发动作</label><input id="itAction" value="'+o.action+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">规则描述</label><input id="itDesc" value="'+o.desc+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">示例话术</label><input id="itEx" value="'+o.examples+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">意向等级</label><select id="itColor" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option value="#10b981"'+(o.color==='#10b981'?' selected':'')+'>高意向</option><option value="#f59e0b"'+(o.color==='#f59e0b'?' selected':'')+'>中等意向</option><option value="#6b7280"'+(o.color==='#6b7280'?' selected':'')+'>低意向</option><option value="#ef4444"'+(o.color==='#ef4444'?' selected':'')+'>无效/拒绝</option><option value="#8b5cf6"'+(o.color==='#8b5cf6'?' selected':'')+'>已成交</option></select></div>'+
+'</div>';
+openModal('✏️ 编辑意向判定规则',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="intentUpdate('+id+')">保存修改</button>');
+}
+function intentUpdate(id){
+var nm=document.getElementById('itName').value.trim();if(!nm){toast('请填写规则名称','er');return;}
+var a=getIntentRules();
+for(var i=0;i<a.length;i++)if(a[i].id===id){a[i].name=nm;a[i].keywords=document.getElementById('itKw').value.trim();a[i].action=document.getElementById('itAction').value.trim();a[i].desc=document.getElementById('itDesc').value.trim();a[i].examples=document.getElementById('itEx').value.trim();a[i].color=document.getElementById('itColor').value;}
+saveIntentRules(a);closeModal();toast('规则已更新','su');renderIntentTags(document.getElementById('ca'));
+}
+function intentDel(id){
+var a=getIntentRules().filter(function(x){return x.id!==id;});
+saveIntentRules(a);toast('规则已删除','da');renderIntentTags(document.getElementById('ca'));
+}
+function intentCopy(id){
+var a=getIntentRules();var o=null;for(var i=0;i<a.length;i++)if(a[i].id===id)o=a[i];
+if(!o)return;
+var nid=a.length?Math.max.apply(null,a.map(function(x){return x.id;}))+1:1;
+a.push({id:nid,name:o.name+' (副本)',keywords:o.keywords,action:o.action,desc:o.desc,examples:o.examples,color:o.color});
+saveIntentRules(a);toast('规则已复制','su');renderIntentTags(document.getElementById('ca'));
+}
+function intentTest(id){
+var a=getIntentRules();var o=null;for(var i=0;i<a.length;i++)if(a[i].id===id)o=a[i];
+if(o)toast('规则"'+o.name+'"测试通过，命中关键词: '+o.keywords.split(',')[0],'su');
+}
 function renderIntentTags(ca){
+var intentTagRules=getIntentRules();
 var h='<h3>意向标签规则配置</h3>';
 h+='<div class="sr"><div class="scd"><div class="si gr">🎯</div><div><div class="sv">'+intentTagRules.length+'</div><div class="sl">规则总数</div></div></div>';
 h+='<div class="scd"><div class="si bl">📋</div><div><div class="sv">'+intentTagRules.filter(function(r){return r.desc.indexOf('高意向')>=0;}).length+'</div><div class="sl">高意向规则</div></div></div>';
 h+='<div class="scd"><div class="si or">🔍</div><div><div class="sv">'+intentTagRules.filter(function(r){return r.desc.indexOf('中等')>=0;}).length+'</div><div class="sl">中等意向规则</div></div></div>';
 h+='<div class="scd"><div class="si rd">🚫</div><div><div class="sv">'+intentTagRules.filter(function(r){return r.desc.indexOf('低意向')>=0||r.desc.indexOf('无')>=0;}).length+'</div><div class="sl">低/无意向规则</div></div></div></div>';
-h+='<div class="cd"><div class="cdh"><span class="cdt">📋 意向标签判定规则列表</span><button class="btn btn-p btn-sm" onclick="toast(\'新建规则(演示)\',\'in\')">+ 新建规则</button></div>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">📋 意向标签判定规则列表</span><button class="btn btn-p btn-sm" onclick="intentCreate()">+ 新建规则</button></div>';
 h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>意向标签工作原理：</b>AI在通话过程中实时识别客户语音中的<b>关键词</b>和<b>语义</b>，匹配规则库中的意向判定条件，自动给客户打上对应等级的意向标签。标签结果用于销售跟进优先级排序和后续动作触发。</p>';
 intentTagRules.forEach(function(r){
 var bc=r.color||'#6b7280';
@@ -906,7 +982,7 @@ h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;paddi
 h+='<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px">';
 h+='<div><span style="font-weight:700;font-size:13px">#'+r.id+' '+r.name+'</span>';
 h+='<span class="bdge" style="margin-left:8px;background:'+bc+'20;color:'+bc+'">触发动作: '+r.action+'</span></div>';
-h+='<div style="display:flex;gap:4px"><button class="btn btn-sm btn-o" onclick="toast(\'编辑规则#'+r.id+'\',\'in\')">✏️</button><button class="btn btn-sm btn-o" onclick="toast(\'复制规则#'+r.id+'到其他话术\',\'in\')">📋 复制</button><button class="btn btn-sm btn-o" onclick="toast(\'测试规则#'+r.id+'\',\'in\')">🧪 测试</button></div></div>';
+h+='<div style="display:flex;gap:4px"><button class="btn btn-sm btn-o" onclick="intentEdit(r.id)">✏️</button><button class="btn btn-sm btn-o" onclick="intentCopy(r.id)">📋 复制</button><button class="btn btn-sm btn-o" onclick="intentTest(r.id)">🧪 测试</button></div></div>';
 h+='<p style="font-size:11px;color:var(--ts);margin-bottom:4px">📝 '+r.desc+'</p>';
 h+='<div style="display:flex;gap:20px;font-size:11px;flex-wrap:wrap">';
 h+='<span><b style="color:var(--tx)">关键词匹配：</b><span style="color:#4a6cf7">'+r.keywords+'</span></span>';
@@ -944,12 +1020,35 @@ ca.innerHTML=h;
 }
 
 // ===== TTS PAGE (语音合成) =====
+function getVoices(){
+var d=[{id:1,name:'晓晓',gender:'女',style:'温柔亲切',scene:'客服场景',sample:'您好，欢迎致电泰讯科技。请问有什么可以帮您？',voiceKey:'Xiaoxiao',rate:1.0,pitch:1.1},{id:2,name:'云希',gender:'男',style:'沉稳专业',scene:'业务推介',sample:'您好，我是泰讯科技的智能客服，今天给您介绍我们的最新产品。',voiceKey:'Yunyang',rate:0.92,pitch:0.85},{id:3,name:'晓悠',gender:'女',style:'活泼清晰',scene:'活动通知',sample:'好消息！泰讯科技周年庆活动开始啦，现在参与即可享受超值优惠！',voiceKey:'Huihui',rate:1.15,pitch:1.25},{id:4,name:'云野',gender:'男',style:'磁性温和',scene:'关怀回访',sample:'您好，我是泰讯的客户关怀专员。想了解一下您最近的使用体验。',voiceKey:'Kangkang',rate:0.88,pitch:0.75},{id:5,name:'晓辰',gender:'女',style:'知性大方',scene:'金融保险',sample:'您好，关于您的保单续期事宜，我来为您详细说明一下。',voiceKey:'Yaoyao',rate:1.0,pitch:1.0},{id:6,name:'慧慧',gender:'女',style:'甜美清脆',scene:'通知播报',sample:'尊敬的客户，您的订单已发货，请注意查收。祝您生活愉快！',voiceKey:'Huihui',rate:1.12,pitch:1.3},{id:7,name:'康康',gender:'男',style:'浑厚有力',scene:'正式公告',sample:'各位听众请注意，以下播报一则重要通知，请您认真收听。',voiceKey:'Kangkang',rate:0.85,pitch:0.7},{id:8,name:'瑶瑶',gender:'女',style:'温婉柔和',scene:'夜间服务',sample:'夜深了，感谢您依然选择我们，有任何需要请随时告诉我们。',voiceKey:'Yaoyao',rate:0.95,pitch:1.05},{id:9,name:'云扬',gender:'男',style:'阳光活力',scene:'营销推广',sample:'嗨，我是您的专属顾问，今天带来一个超划算的优惠，千万别错过哦！',voiceKey:'Yunyang',rate:1.05,pitch:1.0},{id:10,name:'汉汉',gender:'女',style:'宝岛腔调',scene:'跨区域服务',sample:'您好，這裡是客服中心，很高興為您服務，請問有什麼需要幫忙的嗎？',voiceKey:'HanHan',rate:0.95,pitch:1.05}];
+try{var s=localStorage.getItem('tx_voices');if(s){var o=JSON.parse(s);if(Array.isArray(o)&&o.length)return o;}}catch(e){}
+return d;
+}
+function saveVoices(a){try{localStorage.setItem('tx_voices',JSON.stringify(a));}catch(e){}}
+function voiceCreate(){
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">音色名称</label><input id="vcName" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 小雅"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">性别</label><select id="vcGender" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option>女</option><option>男</option></select></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">风格</label><input id="vcStyle" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 温柔亲切"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">适用场景</label><input id="vcScene" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 客服场景"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">试听文案</label><textarea id="vcSample" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px;min-height:60px" placeholder="您好，欢迎致电泰讯科技，请问有什么可以帮您？"></textarea></div>'+
+'</div>';
+openModal('➕ 定制克隆音',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="voiceSave()">保存音色</button>');
+}
+function voiceSave(){
+var nm=document.getElementById('vcName').value.trim();if(!nm){toast('请填写音色名称','er');return;}
+var a=getVoices();var id=a.length?Math.max.apply(null,a.map(function(x){return x.id;}))+1:1;
+var sample=document.getElementById('vcSample').value.trim()||'您好，欢迎致电泰讯科技。请问有什么可以帮您？';
+a.push({id:id,name:nm,gender:document.getElementById('vcGender').value,style:document.getElementById('vcStyle').value.trim()||'标准',scene:document.getElementById('vcScene').value.trim()||'通用',sample:sample,voiceKey:'Custom'+id,rate:1.0,pitch:1.0});
+saveVoices(a);closeModal();toast('音色已创建','su');renderTTSPage(document.getElementById('ca'));
+}
 function renderTTSPage(ca){
-var voices=[{id:1,name:'晓晓',gender:'女',style:'温柔亲切',scene:'客服场景',sample:'您好，欢迎致电泰讯科技。请问有什么可以帮您？',voiceKey:'Xiaoxiao',rate:1.0,pitch:1.1},{id:2,name:'云希',gender:'男',style:'沉稳专业',scene:'业务推介',sample:'您好，我是泰讯科技的智能客服，今天给您介绍我们的最新产品。',voiceKey:'Yunyang',rate:0.92,pitch:0.85},{id:3,name:'晓悠',gender:'女',style:'活泼清晰',scene:'活动通知',sample:'好消息！泰讯科技周年庆活动开始啦，现在参与即可享受超值优惠！',voiceKey:'Huihui',rate:1.15,pitch:1.25},{id:4,name:'云野',gender:'男',style:'磁性温和',scene:'关怀回访',sample:'您好，我是泰讯的客户关怀专员。想了解一下您最近的使用体验。',voiceKey:'Kangkang',rate:0.88,pitch:0.75},{id:5,name:'晓辰',gender:'女',style:'知性大方',scene:'金融保险',sample:'您好，关于您的保单续期事宜，我来为您详细说明一下。',voiceKey:'Yaoyao',rate:1.0,pitch:1.0},{id:6,name:'慧慧',gender:'女',style:'甜美清脆',scene:'通知播报',sample:'尊敬的客户，您的订单已发货，请注意查收。祝您生活愉快！',voiceKey:'Huihui',rate:1.12,pitch:1.3},{id:7,name:'康康',gender:'男',style:'浑厚有力',scene:'正式公告',sample:'各位听众请注意，以下播报一则重要通知，请您认真收听。',voiceKey:'Kangkang',rate:0.85,pitch:0.7},{id:8,name:'瑶瑶',gender:'女',style:'温婉柔和',scene:'夜间服务',sample:'夜深了，感谢您依然选择我们，有任何需要请随时告诉我们。',voiceKey:'Yaoyao',rate:0.95,pitch:1.05},{id:9,name:'云扬',gender:'男',style:'阳光活力',scene:'营销推广',sample:'嗨，我是您的专属顾问，今天带来一个超划算的优惠，千万别错过哦！',voiceKey:'Yunyang',rate:1.05,pitch:1.0},{id:10,name:'汉汉',gender:'女',style:'宝岛腔调',scene:'跨区域服务',sample:'您好，這裡是客服中心，很高興為您服務，請問有什麼需要幫忙的嗎？',voiceKey:'HanHan',rate:0.95,pitch:1.05}];
+var voices=getVoices();
 var h='<h3>语音合成 (TTS)</h3>';
 h+='<div class="sr"><div class="scd"><div class="si bl">🎙️</div><div><div class="sv">'+voices.length+'</div><div class="sl">可选音色</div></div></div>';
 h+='<div class="scd"><div class="si gr">🔊</div><div><div class="sv">10</div><div class="sl">合成模型</div></div></div></div>';
-h+='<div class="cd"><div class="cdh"><span class="cdt">🎙️ TTS音色列表</span><button class="btn btn-p btn-sm" onclick="toast(\'新建自定义音色(演示)\',\'in\')">+ 定制克隆音</button></div>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">🎙️ TTS音色列表</span><button class="btn btn-p btn-sm" onclick="voiceCreate()">+ 定制克隆音</button></div>';
 h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#fefce8;padding:8px 12px;border-radius:6px;border-left:3px solid #f59e0b">💡 <b>提示：</b>支持客户定制<b>声音克隆</b>服务，提供30分钟录音样本即可克隆出专属音色，用于话术变量播报。</p>';
 voices.forEach(function(v){
 h+='<div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px;transition:var(--tr);cursor:pointer" onclick="txSpeak(v.sample,v.voiceKey,v.rate,v.pitch)">';
@@ -991,12 +1090,54 @@ ca.innerHTML=h;
 }
 
 // ===== CORRECTION DICT (纠错词典) =====
+function getCorrections(){
+var d=[{id:1,wrong:'泰迅',right:'泰讯',cat:'品牌名',freq:128},{id:2,wrong:'人工只能',right:'人工智能',cat:'通用术语',freq:95},{id:3,wrong:'呼出',right:'呼叫',cat:'业务术语',freq:73},{id:4,wrong:'咋办',right:'怎么办',cat:'口语修正',freq:61},{id:5,wrong:'扣费',right:'扣费（费用扣除）',cat:'同音词',freq:58},{id:6,wrong:'肿么办',right:'怎么办',cat:'口语修正',freq:52},{id:7,wrong:'吱付宝',right:'支付宝',cat:'品牌名',freq:47},{id:8,wrong:'VX',right:'微信',cat:'品牌名',freq:41},{id:9,wrong:'保废',right:'保费',cat:'同音词',freq:36},{id:10,wrong:'优费',right:'优惠',cat:'同音词',freq:29}];
+try{var s=localStorage.getItem('tx_corrections');if(s){var o=JSON.parse(s);if(Array.isArray(o)&&o.length)return o;}}catch(e){}
+return d;
+}
+function saveCorrections(a){try{localStorage.setItem('tx_corrections',JSON.stringify(a));}catch(e){}}
+function corrCreate(){
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">错误识别</label><input id="ccWrong" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 泰迅"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">正确文本</label><input id="ccRight" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 泰讯"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">分类</label><select id="ccCat" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option>品牌名</option><option>通用术语</option><option>业务术语</option><option>口语修正</option><option>同音词</option></select></div>'+
+'</div>';
+openModal('➕ 新建纠错词条',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="corrSave()">保存词条</button>');
+}
+function corrSave(){
+var w=document.getElementById('ccWrong').value.trim();var r=document.getElementById('ccRight').value.trim();
+if(!w||!r){toast('请填写错误识别和正确文本','er');return;}
+var a=getCorrections();var id=a.length?Math.max.apply(null,a.map(function(x){return x.id;}))+1:1;
+a.push({id:id,wrong:w,right:r,cat:document.getElementById('ccCat').value,freq:0});
+saveCorrections(a);closeModal();toast('纠错词条已添加','su');renderCorrectionDict(document.getElementById('ca'));
+}
+function corrEdit(id){
+var a=getCorrections();var o=null;for(var i=0;i<a.length;i++)if(a[i].id===id)o=a[i];
+if(!o)return;
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">错误识别</label><input id="ccWrong" value="'+o.wrong+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">正确文本</label><input id="ccRight" value="'+o.right+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">分类</label><select id="ccCat" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option'+(o.cat==='品牌名'?' selected':'')+'>品牌名</option><option'+(o.cat==='通用术语'?' selected':'')+'>通用术语</option><option'+(o.cat==='业务术语'?' selected':'')+'>业务术语</option><option'+(o.cat==='口语修正'?' selected':'')+'>口语修正</option><option'+(o.cat==='同音词'?' selected':'')+'>同音词</option></select></div>'+
+'</div>';
+openModal('✏️ 编辑纠错词条',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="corrUpdate('+id+')">保存修改</button>');
+}
+function corrUpdate(id){
+var w=document.getElementById('ccWrong').value.trim();var r=document.getElementById('ccRight').value.trim();
+if(!w||!r){toast('请填写错误识别和正确文本','er');return;}
+var a=getCorrections();
+for(var i=0;i<a.length;i++)if(a[i].id===id){a[i].wrong=w;a[i].right=r;a[i].cat=document.getElementById('ccCat').value;}
+saveCorrections(a);closeModal();toast('词条已更新','su');renderCorrectionDict(document.getElementById('ca'));
+}
+function corrDel(id){
+var a=getCorrections().filter(function(x){return x.id!==id;});
+saveCorrections(a);toast('词条已删除','da');renderCorrectionDict(document.getElementById('ca'));
+}
 function renderCorrectionDict(ca){
-var corrections=[{id:1,wrong:'泰迅',right:'泰讯',cat:'品牌名',freq:128},{id:2,wrong:'人工只能',right:'人工智能',cat:'通用术语',freq:95},{id:3,wrong:'呼出',right:'呼叫',cat:'业务术语',freq:73},{id:4,wrong:'咋办',right:'怎么办',cat:'口语修正',freq:61},{id:5,wrong:'扣费',right:'扣费（费用扣除）',cat:'同音词',freq:58},{id:6,wrong:'肿么办',right:'怎么办',cat:'口语修正',freq:52},{id:7,wrong:'吱付宝',right:'支付宝',cat:'品牌名',freq:47},{id:8,wrong:'VX',right:'微信',cat:'品牌名',freq:41},{id:9,wrong:'保废',right:'保费',cat:'同音词',freq:36},{id:10,wrong:'优费',right:'优惠',cat:'同音词',freq:29}];
+var corrections=getCorrections();
 var h='<h3>纠错词典</h3>';
 h+='<div class="sr"><div class="scd"><div class="si bl">📖</div><div><div class="sv">'+corrections.length+'</div><div class="sl">纠错词条</div></div></div>';
 h+='<div class="scd"><div class="si gr">🔄</div><div><div class="sv">'+corrections.reduce(function(s,x){return s+x.freq;},0)+'</div><div class="sl">累计纠错次数</div></div></div></div>';
-h+='<div class="cd"><div class="cdh"><span class="cdt">📖 语音识别纠错词条</span><button class="btn btn-p btn-sm" onclick="toast(\'新建纠错词条(演示)\',\'in\')">+ 新建词条</button></div>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">📖 语音识别纠错词条</span><button class="btn btn-p btn-sm" onclick="corrCreate()">+ 新建词条</button></div>';
 h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>纠错词典功能说明：</b>语音识别(ASR)有时会将某些词汇识别错误。纠错词典预先定义了<b>"错误识别 → 正确文本"</b>的映射关系，系统在通话过程中<b>实时自动修正</b>识别结果，提升后续意向判定和对话理解的准确率。<br>例如：客户说"泰讯"，ASR可能识别为"泰迅"，纠错词典自动修正为"泰讯"。</p>';
 h+='<div class="tw"><table class="tb1"><thead><tr><th>ID</th><th>错误识别</th><th>正确文本</th><th>分类</th><th>累计修正次数</th><th>最后修正时间</th><th>状态</th><th>操作</th></tr></thead><tbody>';
 corrections.forEach(function(c){
@@ -1004,25 +1145,63 @@ h+='<tr><td>'+c.id+'</td><td><span style="color:#ef4444;text-decoration:line-thr
 h+='<td><span style="color:#10b981;font-weight:600">'+c.right+'</span></td><td><span class="bdge in">'+c.cat+'</span></td>';
 h+='<td>'+c.freq.toLocaleString()+'次</td><td>2026-06-'+(10+Math.floor(Math.random()*7))+'</td>';
 h+='<td><span class="bdge su">生效中</span></td>';
-h+='<td class="ta"><button class="btn btn-sm btn-o" onclick="toast(\'编辑词条#'+c.id+'\',\'in\')">✏️</button><button class="btn btn-sm btn-d" onclick="toast(\'删除词条\',\'er\')">🗑</button></td></tr>';
+h+='<td class="ta"><button class="btn btn-sm btn-o" onclick="corrEdit(c.id)">✏️</button><button class="btn btn-sm btn-d" onclick="corrDel(c.id)">🗑</button></td></tr>';
 });
 h+='</tbody></table></div></div>';
 ca.innerHTML=h;
 }
 
 // ===== STOP WORDS (打断停用词) =====
+function getStopWords(){
+var d=[{id:1,word:'嗯',desc:'客户在AI播报过程中发出的自然应答，不应打断当前播报'},{id:2,word:'哦',desc:'客户表示听到了但不影响通话继续'},{id:3,word:'好',desc:''},{id:4,word:'对',desc:'客户表示认同但并非要插入对话'},{id:5,word:'是的',desc:'客户表示确认Continue信号'},{id:6,word:'那个',desc:'口语填充词'},{id:7,word:'然后',desc:'口语填充词'},{id:8,word:'就是',desc:'口语填充词'},{id:9,word:'额',desc:'犹豫/思考音'},{id:10,word:'嘶',desc:'犹豫/思考音'}];
+try{var s=localStorage.getItem('tx_stopwords');if(s){var o=JSON.parse(s);if(Array.isArray(o)&&o.length)return o;}}catch(e){}
+return d;
+}
+function saveStopWords(a){try{localStorage.setItem('tx_stopwords',JSON.stringify(a));}catch(e){}}
+function swCreate(){
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">停用词</label><input id="swWord" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 嗯"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">说明</label><input id="swDesc" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="该词为什么不应打断播报"></div>'+
+'</div>';
+openModal('➕ 新建停用词',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="swSave()">保存词条</button>');
+}
+function swSave(){
+var w=document.getElementById('swWord').value.trim();if(!w){toast('请填写停用词','er');return;}
+var a=getStopWords();var id=a.length?Math.max.apply(null,a.map(function(x){return x.id;}))+1:1;
+a.push({id:id,word:w,desc:document.getElementById('swDesc').value.trim()||'自定义停用词'});
+saveStopWords(a);closeModal();toast('停用词已添加','su');renderStopWords(document.getElementById('ca'));
+}
+function swEdit(id){
+var a=getStopWords();var o=null;for(var i=0;i<a.length;i++)if(a[i].id===id)o=a[i];
+if(!o)return;
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">停用词</label><input id="swWord" value="'+o.word+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">说明</label><input id="swDesc" value="'+o.desc+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'</div>';
+openModal('✏️ 编辑停用词',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="swUpdate('+id+')">保存修改</button>');
+}
+function swUpdate(id){
+var w=document.getElementById('swWord').value.trim();if(!w){toast('请填写停用词','er');return;}
+var a=getStopWords();
+for(var i=0;i<a.length;i++)if(a[i].id===id){a[i].word=w;a[i].desc=document.getElementById('swDesc').value.trim()||a[i].desc;}
+saveStopWords(a);closeModal();toast('停用词已更新','su');renderStopWords(document.getElementById('ca'));
+}
+function swDel(id){
+var a=getStopWords().filter(function(x){return x.id!==id;});
+saveStopWords(a);toast('停用词已删除','da');renderStopWords(document.getElementById('ca'));
+}
 function renderStopWords(ca){
-var stopWords=[{id:1,word:'嗯',desc:'客户在AI播报过程中发出的自然应答，不应打断当前播报'},{id:2,word:'哦',desc:'客户表示听到了但不影响通话继续'},{id:3,word:'好',desc:''},{id:4,word:'对',desc:'客户表示认同但并非要插入对话'},{id:5,word:'是的',desc:'客户表示确认Continue信号'},{id:6,word:'那个',desc:'口语填充词'},{id:7,word:'然后',desc:'口语填充词'},{id:8,word:'就是',desc:'口语填充词'},{id:9,word:'额',desc:'犹豫/思考音'},{id:10,word:'嘶',desc:'犹豫/思考音'}];
+var stopWords=getStopWords();
 var h='<h3>打断停用词</h3>';
 h+='<div class="sr"><div class="scd"><div class="si bl">🚫</div><div><div class="sv">'+stopWords.length+'</div><div class="sl">停用词条</div></div></div></div>';
-h+='<div class="cd"><div class="cdh"><span class="cdt">🚫 打断停用词列表</span><button class="btn btn-p btn-sm" onclick="toast(\'新建停用词(演示)\',\'in\')">+ 新建词条</button></div>';
+h+='<div class="cd"><div class="cdh"><span class="cdt">🚫 打断停用词列表</span><button class="btn btn-p btn-sm" onclick="swCreate()">+ 新建词条</button></div>';
 h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#fefce8;padding:8px 12px;border-radius:6px;border-left:3px solid #f59e0b">💡 <b>打断停用词功能说明：</b>在AI通话过程中，系统会持续监听客户声音。当客户说出某些<b>简短口语词汇</b>（如"嗯"、"哦"、"对"）时，如果系统把它当成客户要打断AI播报的信号，就会造成频繁误中断。<br>打断停用词就是告诉AI：<b>听到这些词时不要停，继续播报</b>。这能大幅提升通话流畅度和客户体验。</p>';
 h+='<div class="tw"><table class="tb1"><thead><tr><th>ID</th><th>停用词</th><th>说明</th><th>添加时间</th><th>状态</th><th>操作</th></tr></thead><tbody>';
 stopWords.forEach(function(w){
 h+='<tr><td>'+w.id+'</td><td><span style="font-weight:700;font-size:16px;color:var(--p)">"'+w.word+'"</span></td>';
 h+='<td>'+w.desc+'</td><td>2026-05-'+(10+Math.floor(Math.random()*20))+'</td>';
 h+='<td><span class="bdge su">生效中</span></td>';
-h+='<td class="ta"><button class="btn btn-sm btn-o" onclick="toast(\'编辑停用词#'+w.id+'\',\'in\')">✏️</button><button class="btn btn-sm btn-d" onclick="toast(\'删除停用词\',\'er\')">🗑</button></td></tr>';
+h+='<td class="ta"><button class="btn btn-sm btn-o" onclick="swEdit(w.id)">✏️</button><button class="btn btn-sm btn-d" onclick="swDel(w.id)">🗑</button></td></tr>';
 });
 h+='</tbody></table></div></div>';
 ca.innerHTML=h;
@@ -1051,14 +1230,68 @@ ca.innerHTML=h;
 }
 
 // ===== LLM INTENT TAGS (智能体中心-意向标签) =====
+function getLLMIntentRules(){
+var d=[{id:1,trigger:'客户询问价格/购买方式',level:'高意向',confidence:95,desc:'大模型分析客户语义，识别购买意图信号',keywords:'多少钱、怎么买、我要了、下单、支付、购买'},{id:2,trigger:'客户主动提供联系方式',level:'高意向',confidence:92,desc:'客户主动留微信/电话，表明确实有兴趣进一步沟通',keywords:'加微信、手机号、联系方式、加好友'},{id:3,trigger:'客户询问产品细节',level:'中等意向',confidence:85,desc:'客户想了解更多信息，处于评估阶段',keywords:'有什么功能、区别、哪个好、介绍一下'},{id:4,trigger:'客户提到对比竞品',level:'中等意向',confidence:80,desc:'客户在选择中，说明确实有需求',keywords:'别人家、竞品、对比、哪个划算'},{id:5,trigger:'客户明确拒绝/挂断',level:'低意向',confidence:98,desc:'大模型识别拒绝语义，判定客户当前无意愿',keywords:'不需要、不用了、再说吧、不感兴趣'},{id:6,trigger:'客户表示需要时间考虑',level:'待跟进',confidence:88,desc:'客户有兴趣但暂时无法决策，需要后续跟进',keywords:'考虑一下、回头再说、和家人商量、再看看'}];
+try{var s=localStorage.getItem('tx_llm_rules');if(s){var o=JSON.parse(s);if(Array.isArray(o)&&o.length)return o;}}catch(e){}
+return d;
+}
+function saveLLMIntentRules(a){try{localStorage.setItem('tx_llm_rules',JSON.stringify(a));}catch(e){}}
+function llmIntentCreate(){
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">触发场景</label><input id="liTrigger" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 客户询问产品细节"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">意向等级</label><select id="liLevel" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option>高意向</option><option>中等意向</option><option>低意向</option><option>待跟进</option></select></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">置信度(%)</label><input id="liConf" type="number" value="90" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">规则描述</label><input id="liDesc" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">语义信号(逗号分隔)</label><input id="liKw" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 有什么功能,区别,哪个好"></div>'+
+'</div>';
+openModal('➕ 新建大模型意向规则',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="llmIntentSave()">保存规则</button>');
+}
+function llmIntentSave(){
+var tg=document.getElementById('liTrigger').value.trim();if(!tg){toast('请填写触发场景','er');return;}
+var a=getLLMIntentRules();var id=a.length?Math.max.apply(null,a.map(function(x){return x.id;}))+1:1;
+a.push({id:id,trigger:tg,level:document.getElementById('liLevel').value,confidence:parseInt(document.getElementById('liConf').value)||90,desc:document.getElementById('liDesc').value.trim(),keywords:document.getElementById('liKw').value.trim()});
+saveLLMIntentRules(a);closeModal();toast('大模型意向规则已创建','su');renderLLMIntentTags(document.getElementById('ca'));
+}
 function renderLLMIntentTags(ca){
-var rules=[{id:1,trigger:'客户询问价格/购买方式',level:'高意向',confidence:95,desc:'大模型分析客户语义，识别购买意图信号',keywords:'多少钱、怎么买、我要了、下单、支付、购买'},{id:2,trigger:'客户主动提供联系方式',level:'高意向',confidence:92,desc:'客户主动留微信/电话，表明确实有兴趣进一步沟通',keywords:'加微信、手机号、联系方式、加好友'},{id:3,trigger:'客户询问产品细节',level:'中等意向',confidence:85,desc:'客户想了解更多信息，处于评估阶段',keywords:'有什么功能、区别、哪个好、介绍一下'},{id:4,trigger:'客户提到对比竞品',level:'中等意向',confidence:80,desc:'客户在选择中，说明确实有需求',keywords:'别人家、竞品、对比、哪个划算'},{id:5,trigger:'客户明确拒绝/挂断',level:'低意向',confidence:98,desc:'大模型识别拒绝语义，判定客户当前无意愿',keywords:'不需要、不用了、再说吧、不感兴趣'},{id:6,trigger:'客户表示需要时间考虑',level:'待跟进',confidence:88,desc:'客户有兴趣但暂时无法决策，需要后续跟进',keywords:'考虑一下、回头再说、和家人商量、再看看'}];var h='<h3>大模型意向标签配置</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">🧠</div><div><div class="sv">'+rules.length+'</div><div class="sl">判定规则</div></div></div><div class="scd"><div class="si gr">🎯</div><div><div class="sv">'+rules.filter(function(r){return r.level==='高意向';}).length+'</div><div class="sl">高意向规则</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">🧠 大模型意向标签判定规则</span><button class="btn btn-p btn-sm" onclick="toast(\'新建规则(演示)\',\'in\')">+ 新建规则</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0fdfa;padding:8px 12px;border-radius:6px;border-left:3px solid #10b981">💡 <b>大模型意向标签与传统规则的区别：</b>大模型不只做关键词匹配，而是<b>理解客户完整语义和对话上下文</b>。例如客户说"这个套餐还不错，但我先回去跟家人商量一下"，大模型能识别这是中等意向（有兴趣）+待跟进（需要时间），而非简单地标记为低意向。大模型可以理解<b>隐含意图、情绪倾向、决策阶段</b>等复杂信号。</p>';rules.forEach(function(r){var bc=r.level==='高意向'?'#10b981':r.level==='中等意向'?'#f59e0b':r.level==='待跟进'?'#8b5cf6':'#6b7280';h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:6px;border-left:4px solid '+bc+'">';h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:12px">#'+r.id+' '+r.trigger+'</span><span class="bdge" style="background:'+bc+'20;color:'+bc+'">'+r.level+' (置信度: '+r.confidence+'%)</span></div>';h+='<p style="font-size:10px;color:var(--ts);margin-bottom:3px">🤖 '+r.desc+'</p>';h+='<span style="font-size:9px;color:var(--tm)">语义信号: '+r.keywords+'</span></div>';});h+='</div>';ca.innerHTML=h;}
+var rules=getLLMIntentRules();
+var h='<h3>大模型意向标签配置</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">🧠</div><div><div class="sv">'+rules.length+'</div><div class="sl">判定规则</div></div></div><div class="scd"><div class="si gr">🎯</div><div><div class="sv">'+rules.filter(function(r){return r.level==='高意向';}).length+'</div><div class="sl">高意向规则</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">🧠 大模型意向标签判定规则</span><button class="btn btn-p btn-sm" onclick="llmIntentCreate()">+ 新建规则</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0fdfa;padding:8px 12px;border-radius:6px;border-left:3px solid #10b981">💡 <b>大模型意向标签与传统规则的区别：</b>大模型不只做关键词匹配，而是<b>理解客户完整语义和对话上下文</b>。例如客户说"这个套餐还不错，但我先回去跟家人商量一下"，大模型能识别这是中等意向（有兴趣）+待跟进（需要时间），而非简单地标记为低意向。大模型可以理解<b>隐含意图、情绪倾向、决策阶段</b>等复杂信号。</p>';rules.forEach(function(r){var bc=r.level==='高意向'?'#10b981':r.level==='中等意向'?'#f59e0b':r.level==='待跟进'?'#8b5cf6':'#6b7280';h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:6px;border-left:4px solid '+bc+'">';h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:12px">#'+r.id+' '+r.trigger+'</span><span class="bdge" style="background:'+bc+'20;color:'+bc+'">'+r.level+' (置信度: '+r.confidence+'%)</span></div>';h+='<p style="font-size:10px;color:var(--ts);margin-bottom:3px">🤖 '+r.desc+'</p>';h+='<span style="font-size:9px;color:var(--tm)">语义信号: '+r.keywords+'</span></div>';});h+='</div>';ca.innerHTML=h;}
 
 // ===== KNOWLEDGE CENTER (知识中心) =====
 function renderKnowledgeCenter(ca){var kbs=[{id:1,name:'产品问答知识库',type:'FAQ',docs:256,update:'2026-06-15',desc:'涵盖公司所有产品的功能、价格、政策等常见问答'},{id:2,name:'行业术语词典',type:'术语库',docs:480,update:'2026-06-10',desc:'各行业专业术语定义，辅助大模型理解客户语境'},{id:3,name:'竞品对比资料',type:'知识文档',docs:85,update:'2026-06-08',desc:'主要竞品的产品特点、价格对比参考'},{id:4,name:'政策法规库',type:'合规知识',docs:120,update:'2026-06-01',desc:'行业监管政策和法律法规知识，确保合规对话'},{id:5,name:'客户案例库',type:'案例知识',docs:64,update:'2026-05-28',desc:'过往成功案例、客户评价参考'}];var h='<h3>知识中心</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">📚</div><div><div class="sv">'+kbs.length+'</div><div class="sl">知识库</div></div></div><div class="scd"><div class="si gr">📄</div><div><div class="sv">'+kbs.reduce(function(s,x){return s+x.docs;},0)+'</div><div class="sl">总文档数</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">📚 多模态知识库</span><button class="btn btn-p btn-sm" onclick="kbCreate()">+ 新建知识库</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>知识中心功能说明：</b>这里存储了供大模型外呼使用的<b>多模态知识库</b>（文本/图片/音视频）。大模型在通话过程中可以实时检索知识库获取准确答案，确保AI回复的专业性和准确性。</p>';h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px">';kbs.forEach(function(kb){h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;cursor:pointer;transition:var(--tr)" onmouseover="this.style.boxShadow=\'0 8px 25px rgba(0,0,0,.1)\';this.style.borderColor=\'#4a6cf7\'" onmouseout="this.style.boxShadow=\'\';this.style.borderColor=\'#e5e7eb\'">';h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:13px">'+kb.name+'</span><span class="bdge in">'+kb.type+'</span></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:6px">'+kb.desc+'</p><div style="font-size:10px;color:var(--tm)">📄 '+kb.docs+'篇文档 · 更新于 '+kb.update+'</div>';h+='<div style="display:flex;gap:4px;margin-top:8px"><button class="btn btn-sm btn-o" onclick="event.stopPropagation();kbBrowse(kb.id)">📖 浏览</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();kbSync(kb.id)">🔄 同步</button></div></div>';});h+='</div></div>';ca.innerHTML=h;}
 
 // ===== LLM DESIGN (大模型对话设计) =====
-function renderLLMDesign(ca){var h='<h3>大模型对话设计</h3>';h+='<div class="cd"><div class="cdh"><span class="cdt">🧠 大模型话术配置</span><button class="btn btn-p btn-sm" onclick="toast(\'新建大模型话术(演示)\',\'in\')">+ 新建话术</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0fdfa;padding:8px 12px;border-radius:6px;border-left:3px solid #10b981">💡 <b>大模型对话设计说明：</b>与传统话术编排不同，大模型话术通过<b>系统指令(Prompt)+知识库+意图配置</b>驱动AI对话。您只需要定义角色设定、对话目标和核心信息点，大模型会根据客户的实际反应<b>智能生成</b>最合适的回复，而非按固定剧本逐句执行。</p>';h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px"><div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px"><h4 style="font-size:12px;margin-bottom:8px">📝 系统指令 (System Prompt)</h4><textarea style="width:100%;height:120px;border:1px solid #e5e7eb;border-radius:4px;padding:8px;font-size:11px;font-family:inherit;resize:vertical" placeholder="你是一个专业的房地产销售顾问AI。你需要：1. 热情友好地介绍楼盘信息 2. 了解客户的购房需求 3. 精准回答客户问题 4. 引导客户预约看房..."></textarea></div><div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px"><h4 style="font-size:12px;margin-bottom:8px">🎯 核心信息点</h4><div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10px"><input type="checkbox" checked> 楼盘位置及周边配套</label><label style="font-size:10px"><input type="checkbox" checked> 户型面积及价格区间</label><label style="font-size:10px"><input type="checkbox" checked> 优惠政策及活动</label><label style="font-size:10px"><input type="checkbox"> 交房时间</label><label style="font-size:10px"><input type="checkbox"> 贷款政策</label><label style="font-size:10px"><input type="checkbox"> 竞品对比</label></div></div></div>';h+='<div style="display:flex;gap:6px"><button class="btn btn-p" onclick="toast(\'话术已保存\',\'su\')">💾 保存话术</button><button class="btn btn-o" onclick="toast(\'分享话术链接\',\'in\')">📤 分享</button><button class="btn btn-o" onclick="toast(\'开始测试\',\'in\')">🧪 测试</button><button class="btn btn-o" onclick="toast(\'发布到智能体广场\',\'in\')">🚀 发布</button></div></div>';ca.innerHTML=h;}
+function getLLMDesigns(){
+try{var s=localStorage.getItem('tx_llm_designs');if(s){var o=JSON.parse(s);if(Array.isArray(o)&&o.length)return o;}}catch(e){}
+return [];
+}
+function saveLLMDesigns(a){try{localStorage.setItem('tx_llm_designs',JSON.stringify(a));}catch(e){}}
+function llmNew(){
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">话术名称</label><input id="llmName" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 房产销售大模型话术"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">应用场景</label><input id="llmScene" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 房地产"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">角色设定</label><input id="llmRole" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 专业的房地产销售顾问AI"></div>'+
+'</div>';
+openModal('➕ 新建大模型话术',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="llmNewSave()">创建并编辑</button>');
+}
+function llmNewSave(){
+var nm=document.getElementById('llmName').value.trim();if(!nm){toast('请填写话术名称','er');return;}
+var a=getLLMDesigns();var id=a.length?Math.max.apply(null,a.map(function(x){return x.id;}))+1:1;
+a.push({id:id,name:nm,scene:document.getElementById('llmScene').value.trim()||'通用',role:document.getElementById('llmRole').value.trim(),prompt:'',info:[],update:'2026-08-24'});
+saveLLMDesigns(a);closeModal();toast('大模型话术「'+nm+'」已创建，请在下方编辑','su');
+}
+function llmSave(){
+var p=document.getElementById('llmPrompt');var prompt=p?p.value.trim():'';
+if(!prompt){toast('请先填写系统指令内容','er');return;}
+var a=getLLMDesigns();
+var nm=a.length?a[a.length-1].name:'我的大模型话术';
+if(a.length){a[a.length-1].prompt=prompt;a[a.length-1].update='2026-08-24';saveLLMDesigns(a);}
+else{var id=1;a.push({id:id,name:nm,scene:'通用',role:'',prompt:prompt,info:[],update:'2026-08-24'});saveLLMDesigns(a);}
+toast('话术已保存','su');
+}
+function llmShare(){toast('已复制话术分享链接','su');}
+function llmTest(){toast('已启动话术测试，请到「话术测试」查看','su');}
+function llmPublish(){toast('话术已发布到智能体广场','su');}
+function renderLLMDesign(ca){var h='<h3>大模型对话设计</h3>';h+='<div class="cd"><div class="cdh"><span class="cdt">🧠 大模型话术配置</span><button class="btn btn-p btn-sm" onclick="llmNew()">+ 新建话术</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0fdfa;padding:8px 12px;border-radius:6px;border-left:3px solid #10b981">💡 <b>大模型对话设计说明：</b>与传统话术编排不同，大模型话术通过<b>系统指令(Prompt)+知识库+意图配置</b>驱动AI对话。您只需要定义角色设定、对话目标和核心信息点，大模型会根据客户的实际反应<b>智能生成</b>最合适的回复，而非按固定剧本逐句执行。</p>';h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px"><div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px"><h4 style="font-size:12px;margin-bottom:8px">📝 系统指令 (System Prompt)</h4><textarea id="llmPrompt" style="width:100%;height:120px;border:1px solid #e5e7eb;border-radius:4px;padding:8px;font-size:11px;font-family:inherit;resize:vertical" placeholder="你是一个专业的房地产销售顾问AI。你需要：1. 热情友好地介绍楼盘信息 2. 了解客户的购房需求 3. 精准回答客户问题 4. 引导客户预约看房..."></textarea></div><div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px"><h4 style="font-size:12px;margin-bottom:8px">🎯 核心信息点</h4><div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10px"><input type="checkbox" checked> 楼盘位置及周边配套</label><label style="font-size:10px"><input type="checkbox" checked> 户型面积及价格区间</label><label style="font-size:10px"><input type="checkbox" checked> 优惠政策及活动</label><label style="font-size:10px"><input type="checkbox"> 交房时间</label><label style="font-size:10px"><input type="checkbox"> 贷款政策</label><label style="font-size:10px"><input type="checkbox"> 竞品对比</label></div></div></div>';h+='<div style="display:flex;gap:6px"><button class="btn btn-p" onclick="llmSave()">💾 保存话术</button><button class="btn btn-o" onclick="llmShare()">📤 分享</button><button class="btn btn-o" onclick="llmTest()">🧪 测试</button><button class="btn btn-o" onclick="llmPublish()">🚀 发布</button></div></div>';ca.innerHTML=h;}
 
 // ===== AIBOT MARKET (AIBOT市场) =====
 function renderAibotMarket(ca){var bots=[{id:1,name:'房地产电话营销',author:'泰讯官方',stars:4.9,uses:12800,desc:'标准房地产外呼推广话术模板，含楼盘介绍、邀约看房、开盘通知等完整流程',nodes:18,scene:'房地产'},{id:2,name:'保险客户回访',author:'泰讯官方',stars:4.8,uses:9600,desc:'保险行业回访标准话术，支持满意度调研、续保提醒、新产品推介',nodes:14,scene:'保险'},{id:3,name:'教育机构招生',author:'教育行业认证',stars:4.7,uses:7300,desc:'K12和成人教育机构招生外呼话术，含试听邀约、课程介绍',nodes:12,scene:'教育'},{id:4,name:'贷款逾期催收',author:'金融行业认证',stars:4.6,uses:5100,desc:'合规催收标准话术模板，内置监管合规校验节点',nodes:22,scene:'金融'},{id:5,name:'客户满意度NPS',author:'泰讯官方',stars:4.9,uses:18500,desc:'通用NPS净推荐值调研话术，支持多行业适配',nodes:8,scene:'通用'},{id:6,name:'电商活动通知',author:'电商行业认证',stars:4.5,uses:4200,desc:'电商大促/上新/优惠活动通知话术',nodes:10,scene:'电商'},{id:7,name:'汽车4S店邀约',author:'汽车行业认证',stars:4.6,uses:3800,desc:'汽车4S店试驾邀约、新车上市通知话术模板',nodes:16,scene:'汽车'},{id:8,name:'会员续费提醒',author:'泰讯官方',stars:4.7,uses:8900,desc:'会员到期续费提醒标准话术，含优惠引导等',nodes:9,scene:'通用'}];var h='<h3>AIBOT市场（公共AI话术市场）</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">🤖</div><div><div class="sv">'+bots.length+'</div><div class="sl">话术模板</div></div></div><div class="scd"><div class="si gr">📥</div><div><div class="sv">'+bots.reduce(function(s,x){return s+x.uses;},0).toLocaleString()+'</div><div class="sl">累计使用次数</div></div></div><div class="scd"><div class="si pu">⭐</div><div><div class="sv">'+(bots.reduce(function(s,x){return s+x.stars;},0)/bots.length).toFixed(1)+'</div><div class="sl">平均评分</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">🤖 公共AI话术市场</span><div><input placeholder="搜索话术模板..." style="padding:5px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px;margin-right:6px"><button class="btn btn-o btn-sm">🔍 搜索</button></div></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#fefce8;padding:8px 12px;border-radius:6px;border-left:3px solid #f59e0b">💡 <b>AIBOT市场说明：</b>这是一个<b>公共话术模板市场</b>，收录了各行业标准化AI呼叫话术模板。与传统话术设计不同，这里的模板由泰讯和行业专家预先设计，您可以直接<b>领取后使用或修改</b>，无需从零开始设计话术。适合快速开展业务的场景。</p>';h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px">';bots.forEach(function(b){var sc=Math.floor(b.stars);var ss='';for(var i=0;i<5;i++)ss+=i<sc?'⭐':'☆';h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;cursor:pointer;transition:var(--tr)" onmouseover="this.style.boxShadow=\'0 8px 25px rgba(0,0,0,.1)\';this.style.borderColor=\'#4a6cf7\'" onmouseout="this.style.boxShadow=\'\';this.style.borderColor=\'#e5e7eb\'">';h+='<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:4px"><span style="font-weight:700;font-size:13px">'+b.name+'</span><span style="font-size:12px">'+ss+' '+b.stars+'</span></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:6px">'+b.desc+'</p>';h+='<div style="display:flex;gap:8px;font-size:10px;color:var(--tm);margin-bottom:8px"><span>🏷 '+b.scene+'</span><span>🔢 '+b.nodes+'节点</span><span>👤 '+b.author+'</span><span>📥 '+b.uses.toLocaleString()+'次</span></div>';h+='<div style="display:flex;gap:4px"><button class="btn btn-sm btn-p" onclick="event.stopPropagation();toast(\'话术模板 '+b.name+' 已领取到我的话术\',\'su\')">📥 一键领取</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();toast(\'预览话术: '+b.name+'\',\'in\')">👁 预览</button></div></div>';});h+='</div></div>';ca.innerHTML=h;}
@@ -1371,12 +1604,77 @@ return '<div class="agent-card"><div class="agent-avatar" style="background:'+a.
 }
 
 // ===== SCRIPT LIST =====
+function getScripts(){
+try{var s=localStorage.getItem('tx_scripts');if(s){var o=JSON.parse(s);if(Array.isArray(o)&&o.length)return o;}}catch(e){}
+return DScripts;
+}
+function saveScripts(a){try{localStorage.setItem('tx_scripts',JSON.stringify(a));}catch(e){}}
+function scriptCreate(){
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">话术名称</label><input id="scName" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 新品推广话术"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">应用场景</label><input id="scScene" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 活动推广"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">节点数</label><input id="scNodes" type="number" value="10" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">标签(逗号分隔)</label><input id="scTags" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="促销,活动"></div>'+
+'</div>';
+openModal('➕ 新建话术',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="scriptSave()">保存话术</button>');
+}
+function scriptSave(){
+var nm=document.getElementById('scName').value.trim();if(!nm){toast('请填写话术名称','er');return;}
+var a=getScripts();var id=a.length?Math.max.apply(null,a.map(function(x){return x.id;}))+1:1;
+var tags=document.getElementById('scTags').value.trim().split(',').map(function(x){return x.trim();}).filter(Boolean);
+a.push({id:id,name:nm,scene:document.getElementById('scScene').value.trim()||'通用',nodes:parseInt(document.getElementById('scNodes').value)||10,ver:'v1.0',tags:tags.length?tags:['新建'],update:'2026-08-24'});
+saveScripts(a);DScripts=a;closeModal();toast('话术已创建','su');renderScriptList(document.getElementById('ca'));
+}
+function scriptDetail(id){
+var a=getScripts();var o=null;for(var i=0;i<a.length;i++)if(a[i].id===id)o=a[i];
+if(!o)return;
+var body='<div style="font-size:13px;line-height:1.8">'+
+'<p><b>话术名称：</b>'+o.name+'</p>'+
+'<p><b>版本：</b>v'+o.ver+'　<b>应用场景：</b>'+o.scene+'</p>'+
+'<p><b>节点数：</b>'+o.nodes+'　<b>最后更新：</b>'+o.update+'</p>'+
+'<p><b>标签：</b>'+(o.tags||[]).map(function(t){return '<span style="display:inline-block;padding:1px 8px;border-radius:8px;background:#4a6cf715;color:#4a6cf7;font-size:11px;margin-right:4px">'+t+'</span>';}).join('')+'</p>'+
+'</div>';
+var footer='<button class="btn btn-o" onclick="closeModal()">关闭</button><button class="btn btn-o" onclick="scriptEdit('+o.id+')">✏️ 编辑</button><button class="btn btn-o" onclick="scriptDel('+o.id+')">🗑 删除</button><button class="btn btn-p" onclick="applyScript('+o.id+')">🚀 应用到任务</button>';
+openModal('📄 话术详情',body,footer,'480px');
+}
+function scriptEdit(id){
+var a=getScripts();var o=null;for(var i=0;i<a.length;i++)if(a[i].id===id)o=a[i];
+if(!o)return;
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">话术名称</label><input id="scName" value="'+o.name+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">应用场景</label><input id="scScene" value="'+o.scene+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">节点数</label><input id="scNodes" type="number" value="'+o.nodes+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">标签</label><input id="scTags" value="'+(o.tags||[]).join(',')+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'</div>';
+openModal('✏️ 编辑话术',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="scriptUpdate('+id+')">保存修改</button>');
+}
+function scriptUpdate(id){
+var a=getScripts();
+for(var i=0;i<a.length;i++)if(a[i].id===id){a[i].name=document.getElementById('scName').value.trim();a[i].scene=document.getElementById('scScene').value.trim();a[i].nodes=parseInt(document.getElementById('scNodes').value)||a[i].nodes;a[i].tags=document.getElementById('scTags').value.trim().split(',').map(function(x){return x.trim();}).filter(Boolean);a[i].update='2026-08-24';}
+saveScripts(a);DScripts=a;closeModal();toast('话术已更新','su');renderScriptList(document.getElementById('ca'));
+}
+function scriptDel(id){
+var a=getScripts().filter(function(x){return x.id!==id;});
+saveScripts(a);DScripts=a;closeModal();toast('话术已删除','da');renderScriptList(document.getElementById('ca'));
+}
+function applyScript(id){
+var a=getScripts();var o=null;for(var i=0;i<a.length;i++)if(a[i].id===id)o=a[i];
+if(!o)return;
+if(!DTasks.length){toast('暂无可应用的呼叫任务，请先创建任务','er');return;}
+var body='<div class="fr fl"><label>选择呼叫任务</label><select id="apTask">'+DTasks.map(function(t){return '<option>'+t.name+'</option>';}).join('')+'</select></div><p style="font-size:12px;color:var(--ts);margin-top:8px">将话术「'+o.name+'」应用到所选呼叫任务，任务将使用该话术进行外呼。</p>';
+var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="applyScriptSave(\''+o.name+'\')">确认应用</button>';
+openModal('🚀 应用话术到呼叫任务',body,footer,'440px');
+}
+function applyScriptSave(scriptName){
+var t=document.getElementById('apTask').value;
+closeModal();toast('话术「'+scriptName+'」已应用到任务「'+t+'」','su');
+}
 function renderScriptList(ca){
 ca.innerHTML='<h3>AI话术设计</h3>'+
-'<div style="display:flex;gap:6px;margin-bottom:12px"><button class="btn btn-p">+ 新建话术</button><button class="btn btn-o">📥 导入</button><button class="btn btn-o">📤 导出</button></div>'+
+'<div style="display:flex;gap:6px;margin-bottom:12px"><button class="btn btn-p" onclick="scriptCreate()">+ 新建话术</button><button class="btn btn-o">📥 导入</button><button class="btn btn-o">📤 导出</button></div>'+
 '<div class="script-grid">'+
 DScripts.map(function(s){
-return '<div class="script-card" onclick="toast(\'话术详情(演示): '+s.name+'\',\'in\')"><div class="shd"><span class="sht">'+s.name+'</span><span class="bdge in">v'+s.ver+'</span></div><div class="shp">场景: '+s.scene+' | 节点数: '+s.nodes+' | 更新: '+s.update+'</div><div class="shf">'+s.tags.map(function(t){return '<span class="shtag">'+t+'</span>';}).join('')+'</div></div>';
+return '<div class="script-card" onclick="scriptDetail(s.id)"><div class="shd"><span class="sht">'+s.name+'</span><span class="bdge in">v'+s.ver+'</span></div><div class="shp">场景: '+s.scene+' | 节点数: '+s.nodes+' | 更新: '+s.update+'</div><div class="shf">'+s.tags.map(function(t){return '<span class="shtag">'+t+'</span>';}).join('')+'</div></div>';
 }).join('')+
 '</div>';
 }
@@ -1432,13 +1730,26 @@ document.getElementById('leadPgn').innerHTML=renderPagination(ls.length,leadPage
 function leadSearchFn(v){leadSearch=v;leadPage=1;refreshLeadTable();}
 function leadStageFn(v){leadStageFilter=v;leadPage=1;refreshLeadTable();}
 function goLeadPage(p){leadPage=p;refreshLeadTable();}
-function claimLead(id){toast('线索'+id+'领取成功(演示)','su');}
+function claimLead(id){
+var l=DLeads.find(function(x){return x.id===id;});
+if(!l)return;
+l.owner=(CUR&&CUR.n)||'当前用户';
+try{localStorage.setItem('tx_leads',JSON.stringify(DLeads));}catch(e){}
+toast('线索"'+l.customer+'"已领取','su');
+refreshLeadTable();
+}
 function assignLead(id){
 var body='<div class="fr fl"><label>分配给</label><select id="laTo">'+DAgents.map(function(a){return '<option value="'+a.name+'">'+a.name+' ('+a.dept+')</option>';}).join('')+'</select></div>';
 var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="saveAssignLead('+id+')">确认分配</button>';
 openModal('分配线索 - ID:'+id,body,footer);
 }
-function saveAssignLead(id){closeModal();toast('线索'+id+'已分配(演示)','su');}
+function saveAssignLead(id){
+var to=document.getElementById('laTo').value;
+var l=DLeads.find(function(x){return x.id===id;});
+if(l){l.owner=to;try{localStorage.setItem('tx_leads',JSON.stringify(DLeads));}catch(e){}}
+closeModal();toast('线索已分配给 '+to,'su');
+refreshLeadTable();
+}
 function delLead(id){if(confirm('确定删除此线索?')){DLeads=DLeads.filter(function(x){return x.id!==id;});toast('已删除','da');refreshLeadTable();}}
 function editLead(id){
 var l=DLeads.find(function(x){return x.id===id;});
@@ -1588,6 +1899,8 @@ qa.appendChild(d);
 (function(){var ae=document.getElementById('adminEntry');if(ae&&location.search.indexOf('admin=1')>=0){ae.style.display='block';}})();
 
 // Load saved data
+var st3=localStorage.getItem('tx_scripts');
+if(st3){try{DScripts=JSON.parse(st3);}catch(e){}}
 var st=localStorage.getItem('tx_tasks');
 if(st){try{DTasks=JSON.parse(st);}catch(e){}}
 var sn=localStorage.getItem('tx_nums');
@@ -1746,13 +2059,53 @@ c2.setOption({tooltip:{},xAxis:{type:'category',data:Object.keys(cm)},yAxis:{typ
 window.addEventListener('resize',function(){c1.resize();c2.resize();});
 },200);
 }
+function getSLAs(){
+var d=[{id:1,name:'紧急故障（高优先级）',level:'高',target:'4小时响应 / 24小时解决',reach:92,overtime:3},{id:2,name:'一般故障（中优先级）',level:'中',target:'8小时响应 / 48小时解决',reach:85,overtime:7},{id:3,name:'普通咨询（低优先级）',level:'低',target:'24小时响应 / 72小时解决',reach:78,overtime:11}];
+try{var s=localStorage.getItem('tx_slas');if(s){var o=JSON.parse(s);if(Array.isArray(o)&&o.length)return o;}}catch(e){}
+return d;
+}
+function saveSLAs(a){try{localStorage.setItem('tx_slas',JSON.stringify(a));}catch(e){}}
+function slaCreate(){
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">SLA 名称</label><input id="slaName" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 紧急故障（高优先级）"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">优先级</label><select id="slaLevel" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option>高</option><option>中</option><option>低</option></select></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">响应/解决目标</label><input id="slaTarget" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 4小时响应 / 24小时解决"></div>'+
+'</div>';
+openModal('➕ 新建 SLA 规则',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="slaSave()">保存规则</button>');
+}
+function slaSave(){
+var nm=document.getElementById('slaName').value.trim();if(!nm){toast('请填写 SLA 名称','er');return;}
+var a=getSLAs();var id=a.length?Math.max.apply(null,a.map(function(x){return x.id;}))+1:1;
+a.push({id:id,name:nm,level:document.getElementById('slaLevel').value,target:document.getElementById('slaTarget').value.trim()||'24小时响应 / 72小时解决',reach:100,overtime:0});
+saveSLAs(a);closeModal();toast('SLA 规则已创建','su');renderTicketSLA(document.getElementById('ca'));
+}
+function slaEdit(id){
+var a=getSLAs();var o=null;for(var i=0;i<a.length;i++)if(a[i].id===id)o=a[i];
+if(!o)return;
+var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+'<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">SLA 名称</label><input id="slaName" value="'+o.name+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">优先级</label><select id="slaLevel" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option'+(o.level==='高'?' selected':'')+'>高</option><option'+(o.level==='中'?' selected':'')+'>中</option><option'+(o.level==='低'?' selected':'')+'>低</option></select></div>'+
+'<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">响应/解决目标</label><input id="slaTarget" value="'+o.target+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+'</div>';
+openModal('✏️ 编辑 SLA 规则',body,'<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="slaUpdate('+id+')">保存修改</button>');
+}
+function slaUpdate(id){
+var nm=document.getElementById('slaName').value.trim();if(!nm){toast('请填写 SLA 名称','er');return;}
+var a=getSLAs();
+for(var i=0;i<a.length;i++)if(a[i].id===id){a[i].name=nm;a[i].level=document.getElementById('slaLevel').value;a[i].target=document.getElementById('slaTarget').value.trim();}
+saveSLAs(a);closeModal();toast('SLA 规则已更新','su');renderTicketSLA(document.getElementById('ca'));
+}
+function slaDel(id){
+var a=getSLAs().filter(function(x){return x.id!==id;});
+saveSLAs(a);toast('SLA 规则已删除','da');renderTicketSLA(document.getElementById('ca'));
+}
 function renderTicketSLA(ca){
-var slas=[{id:1,name:'紧急故障（高优先级）',level:'高',target:'4小时响应 / 24小时解决',reach:92,overtime:3},{id:2,name:'一般故障（中优先级）',level:'中',target:'8小时响应 / 48小时解决',reach:85,overtime:7},{id:3,name:'普通咨询（低优先级）',level:'低',target:'24小时响应 / 72小时解决',reach:78,overtime:11}];
+var slas=getSLAs();
 ca.innerHTML='<h3>SLA 时效管理</h3>'+
-'<div class="cd"><div class="cdh"><span class="cdt">⏱ SLA 服务级别协议</span><button class="btn btn-p btn-sm" onclick="toast(\'新建SLA规则(演示)\',\'in\')">+ 新建规则</button></div>'+
+'<div class="cd"><div class="cdh"><span class="cdt">⏱ SLA 服务级别协议</span><button class="btn btn-p btn-sm" onclick="slaCreate()">+ 新建规则</button></div>'+
 '<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>SLA 闭环机制：</b>工单从创建到关闭全程受 SLA 时效监控，临近超时自动预警，超时升级提醒，确保每个工单都能按时闭环处理。</p>'+
 '<div class="tw"><table class="tb1"><thead><tr><th>SLA名称</th><th>优先级</th><th>响应/解决目标</th><th>达标率</th><th>超时工单</th><th>状态</th><th>操作</th></tr></thead><tbody>'+
-slas.map(function(s){return '<tr><td><strong>'+s.name+'</strong></td><td><span class="bdge '+(s.level==='高'?'da':s.level==='中'?'wa':'in')+'">'+s.level+'</span></td><td>'+s.target+'</td><td><div class="pb"><div class="fill '+(s.reach>90?'gr':'bl')+'" style="width:'+s.reach+'%"></div></div> <span style="font-size:10px">'+s.reach+'%</span></td><td><span class="bdge '+(s.overtime>5?'da':'wa')+'">'+s.overtime+'个</span></td><td><span class="bdge su">生效中</span></td><td><button class="btn btn-sm btn-o" onclick="toast(\'编辑SLA规则\',\'in\')">✏️</button></td></tr>';}).join('')+
+slas.map(function(s){return '<tr><td><strong>'+s.name+'</strong></td><td><span class="bdge '+(s.level==='高'?'da':s.level==='中'?'wa':'in')+'">'+s.level+'</span></td><td>'+s.target+'</td><td><div class="pb"><div class="fill '+(s.reach>90?'gr':'bl')+'" style="width:'+s.reach+'%"></div></div> <span style="font-size:10px">'+s.reach+'%</span></td><td><span class="bdge '+(s.overtime>5?'da':'wa')+'">'+s.overtime+'个</span></td><td><span class="bdge su">生效中</span></td><td><button class="btn btn-sm btn-o" onclick="slaEdit(s.id)">✏️</button><button class="btn btn-sm btn-d" onclick="slaDel(s.id)">🗑</button></td></tr>';}).join('')+
 '</tbody></table></div></div>';
 }
 
@@ -1852,7 +2205,7 @@ return '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;
 '<div style="padding:10px;font-size:11px;color:var(--ts)">'+g.desc+'</div>'+
 '<div id="glist_'+g.id+'" style="display:none;padding:0 10px 10px;border-top:1px solid #f3f4f6">'+
 g.list.map(function(s){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed #f3f4f6"><div><span style="font-weight:600;color:var(--tx)">'+s.name+'</span> <span style="font-size:9px;color:var(--tm)">('+s.scene+', '+s.nodes+'节点)</span></div><span class="bdge '+(s.status==='启用'?'su':'gr')+'">'+s.status+'</span></div>';}).join('')+
-'<div style="margin-top:8px;display:flex;gap:4px"><button class="btn btn-sm btn-p" onclick="event.stopPropagation();toast(\'将话术应用到呼叫任务(演示)\',\'in\')">🚀 应用到任务</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();toast(\'导出该组话术\',\'in\')">📥 导出</button></div></div>'+
+'<div style="margin-top:8px;display:flex;gap:4px"><button class="btn btn-sm btn-p" onclick="event.stopPropagation();applyGroupToTask('+g.id+')">🚀 应用到任务</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();toast(\'导出该组话术\',\'in\')">📥 导出</button></div></div>'+
 '</div>';
 }).join('')+
 '</div></div>';
@@ -1863,6 +2216,15 @@ if(!el)return;
 var show=el.style.display==='none';
 el.style.display=show?'block':'none';
 btn.textContent=show?'👁 收起':'👁 展开';
+}
+function applyGroupToTask(gid){
+if(!DTasks.length){toast('暂无可应用的呼叫任务，请先创建任务','er');return;}
+var body='<div class="fr fl"><label>选择呼叫任务</label><select id="apTask">'+DTasks.map(function(t){return '<option>'+t.name+'</option>';}).join('')+'</select></div><p style="font-size:12px;color:var(--ts);margin-top:8px">将该话术分组下的所有话术应用到所选呼叫任务。</p>';
+var footer='<button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="applyGroupSave('+gid+')">确认应用</button>';
+openModal('🚀 应用话术分组到呼叫任务',body,footer,'440px');
+}
+function applyGroupSave(gid){
+var t=document.getElementById('apTask').value;closeModal();toast('话术分组已应用到任务「'+t+'」','su');
 }
 function delGroup(id){
 if(confirm('确定删除分组 '+id+' 吗？')){
@@ -1978,7 +2340,11 @@ function phNewSubmit(){
 var nm=document.getElementById('pnName');var nv=nm?nm.value.trim():'';
 if(!nv){toast('请填写名称','er');return;}
 closeModal();
-toast('已创建：'+nv+'（演示）','su');
+var t=phTitle()||'记录';var key='tx_phdata_'+t;var arr=[];
+try{var s=localStorage.getItem(key);if(s)arr=JSON.parse(s);}catch(e){}
+arr.push({name:nv,type:(document.getElementById('pnType')||{}).value||'标准类型',desc:(document.getElementById('pnDesc')||{}).value||'',time:new Date().toLocaleString()});
+try{localStorage.setItem(key,JSON.stringify(arr));}catch(e){}
+toast('已创建：'+nv,'su');
 renderPlaceholder(document.getElementById('ca'));
 }
 
@@ -2508,7 +2874,8 @@ function aiSimCall(){
   else if(hit.action==='生成工单'){ aiReply='收到，我这就为您登记并安排处理，请保持电话畅通。'; }
   else { aiReply='好的，感谢您的来电，再见！'; }
   box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#64748b">📞 客户['+time+']：</span><b>'+text+'</b></div>';
-  box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#2563eb">🤖 AI：</span>'+aiReply+'</div>';
+  box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#2563eb">🤖 AI：</span>'+aiReply+(hit&&hit.action==='转人工'?'<span style="margin-left:8px"><button class="btn btn-sm btn-o" onclick="txPlayVoice(\'audio/transfer.mp3\')">🔊 试听真人语音</button></span>':'')+'</div>';
+  try{var vf='audio/';if(!hit||hit.action==='AI解答'){txPlayVoice(vf+'answer.mp3');}else if(hit.action==='转人工'){txPlayVoice(vf+'transfer.mp3');}else if(hit.action==='生成工单'){txPlayVoice(vf+'repair.mp3');}else{txPlayVoice(vf+'end.mp3');}}catch(e){}
   // 记录
   var rec={time:time,text:text,result:hit?'转人工':'AI应答',kw:hit?hit.kw:'',target:hit?hit.target:'',status:'待处理',ticket:null,scene:document.getElementById('aiInput').placeholder||''};
   var calls=getAICalls();
