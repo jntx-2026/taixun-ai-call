@@ -603,6 +603,7 @@ var renderMap={
 'agent-center_意向标签':renderLLMIntentTags,
 'aibot-market':renderAibotMarket,
 'ai-dialog_aibot-market':renderAibotMarket,
+'knowledge-base':renderKnowledgeBase,
 'knowledge-center':renderKnowledgeCenter,
 'agent-center_knowledge-center':renderKnowledgeCenter,
 'llm-design':renderLLMDesign,
@@ -1280,7 +1281,96 @@ var rules=getLLMIntentRules();
 var h='<h3>大模型意向标签配置</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">🧠</div><div><div class="sv">'+rules.length+'</div><div class="sl">判定规则</div></div></div><div class="scd"><div class="si gr">🎯</div><div><div class="sv">'+rules.filter(function(r){return r.level==='高意向';}).length+'</div><div class="sl">高意向规则</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">🧠 大模型意向标签判定规则</span><button class="btn btn-p btn-sm" onclick="llmIntentCreate()">+ 新建规则</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0fdfa;padding:8px 12px;border-radius:6px;border-left:3px solid #10b981">💡 <b>大模型意向标签与传统规则的区别：</b>大模型不只做关键词匹配，而是<b>理解客户完整语义和对话上下文</b>。例如客户说"这个套餐还不错，但我先回去跟家人商量一下"，大模型能识别这是中等意向（有兴趣）+待跟进（需要时间），而非简单地标记为低意向。大模型可以理解<b>隐含意图、情绪倾向、决策阶段</b>等复杂信号。</p>';rules.forEach(function(r){var bc=r.level==='高意向'?'#10b981':r.level==='中等意向'?'#f59e0b':r.level==='待跟进'?'#8b5cf6':'#6b7280';h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:6px;border-left:4px solid '+bc+'">';h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:12px">#'+r.id+' '+r.trigger+'</span><span class="bdge" style="background:'+bc+'20;color:'+bc+'">'+r.level+' (置信度: '+r.confidence+'%)</span></div>';h+='<p style="font-size:10px;color:var(--ts);margin-bottom:3px">🤖 '+r.desc+'</p>';h+='<span style="font-size:9px;color:var(--tm)">语义信号: '+r.keywords+'</span></div>';});h+='</div>';ca.innerHTML=h;}
 
 // ===== KNOWLEDGE CENTER (知识中心) =====
-function renderKnowledgeCenter(ca){var kbs=[{id:1,name:'产品问答知识库',type:'FAQ',docs:256,update:'2026-06-15',desc:'涵盖公司所有产品的功能、价格、政策等常见问答'},{id:2,name:'行业术语词典',type:'术语库',docs:480,update:'2026-06-10',desc:'各行业专业术语定义，辅助大模型理解客户语境'},{id:3,name:'竞品对比资料',type:'知识文档',docs:85,update:'2026-06-08',desc:'主要竞品的产品特点、价格对比参考'},{id:4,name:'政策法规库',type:'合规知识',docs:120,update:'2026-06-01',desc:'行业监管政策和法律法规知识，确保合规对话'},{id:5,name:'客户案例库',type:'案例知识',docs:64,update:'2026-05-28',desc:'过往成功案例、客户评价参考'}];var h='<h3>知识中心</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">📚</div><div><div class="sv">'+kbs.length+'</div><div class="sl">知识库</div></div></div><div class="scd"><div class="si gr">📄</div><div><div class="sv">'+kbs.reduce(function(s,x){return s+x.docs;},0)+'</div><div class="sl">总文档数</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">📚 多模态知识库</span><button class="btn btn-p btn-sm" onclick="kbCreate()">+ 新建知识库</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>知识中心功能说明：</b>这里存储了供大模型外呼使用的<b>多模态知识库</b>（文本/图片/音视频）。大模型在通话过程中可以实时检索知识库获取准确答案，确保AI回复的专业性和准确性。</p>';h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px">';kbs.forEach(function(kb){h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;cursor:pointer;transition:var(--tr)" onmouseover="this.style.boxShadow=\'0 8px 25px rgba(0,0,0,.1)\';this.style.borderColor=\'#4a6cf7\'" onmouseout="this.style.boxShadow=\'\';this.style.borderColor=\'#e5e7eb\'">';h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:13px">'+kb.name+'</span><span class="bdge in">'+kb.type+'</span></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:6px">'+kb.desc+'</p><div style="font-size:10px;color:var(--tm)">📄 '+kb.docs+'篇文档 · 更新于 '+kb.update+'</div>';h+='<div style="display:flex;gap:4px;margin-top:8px"><button class="btn btn-sm btn-o" onclick="event.stopPropagation();kbBrowse(kb.id)">📖 浏览</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();kbSync(kb.id)">🔄 同步</button></div></div>';});h+='</div></div>';ca.innerHTML=h;}
+function renderKnowledgeCenter(ca){var kbs=[{id:1,name:'产品问答知识库',type:'FAQ',docs:256,update:'2026-06-15',desc:'涵盖公司所有产品的功能、价格、政策等常见问答'},{id:2,name:'行业术语词典',type:'术语库',docs:480,update:'2026-06-10',desc:'各行业专业术语定义，辅助大模型理解客户语境'},{id:3,name:'竞品对比资料',type:'知识文档',docs:85,update:'2026-06-08',desc:'主要竞品的产品特点、价格对比参考'},{id:4,name:'政策法规库',type:'合规知识',docs:120,update:'2026-06-01',desc:'行业监管政策和法律法规知识，确保合规对话'},{id:5,name:'客户案例库',type:'案例知识',docs:64,update:'2026-05-28',desc:'过往成功案例、客户评价参考'}];var h='<h3>知识中心</h3>';h+='<div class="sr"><div class="scd"><div class="si bl">📚</div><div><div class="sv">'+kbs.length+'</div><div class="sl">知识库</div></div></div><div class="scd"><div class="si gr">📄</div><div><div class="sv">'+kbs.reduce(function(s,x){return s+x.docs;},0)+'</div><div class="sl">总文档数</div></div></div></div>';h+='<div class="cd"><div class="cdh"><span class="cdt">📚 多模态知识库</span><button class="btn btn-p btn-sm" onclick="kbCreate()">+ 新建知识库</button></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>知识中心功能说明：</b>这里存储了供大模型外呼使用的<b>多模态知识库</b>（文本/图片/音视频）。大模型在通话过程中可以实时检索知识库获取准确答案，确保AI回复的专业性和准确性。</p>';h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px">';kbs.forEach(function(kb){h+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;cursor:pointer;transition:var(--tr)" onclick="kbBrowse('+kb.id+')" onmouseover="this.style.boxShadow=\'0 8px 25px rgba(0,0,0,.1)\';this.style.borderColor=\'#4a6cf7\'" onmouseout="this.style.boxShadow=\'\';this.style.borderColor=\'#e5e7eb\'">';h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:13px">'+kb.name+'</span><span class="bdge in">'+kb.type+'</span></div>';h+='<p style="font-size:11px;color:var(--ts);margin-bottom:6px">'+kb.desc+'</p><div style="font-size:10px;color:var(--tm)">📄 '+kb.docs+'篇文档 · 更新于 '+kb.update+'</div>';h+='<div style="display:flex;gap:4px;margin-top:8px"><button class="btn btn-sm btn-o" onclick="event.stopPropagation();kbBrowse(kb.id)">📖 浏览</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();kbSync(kb.id)">🔄 同步</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();kbRename(kb.id)">✏️</button></div></div>';});h+='</div></div>';ca.innerHTML=h;}
+
+
+// ===== KNOWLEDGE BASE (知识库 - 完整数据管理模块) =====
+function renderKnowledgeBase(ca){
+  var kbs=getKBs();
+  var totalDocs=kbs.reduce(function(s,k){return s+(k.docs||0);},0);
+  var totalRecs=0;
+  kbs.forEach(function(k){totalRecs+=(k.docsArr?k.docsArr.length:0);});
+  var today='2026-08-24';
+  var todayNew=kbs.filter(function(k){return k.update===today;}).length;
+  var h='<h3>知识库管理</h3>';
+  h+='<div class="sr">'+
+     '<div class="scd"><div class="si bl">📚</div><div><div class="sv">'+kbs.length+'</div><div class="sl">知识库总数</div></div></div>'+
+     '<div class="scd"><div class="si gr">📄</div><div><div class="sv">'+totalDocs+'</div><div class="sl">文档总数</div></div></div>'+
+     '<div class="scd"><div class="si pu">🗂</div><div><div class="sv">'+totalRecs+'</div><div class="sl">已录入条目</div></div></div>'+
+     '<div class="scd"><div class="si or">🔄</div><div><div class="sv">'+todayNew+'</div><div class="sl">今日更新</div></div></div></div>';
+  h+='<div class="cd"><div class="cdh"><span class="cdt">📚 知识库列表</span><div style="display:flex;gap:6px"><button class="btn btn-p btn-sm" onclick="kbCreate()">+ 新建知识库</button><button class="btn btn-o btn-sm" onclick="kbImport()">📥 导入文档</button><button class="btn btn-o btn-sm" onclick="renderKnowledgeBase(document.getElementById(\'ca\'))">↻ 刷新</button></div></div>';
+  h+='<p style="font-size:11px;color:var(--ts);margin-bottom:10px;background:#f0f5ff;padding:8px 12px;border-radius:6px;border-left:3px solid #4a6cf7">💡 <b>知识库说明：</b>知识库是AI外呼的<b>知识中枢</b>，大模型在通话中实时检索这里的文档来回答客户提问。支持<b>新建、导入文档、在线编辑、关键词检索</b>，确保AI回答专业准确。点击任意知识库可进入文档管理。</p>';
+  h+='<div class="fb"><input id="kbListSearch" placeholder="搜索知识库名称或描述..." oninput="kbListSearchFn()" style="margin-right:6px"><select id="kbTypeFilter" onchange="kbListSearchFn()"><option value="">全部类型</option><option>FAQ</option><option>术语库</option><option>知识文档</option><option>合规知识</option><option>案例知识</option></select></div>';
+  h+='<div id="kbListWrap">'+kbListHtml('','')+'</div>';
+  h+='</div>';
+  h+='<div class="cd"><div class="cdh"><span class="cdt">🧠 大模型实时检索演示</span></div>';
+  h+='<p style="font-size:11px;color:var(--ts);margin-bottom:8px">模拟客户提问，展示大模型如何从知识库命中答案（演示版基于关键词检索）：</p>';
+  h+='<div style="display:flex;gap:6px;margin-bottom:8px"><input id="kbRetrievalQ" placeholder="例如：你们有哪些套餐？或：燃气泄漏怎么办？" style="flex:1;padding:9px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px"><button class="btn btn-p" onclick="kbRetrieval()">🔍 检索</button></div>';
+  h+='<div id="kbRetrievalRes" style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:10px;font-size:12px;color:var(--ts)">输入问题后点击「检索」，可实时演示AI如何命中知识库回答。</div>';
+  h+='</div>';
+  ca.innerHTML=h;
+}
+function kbListHtml(q,type){
+  var kbs=getKBs();
+  var f=kbs.filter(function(k){return (!q||k.name.indexOf(q)>=0||(k.desc||'').indexOf(q)>=0)&&(!type||k.type===type);});
+  if(!f.length)return '<div style="color:var(--tm);padding:14px;text-align:center">暂无匹配的知识库</div>';
+  var h='';
+  f.forEach(function(k){
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;background:#fff;cursor:pointer" onclick="kbBrowse('+k.id+')">'+
+       '<div style="display:flex;gap:12px;align-items:center;min-width:0">'+
+       '<div style="width:40px;height:40px;border-radius:10px;background:#4a6cf715;display:flex;align-items:center;justify-content:center;font-size:18px">📚</div>'+
+       '<div style="min-width:0"><div style="font-weight:700;font-size:13px">'+k.name+' <span class="bdge in">'+k.type+'</span></div>'+
+       '<div style="font-size:11px;color:var(--ts);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:420px">'+(k.desc||'')+'</div>'+
+       '<div style="font-size:10px;color:var(--tm);margin-top:3px">📄 '+(k.docs||0)+'篇文档 · 更新于 '+(k.update||'-')+'</div></div></div>'+
+       '<div style="display:flex;gap:4px;flex-shrink:0"><button class="btn btn-sm btn-p" onclick="event.stopPropagation();kbBrowse('+k.id+')">📖 管理</button><button class="btn btn-sm btn-o" onclick="event.stopPropagation();kbRename('+k.id+')">✏️</button></div></div>';
+  });
+  return h;
+}
+function kbListSearchFn(){
+  var q=document.getElementById('kbListSearch')?document.getElementById('kbListSearch').value.trim():'';
+  var t=document.getElementById('kbTypeFilter')?document.getElementById('kbTypeFilter').value:'';
+  var w=document.getElementById('kbListWrap');if(w)w.innerHTML=kbListHtml(q,t);
+}
+function kbImport(){
+  var md=document.getElementById('md');
+  md.innerHTML='<div class="mdh" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><span style="font-weight:600;font-size:15px">📥 批量导入文档</span><button onclick="closeModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--tm)">×</button></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">选择目标知识库</label><select id="kbImpTarget" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px">'+getKBs().map(function(k){return '<option value="'+k.id+'">'+k.name+'</option>';}).join('')+'</select></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">粘贴文档内容（每行一条，格式：标题|内容）</label><textarea id="kbImpContent" rows="6" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="产品套餐有哪些？|我们提供基础版199元、专业版499元、企业版999元每月。&#10;燃气泄漏怎么办？|立即关闭阀门、开窗通风、切勿开电器，撤离后报修。"></textarea></div>'+
+  '<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="kbImpSave()">导入</button></div>';
+  document.getElementById('mo').style.display='flex';
+}
+function kbImpSave(){
+  var tid=parseInt(document.getElementById('kbImpTarget').value);
+  var raw=document.getElementById('kbImpContent').value.trim();
+  if(!raw){toast('请粘贴要导入的文档内容','er');return;}
+  var lines=raw.split(/\n/);var n=0;
+  var kbs=getKBs();
+  for(var i=0;i<kbs.length;i++){if(kbs[i].id===tid){
+    if(!kbs[i].docsArr)kbs[i].docsArr=[];
+    for(var j=0;j<lines.length;j++){var ln=lines[j].trim();if(!ln)continue;var p=ln.split('|');var t=(p[0]||'').trim();var a=(p[1]||ln).trim();if(!t)continue;kbs[i].docsArr.push({t:t,a:a});n++;kbs[i].docs=(kbs[i].docs||0)+1;}
+    kbs[i].update='2026-08-24';
+    break;
+  }}
+  saveKBs(kbs);closeModal();
+  toast('成功导入 '+n+' 条文档','su');
+  renderKnowledgeBase(document.getElementById('ca'));
+}
+function kbRetrieval(){
+  var q=document.getElementById('kbRetrievalQ')?document.getElementById('kbRetrievalQ').value.trim():'';
+  var box=document.getElementById('kbRetrievalRes');if(!box)return;
+  if(!q){box.innerHTML='请输入问题后再检索。';return;}
+  var kbs=getKBs();var hits=[];
+  kbs.forEach(function(k){(k.docsArr||[]).forEach(function(d){if(d.t.indexOf(q)>=0||d.a.indexOf(q)>=0)hits.push({kb:k.name,t:d.t,a:d.a});});});
+  // 关键词相关度排序：标题命中优先
+  hits.sort(function(a,b){return (b.t.indexOf(q)>=0?1:0)-(a.t.indexOf(q)>=0?1:0);});
+  if(!hits.length){
+    box.innerHTML='<div style="color:var(--ts)"><b>🤖 未命中知识库</b>，AI 将依据通用知识回复。<br><span style="font-size:11px;color:var(--tm)">提示：可在上方新建或导入相关文档后再试。</span></div>';
+    return;
+  }
+  var h='<div style="color:#10b981;font-weight:600;margin-bottom:6px">✅ 命中 '+hits.length+' 条知识，AI 将据此回答</div>';
+  hits.slice(0,3).forEach(function(x){h+='<div style="border:1px solid #d1fae5;background:#f0fdf4;border-radius:6px;padding:8px;margin-bottom:6px"><b>['+x.kb+'] '+x.t+'</b><div style="color:var(--ts);margin-top:3px">'+x.a+'</div></div>';});
+  box.innerHTML=h;
+}
 
 // ===== LLM DESIGN (大模型对话设计) =====
 function getLLMDesigns(){
@@ -2221,34 +2311,110 @@ function txPickVoice(role){
   var any=vs.filter(zh);
   return any.length?any[0]:null;
 }
+// ===== 语音试听引擎（高可用版） =====
+// 统一的声音播放引擎：优先 Web Speech 中文神经网络语音，失败时回退预录 MP3，
+// 并始终给出可见的“声波动画”反馈，确保演示时点击试听一定有反应。
+var txAudioEl=null;
+var txWaveEl=null;
+var txVoicesReady=false;
+var txVoicesWaiters=[];
+// 预录 MP3 语音片段（作为 Web Speech 不可用时的回退音源）
+var txClipPool=[
+ 'voices/voice1_xiaoxiao.mp3','voices/voice2_yunxi.mp3','voices/voice3_xiaoyou.mp3',
+ 'voices/voice4_yunye.mp3','voices/voice5_xiaochen.mp3','answer.mp3','greet.mp3','end.mp3'
+];
+// 确保语音列表加载完成（webkit 需要监听 voiceschanged）
+function txEnsureVoices(cb){
+  if(txVoicesReady){cb&&cb();return;}
+  if(!('speechSynthesis' in window)){cb&&cb();return;}
+  var vs=window.speechSynthesis.getVoices();
+  if(vs&&vs.length){txVoicesReady=true;cb&&cb();return;}
+  if(window.speechSynthesis.onvoiceschanged!==undefined){
+    txVoicesWaiters.push(cb||function(){});
+    window.speechSynthesis.onvoiceschanged=function(){
+      if(window.speechSynthesis.getVoices().length){txVoicesReady=true;}
+      var w=txVoicesWaiters;txVoicesWaiters=[];
+      for(var i=0;i<w.length;i++){try{w[i]();}catch(e){}}
+    };
+    // 2.5 秒兜底：即使没有触发 voiceschanged 也继续
+    setTimeout(function(){txVoicesReady=true;var w=txVoicesWaiters;txVoicesWaiters=[];for(var i=0;i<w.length;i++){try{w[i]();}catch(e){}}},2500);
+  }else{txVoicesReady=true;cb&&cb();}
+}
+// 展示一个全屏居中的“声波动画”提示（演示反馈），播放结束自动消失
+function txShowWave(text,secs){
+  try{
+    var el=document.getElementById('txWave');
+    if(!el){
+      el=document.createElement('div');
+      el.id='txWave';
+      el.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:400;background:rgba(11,15,26,.92);color:#fff;border-radius:14px;padding:22px 30px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);display:none';
+      el.innerHTML='<div style="font-size:26px;margin-bottom:8px">'+'🔊'+'</div>'+'<div style="font-size:13px;font-weight:600;margin-bottom:12px;max-width:280px" id="txWaveText"></div>'+'<div style="display:flex;gap:5px;justify-content:center;align-items:flex-end;height:26px" id="txWaveBars">'+Array(7).fill(0).map(function(_,i){return '<span data-b="'+i+'" style="width:5px;background:#4a6cf7;border-radius:2px;height:8px;display:inline-block"></span>';}).join('')+'</div>'+'<div style="font-size:10px;color:#8892b0;margin-top:10px" id="txWaveTip"></div>';
+      document.body.appendChild(el);
+      // 声波动画
+      var css='@keyframes txbar{0%,100%{height:8px}30%{height:26px}60%{height:14px}80%{height:22px}}';
+      var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+    }
+    var txt=document.getElementById('txWaveText');txt.textContent=text;
+    var tip=document.getElementById('txWaveTip');tip.textContent='🔊 正在播放语音…';
+    var bars=el.querySelectorAll('#txWaveBars span');
+    for(var i=0;i<bars.length;i++){bars[i].style.animation='txbar 0.9s ease-in-out '+(i*0.12)+'s infinite';}
+    el.style.display='block';
+    txWaveEl=el;
+    if(window._txWaveTimer)clearTimeout(window._txWaveTimer);
+    window._txWaveTimer=setTimeout(function(){if(txWaveEl){txWaveEl.style.display='none';txWaveEl=null;}},secs||2500);
+  }catch(e){}
+}
+function txHideWave(){
+  try{if(txWaveEl){txWaveEl.style.display='none';txWaveEl=null;}}catch(e){}
+  if(window._txWaveTimer)clearTimeout(window._txWaveTimer);
+}
+// 回退：播放一段预录 MP3（循环片段），并给出声波反馈
+function txSpeakFallback(text){
+  try{
+    var clip=txClipPool[Math.floor(Math.random()*txClipPool.length)];
+    var a=new Audio();a.src=clip;a.loop=true;a.volume=0.7;
+    txShowWave((text||'正在试听…').substring(0,30),2600);
+    a.play().then(function(){txAudioEl=a;}).catch(function(){
+      // 连 MP3 也没有 → 至少给出视觉反馈，提示环境不支持音频
+      txShowWave((text||'试听').substring(0,30)+'\n（当前环境无音频输出）',2600);
+      toast('当前环境无法播放音频，已展示试听内容','wa');
+    });
+    setTimeout(function(){try{if(a&&a.pause)a.pause();}catch(e){}},2600);
+  }catch(e){txShowWave((text||'试听').substring(0,30),2000);toast('环境不支持音频','er');}
+}
 function txSpeak(text,voiceName,rate,pitch){
-if(!('speechSynthesis' in window)){toast('当前浏览器不支持语音合成','er');return;}
-window.speechSynthesis.cancel();
-var u=new SpeechSynthesisUtterance(text);
-u.lang='zh-CN';
-u.rate=(rate===undefined?1:rate);
-u.pitch=(pitch===undefined?1:pitch);
-// 主动选择一个中文语音（优先本地离线语音，确保一定出声）
-var vs=window.speechSynthesis.getVoices();
-var pick=null;
-if(voiceName && vs.length){pick=vs.find(function(v){return v.name.indexOf(voiceName)>=0;});}
-if(!pick && vs.length){pick=txPickVoice((voiceName&&voiceName.indexOf('男')>=0)?'male':'female');}
-if(pick){u.voice=pick;}
-window.speechSynthesis.speak(u);
-toast('▶ 正在试听：'+text.substring(0,12)+'…','in');
+  if(!text)return;
+  if(!('speechSynthesis' in window)){txSpeakFallback(text);return;}
+  txEnsureVoices(function(){
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN';
+    u.rate=(rate===undefined?1:rate);
+    u.pitch=(pitch===undefined?1:pitch);
+    var vs=window.speechSynthesis.getVoices();
+    var pick=null;
+    if(voiceName && vs.length){pick=vs.find(function(v){return v.name.indexOf(voiceName)>=0;});}
+    if(!pick && vs.length){pick=txPickVoice((voiceName&&voiceName.indexOf('男')>=0)?'male':'female');}
+    if(pick){u.voice=pick;}
+    var started=false;
+    u.onstart=function(){started=true;txShowWave(text.substring(0,30),Math.max(2000,text.length*180));};
+    u.onerror=function(e){if(!started){txSpeakFallback(text);}};
+    u.onend=function(){txHideWave();};
+    try{window.speechSynthesis.speak(u);}catch(e){txSpeakFallback(text);}
+    // 3 秒内没 start 就回退
+    setTimeout(function(){if(!started){try{window.speechSynthesis.cancel();}catch(e){}txSpeakFallback(text);}},3000);
+    toast('▶ 正在试听：'+text.substring(0,12)+'…','in');
+  });
 }
 
-
-
-
 // ===== TTS AUDIO PLAYBACK (真实音频播放) =====
-var txAudioEl=null;
 function txPlayVoice(src){
   try{
     if(txAudioEl){txAudioEl.pause();txAudioEl=null;}
     var a=new Audio();
     a.src=src;
-    a.play().then(function(){txAudioEl=a;toast('▶ 正在播放试听…','in');}).catch(function(e){toast('播放失败，请检查音频文件','er');});
+    txShowWave('播放音频片段',2600);
+    a.play().then(function(){txAudioEl=a;toast('▶ 正在播放试听…','in');}).catch(function(e){txHideWave();toast('播放失败，请检查音频文件','er');});
   }catch(e){toast('当前环境不支持音频播放','er');}
 }
 
@@ -2453,19 +2619,14 @@ function txSpeakCustom(){
 var el=document.getElementById('ttsCustomText');
 var txt=el?el.value.trim():'';
 if(!txt){toast('请先输入要试听的文字','er');return;}
-if(!('speechSynthesis' in window)){toast('当前浏览器不支持语音合成','er');return;}
 var vn=document.getElementById('ttsCustomVoice');
 var vname=vn?vn.value:'晓晓';
 var all=getVoices();
 var v=all.find(function(x){return x.name===vname;})||all[0]||{};
 var role=(v.gender==='男')?'male':'female';
-var pick=txPickVoice(role);
 var rate=(v.rate!==undefined?v.rate:1),pitch=(v.pitch!==undefined?v.pitch:1);
-window.speechSynthesis.cancel();
-var u=new SpeechSynthesisUtterance(txt);
-u.lang='zh-CN';u.rate=rate;u.pitch=pitch;
-if(pick)u.voice=pick;
-window.speechSynthesis.speak(u);
+// 统一走高可用试听引擎（自动加载中文语音 + MP3 回退 + 声波反馈）
+txSpeak(txt, role==='male'?'男':'女', rate, pitch);
 toast('▶ 正在试听：'+vname,'in');
 }
 
@@ -2612,7 +2773,7 @@ CDialog.forEach(function(d){
 h+='<div class="cd" style="margin-bottom:8px"><div class="cdh"><span class="cdt">'+d.icon+' '+d.ind+' · '+d.customer+'来电（'+d.num+'）</span><span style="font-size:10px;color:var(--ts)">'+d.dur+'</span></div>';
 h+='<div style="font-size:11px;margin-bottom:8px"><span class="bdge in">'+d.ind+'</span> <span style="color:var(--ts)">'+d.scene+'</span></div>';
 h+='<div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:10px;font-size:11px;line-height:1.9;color:var(--tx);margin-bottom:8px">';
-d.dialog.forEach(function(seg){var nm=(seg.sp==='bot')?'🤖机器人':(seg.sp==='human'?'👤人工坐席':(seg.sp==='transfer'?'🔀转接':'📞客户'));var col=(seg.sp==='bot')?'#5E6AD2':(seg.sp==='human')?'#10b981':(seg.sp==='transfer')?'#f59e0b':'#0ea5e9';h+='<div style="margin-bottom:4px"><b style="color:'+col+'">'+nm+'：</b>'+seg.txt+'</div>';});
+d.dialog.forEach(function(seg){var nm=(seg.sp==='bot')?'🤖机器人':(seg.sp==='human'?'👤人工坐席':(seg.sp==='transfer'?'🔀转接':'📞客户'));var col=(seg.sp==='bot')?'#5E6AD2':(seg.sp==='human')?'#10b981':(seg.sp==='transfer')?'#f59e0b':'#0ea5e9';var emo=recSegEmotion(seg.txt);var emoHtml=emo?('<span class="bdge" style="background:'+emo.c+'20;color:'+emo.c+';margin-left:6px;font-size:9px">'+emo.e+'</span>'):'';h+='<div style="margin-bottom:4px"><b style="color:'+col+'">'+nm+'：</b>'+seg.txt+emoHtml+'</div>';});
 h+='</div>';
 h+='<button class="btn btn-sm btn-p" onclick="recPlayDialog(\''+d.id+'\')">▶ 播放对话</button><button class="btn btn-sm btn-o" onclick="recDetailDialog(\''+d.id+'\')">📄 对话详情</button>';
 h+='</div>';
@@ -2620,54 +2781,100 @@ h+='</div>';
 ca.innerHTML=h;
 }
 function _findDialog(id){var r=null;CDialog.forEach(function(d){if(d.id===id)r=d;});return r;}
+function recSegEmotion(txt){
+  if(!txt)return null;
+  if(/(凭什么|太过分|什么态度|给我解决|投诉|气死|不像话|怎么回事|你听着|必须|立刻|现在就要|不行我要)/.test(txt))return {e:'生气',c:'#ef4444'};
+  if(/(怎么办|赶紧|马上|快点|尽快|漏气|泄漏|危险|故障|坏了|急死|要紧|严重|没办法|救命|很急|着急|马上到|别等了)/.test(txt))return {e:'急促',c:'#f59e0b'};
+  if(/(太好了|谢谢|太感谢|真不错|方便|帮了我大忙|满意|开心|好嘞|没问题)/.test(txt))return {e:'乐观',c:'#10b981'};
+  if(/(怎么|是不是|凭什么|怎么会|为什么|不对|不合理|多了|异常|怀疑|真的假的)/.test(txt))return {e:'质疑',c:'#8b5cf6'};
+  if(/(帮帮我|麻烦您|求求|拜托|帮忙|请教|麻烦一下)/.test(txt))return {e:'恳求',c:'#0ea5e9'};
+  return null;
+}
 function recPlayDialog(id){
 var d=_findDialog(id);if(!d)return;
-if(!('speechSynthesis' in window)){toast('浏览器不支持语音','er');return;}
-window.speechSynthesis.cancel();
-var vs=window.speechSynthesis.getVoices();
-var V={huihui:txPickVoice('female'),kangkang:txPickVoice('male'),yaoyao:txPickVoice('female')};
-var idx=0;
-function speakNext(){
-if(idx>=d.dialog.length){toast('▶ 对话播放完毕','in');return;}
-var seg=d.dialog[idx];idx++;
-var txt=seg.txt||'';
-var u=new SpeechSynthesisUtterance(txt);
-u.lang='zh-CN';
-var pick=null;
-var rate=1,pitch=1;
-// 情绪识别：急迫 / 质疑 / 平静（真实还原客户语速与态度）
-var urgent=/(怎么办|赶紧|马上|着急|快点|尽快|漏气|泄漏|危险|故障|坏了|急死|要紧|严重|不行|没办法|救命|很急|着急)/.test(txt);
-var doubt=/(怎么|是不是|凭什么|怎么会|为什么|不对|不合理|多了|异常|怀疑|真的假的|凭什么|凭什么我)/.test(txt);
-var calm=/(谢谢|麻烦|帮我|不太会|请|希望|感谢|麻烦您|谢谢您|请教|帮帮忙)/.test(txt);
-if(seg.sp==='bot'){ pick=V.huihui; rate=1.02; pitch=1.1; }
-else if(seg.sp==='transfer'){ pick=V.kangkang||V.huihui; rate=0.96; pitch=0.96; }
-else if(seg.sp==='human'){ pick=V.yaoyao||V.huihui; rate=0.98; pitch=0.98; }
-else if(seg.sp==='cust'){
-  var cv=d.custVoice||'中年男';
-  var fem=cv.indexOf('女')>=0;
-  if(cv.indexOf('老年')>=0){ pick=fem?V.yaoyao:V.kangkang; rate=0.82; pitch=fem?0.78:0.62; }
-  else if(cv.indexOf('青年')>=0){ pick=fem?V.yaoyao:V.kangkang; rate=1.12; pitch=fem?1.3:1.08; }
-  else { pick=fem?V.yaoyao:V.kangkang; rate=0.98; pitch=fem?1.02:0.9; }
-  // 情绪叠加：急迫→语速快音调高；质疑→稍快略高；平静→略缓
-  if(urgent){ rate+=0.22; pitch+=0.22; }
-  else if(doubt){ rate+=0.09; pitch+=0.12; }
-  else if(calm){ rate-=0.06; pitch-=0.02; }
-}
-u.rate=Math.max(0.5,Math.min(1.6,rate));
-u.pitch=Math.max(0.3,Math.min(2,pitch));
-if(!pick){var local=vs.filter(function(v){return v.localService&&v.lang&&v.lang.toLowerCase().indexOf('zh')>=0;});pick=local[0]||vs[0];}
-if(pick)u.voice=pick;
-u.onend=speakNext;
-window.speechSynthesis.speak(u);
-}
-speakNext();
+if(!('speechSynthesis' in window)){txSpeakFallback(d.dialog.map(function(s){return s.txt;}).join('。'));toast('环境不支持语音，已切换为音频反馈','wa');return;}
+txEnsureVoices(function(){
+  window.speechSynthesis.cancel();
+  var vs=window.speechSynthesis.getVoices();
+  var V={huihui:txPickVoice('female'),kangkang:txPickVoice('male'),yaoyao:txPickVoice('female')};
+  var idx=0;
+  // 实时情绪面板
+  var panel=document.createElement('div');
+  panel.style.cssText='position:fixed;right:18px;top:64px;z-index:310;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:10px 12px;width:230px;font-size:11px;display:none';
+  panel.innerHTML='<div style="font-weight:700;margin-bottom:8px">🎧 实时播放</div>'+'<div id="recNow" style="margin-bottom:6px"></div>'+'<div style="margin-bottom:6px"><span style="color:var(--ts)">当前情绪</span> <span id="recEmo" class="bdge">--</span></div>'+'<div style="margin-bottom:6px"><span style="color:var(--ts)">语速</span> <span id="recRate">--</span></div>'+'<div><span style="color:var(--ts)">音调</span> <span id="recPitch">--</span></div>';
+  document.body.appendChild(panel);
+  panel.style.display='block';
+  // 情绪识别：急迫 / 生气 / 乐观 / 质疑 / 恳求 / 平静
+  function detectEmo(txt){
+    var urgent=/(怎么办|赶紧|马上|快点|尽快|漏气|泄漏|危险|故障|坏了|急死|要紧|严重|没办法|救命|很急|着急|马上到|别等了)/.test(txt);
+    var angry=/(凭什么|太过分|什么态度|给我解决|投诉|气死|不像话|怎么回事|你听着|必须|立刻|现在就要|不行我要)/.test(txt);
+    var happy=/(太好了|谢谢|谢谢您|太感谢|真不错|方便|帮了我大忙|满意|开心|好嘞|没问题)/.test(txt);
+    var doubt=/(怎么|是不是|凭什么|怎么会|为什么|不对|不合理|多了|异常|怀疑|真的假的)/.test(txt);
+    var plead=/(帮帮我|麻烦您|求求|拜托|帮忙|请教|麻烦一下)/.test(txt);
+    if(angry)return '生气';
+    if(urgent)return '急促';
+    if(happy)return '乐观';
+    if(doubt)return '质疑';
+    if(plead)return '恳求';
+    return '平静';
+  }
+  function emoBadge(e){var m={生气:['#ef4444','😠'],急促:['#f59e0b','😰'],乐观:['#10b981','😄'],质疑:['#8b5cf6','🤔'],恳求:['#0ea5e9','🥺'],平静:['#6b7280','😐']};var x=m[e]||m['平静'];return '<span class="bdge" style="background:'+x[0]+'20;color:'+x[0]+'">'+x[1]+' '+e+'</span>';}
+  function setPanel(seg,emo,rate,pitch){
+    var nm=(seg.sp==='bot')?'🤖 机器人':(seg.sp==='human')?'👤 人工坐席':(seg.sp==='transfer')?'🔀 系统转接':'📞 客户';
+    document.getElementById('recNow').innerHTML='<b>'+nm+'</b><div style="color:var(--tm);margin-top:2px">'+seg.txt.substring(0,40)+(seg.txt.length>40?'…':'')+'</div>';
+    document.getElementById('recEmo').innerHTML=emoBadge(emo);
+    document.getElementById('recRate').textContent=rate.toFixed(2)+'x '+(rate>1.05?'（偏快）':rate<0.95?'（偏缓）':'（正常）');
+    document.getElementById('recPitch').textContent=pitch.toFixed(2)+'x '+(pitch>1.1?'（偏高）':pitch<0.9?'（偏低）':'（正常）');
+  }
+  function speakNext(){
+    if(idx>=d.dialog.length){
+      try{panel.parentNode.removeChild(panel);}catch(e){}
+      toast('▶ 对话播放完毕','in');return;
+    }
+    var seg=d.dialog[idx];idx++;
+    var txt=seg.txt||'';
+    var u=new SpeechSynthesisUtterance(txt);
+    u.lang='zh-CN';
+    var pick=null;
+    var rate=1,pitch=1;
+    var emo=detectEmo(txt);
+    var baseRole=seg.sp;
+    if(baseRole==='bot'){ pick=V.huihui; rate=1.02; pitch=1.1; }
+    else if(baseRole==='transfer'){ pick=V.kangkang||V.huihui; rate=0.96; pitch=0.96; emo='转接'; }
+    else if(baseRole==='human'){ pick=V.yaoyao||V.huihui; rate=0.98; pitch=0.98; }
+    else if(baseRole==='cust'){
+      var cv=d.custVoice||'中年男';
+      var fem=cv.indexOf('女')>=0;
+      if(cv.indexOf('老年')>=0){ pick=fem?V.yaoyao:V.kangkang; rate=0.82; pitch=fem?0.78:0.62; }
+      else if(cv.indexOf('青年')>=0){ pick=fem?V.yaoyao:V.kangkang; rate=1.12; pitch=fem?1.3:1.08; }
+      else { pick=fem?V.yaoyao:V.kangkang; rate=0.98; pitch=fem?1.02:0.9; }
+      // 情绪叠加：生气→最快+最高；急促→快+高；乐观→稍快+偏高；质疑→稍快+略高；恳求→缓+略低；平静→基准
+      if(emo==='生气'){ rate+=0.30; pitch+=0.30; }
+      else if(emo==='急促'){ rate+=0.24; pitch+=0.22; }
+      else if(emo==='乐观'){ rate+=0.10; pitch+=0.14; }
+      else if(emo==='质疑'){ rate+=0.09; pitch+=0.12; }
+      else if(emo==='恳求'){ rate-=0.08; pitch-=0.05; }
+      else { rate-=0.02; pitch+=0.0; }
+    }
+    u.rate=Math.max(0.5,Math.min(1.6,rate));
+    u.pitch=Math.max(0.3,Math.min(2,pitch));
+    if(!pick){var local=vs.filter(function(v){return v.localService&&v.lang&&v.lang.toLowerCase().indexOf('zh')>=0;});pick=local[0]||vs[0];}
+    if(pick)u.voice=pick;
+    setPanel(seg,emo,u.rate,u.pitch);
+    u.onstart=function(){txShowWave(emo+'：'+txt.substring(0,20),Math.max(1800,txt.length*150));};
+    u.onerror=function(){if(idx<=d.dialog.length)speakNext();};
+    u.onend=speakNext;
+    window.speechSynthesis.speak(u);
+  }
+  speakNext();
+});
 }
 function recDetailDialog(id){
 var d=_findDialog(id);if(!d)return;
 var body='<div style="font-size:12px;line-height:1.9">';
 body+='<div style="display:flex;gap:10px;margin-bottom:10px"><div><b>行业</b><br>'+d.ind+'</div><div><b>来电客户</b><br>'+d.customer+'</div><div><b>号码</b><br>'+d.num+'</div><div><b>时长</b><br>'+d.dur+'</div><div><b>场景</b><br>'+d.scene+'</div></div>';
 body+='<div style="border-top:1px solid #eee;padding-top:10px">';
-d.dialog.forEach(function(seg){var nm=(seg.sp==='bot')?'🤖机器人':(seg.sp==='human')?'👤人工坐席':(seg.sp==='transfer')?'🔀系统转接':'📞客户';var col=(seg.sp==='bot')?'#5E6AD2':(seg.sp==='human')?'#10b981':(seg.sp==='transfer')?'#f59e0b':'#0ea5e9';body+='<div style="display:flex;gap:8px;margin-bottom:8px"><span style="white-space:nowrap;font-weight:600;color:'+col+';min-width:64px">'+nm+'</span><span>'+seg.txt+'</span></div>';});
+d.dialog.forEach(function(seg){var nm=(seg.sp==='bot')?'🤖机器人':(seg.sp==='human')?'👤人工坐席':(seg.sp==='transfer')?'🔀系统转接':'📞客户';var col=(seg.sp==='bot')?'#5E6AD2':(seg.sp==='human')?'#10b981':(seg.sp==='transfer')?'#f59e0b':'#0ea5e9';var emo=recSegEmotion(seg.txt);var emoHtml=emo?('<span class="bdge" style="background:'+emo.c+'20;color:'+emo.c+';margin-left:6px;font-size:9px">'+emo.e+'</span>'):'';body+='<div style="display:flex;gap:8px;margin-bottom:8px"><span style="white-space:nowrap;font-weight:600;color:'+col+';min-width:64px">'+nm+'</span><span>'+seg.txt+emoHtml+'</span></div>';});
 body+='</div></div>';
 openModal('📄 通话对话详情 - '+d.id, body, '<button class="btn btn-o" onclick="closeModal()">关闭</button>','600px');
 }
@@ -3143,6 +3350,44 @@ function getKBs(){
     {id:4,name:'政策法规库',type:'合规知识',docs:120,update:'2026-06-01',desc:'行业监管政策和法律法规知识，确保合规对话'},
     {id:5,name:'客户案例库',type:'案例知识',docs:64,update:'2026-05-28',desc:'过往成功案例、客户评价参考'}
   ];
+  // 预置示例文档，方便演示 AI 实时检索
+  if(!localStorage.getItem('tx_kbs_seeded')){
+    try{
+      def[0].docsArr=[
+        {t:'有哪些套餐和价格？',a:'我们提供基础版199元/月、专业版499元/月、企业版999元/月，均支持私有化部署和SaaS托管。'},
+        {t:'是否支持定制开发？',a:'支持，企业版可定制对接CRM/工单系统，并提供专属知识库和音色克隆服务。'},
+        {t:'系统如何保证通话合规？',a:'内置敏感词过滤、隐私脱敏、合规话术模板，并支持全量录音留存和质检评分。'},
+        {t:'AI外呼一天能打多少电话？',a:'单通道并发约500-800通/天，支持多线路弹性扩容，高峰期可自动排队调度。'}
+      ];
+      def[1].docsArr=[
+        {t:'什么是ASR？',a:'ASR即自动语音识别，将客户的语音实时转成文字，用于AI理解客户意图。'},
+        {t:'什么是TTS？',a:'TTS即语音合成，将文字转成自然语音播放给客户，支持音色克隆和情绪调节。'},
+        {t:'什么是意向标签？',a:'意向标签用于标记客户购买意愿程度，如高意向/中等意向/低意向，辅助坐席跟进。'},
+        {t:'什么是IVR？',a:'IVR即自动语音应答，通过按键或语音导航将电话转接到对应业务节点。'}
+      ];
+      def[2].docsArr=[
+        {t:'相比友商A的优势？',a:'我们支持实时情绪识别和全链路质检，友商A不支持情绪识别，且音色库较少。'},
+        {t:'相比友商B的差异？',a:'友商B偏呼叫中心基础设施，我们聚焦AI对话+大模型知识库，开通更快、上手更简单。'},
+        {t:'价格对比？',a:'同级别套餐我们价格约低15%-20%，且包含大模型话术和知识库功能。'}
+      ];
+      def[3].docsArr=[
+        {t:'外呼营销合规要求？',a:'外呼需遵守《个人信息保护法》和工信部相关规定，须获得用户同意并明确告知来电目的。'},
+        {t:'录音留存规定？',a:'通话录音需留存不少于6个月，涉及金融、医疗等敏感行业建议留存更长时间。'},
+        {t:'催收合规红线？',a:'催收不得辱骂威胁、不得高频骚扰、不得泄露个人信息，需严格按监管话术执行。'}
+      ];
+      def[4].docsArr=[
+        {t:'某银行回访案例',a:'某城商行使用AI回访信用卡分期业务，接通率82%，意向转化提升31%，单座席效率提升5倍。'},
+        {t:'某教育机构招生案例',a:'某K12机构用AI外呼做试听邀约，人工成本降低60%，到店试听率提升28%。'},
+        {t:'某水务集团报修案例',a:'某水务集团用AI客服承接居民报修咨询，7x24小时在线，工单登记效率提升4倍。'}
+      ];
+      def[0].docs=def[0].docsArr.length;
+      def[1].docs=def[1].docsArr.length;
+      def[2].docs=def[2].docsArr.length;
+      def[3].docs=def[3].docsArr.length;
+      def[4].docs=def[4].docsArr.length;
+      localStorage.setItem('tx_kbs_seeded','1');
+    }catch(e){}
+  }
   try{var s=localStorage.getItem('tx_kbs');if(s){var o=JSON.parse(s);if(Array.isArray(o)&&o.length)return o;}}catch(e){}
   return def;
 }
@@ -3215,6 +3460,31 @@ function kbSync(id){
   for(var i=0;i<kbs.length;i++){if(kbs[i].id===id){kbs[i].update='2026-08-23';break;}}
   saveKBs(kbs);
   toast('已同步到最新版本','su');
+  renderKnowledgeCenter(document.getElementById('ca'));
+}
+function kbRename(id){
+  var kbs=getKBs();var kb=null;for(var i=0;i<kbs.length;i++){if(kbs[i].id===id){kb=kbs[i];break;}}
+  if(!kb)return;
+  var md=document.getElementById('md');
+  md.innerHTML='<div class="mdh" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><span style="font-weight:600;font-size:15px">✏️ 编辑知识库</span><button onclick="closeModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--tm)">×</button></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">知识库名称</label><input id="kbName" value="'+kb.name+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">类型</label><select id="kbType" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option'+(kb.type==='FAQ'?' selected':'')+'>FAQ</option><option'+(kb.type==='术语库'?' selected':'')+'>术语库</option><option'+(kb.type==='知识文档'?' selected':'')+'>知识文档</option><option'+(kb.type==='合规知识'?' selected':'')+'>合规知识</option><option'+(kb.type==='案例知识'?' selected':'')+'>案例知识</option></select></div>'+
+  '<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">描述</label><textarea id="kbDesc" rows="3" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px">'+kb.desc+'</textarea></div>'+
+  '<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="kbRenameSave('+id+')">保存</button><button class="btn btn-d" onclick="kbDelete('+id+')">🗑 删除</button></div>';
+  document.getElementById('mo').style.display='flex';
+}
+function kbRenameSave(id){
+  var n=document.getElementById('kbName').value.trim();
+  if(!n){toast('请填写知识库名称','er');return;}
+  var kbs=getKBs();
+  for(var i=0;i<kbs.length;i++){if(kbs[i].id===id){kbs[i].name=n;kbs[i].type=document.getElementById('kbType').value;kbs[i].desc=document.getElementById('kbDesc').value.trim();kbs[i].update='2026-08-23';break;}}
+  saveKBs(kbs);closeModal();toast('知识库已更新','su');
+  renderKnowledgeCenter(document.getElementById('ca'));
+}
+function kbDelete(id){
+  if(!confirm('确定删除该知识库吗？此操作不可恢复。'))return;
+  var kbs=getKBs().filter(function(k){return k.id!==id;});
+  saveKBs(kbs);closeModal();toast('知识库已删除','da');
   renderKnowledgeCenter(document.getElementById('ca'));
 }
 
