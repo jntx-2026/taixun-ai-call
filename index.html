@@ -2874,8 +2874,8 @@ function aiSimCall(){
   else if(hit.action==='生成工单'){ aiReply='收到，我这就为您登记并安排处理，请保持电话畅通。'; }
   else { aiReply='好的，感谢您的来电，再见！'; }
   box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#64748b">📞 客户['+time+']：</span><b>'+text+'</b></div>';
-  box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#2563eb">🤖 AI：</span>'+aiReply+(hit&&hit.action==='转人工'?'<span style="margin-left:8px"><button class="btn btn-sm btn-o" onclick="txPlayVoice(\'audio/transfer.mp3\')">🔊 试听真人语音</button></span>':'')+'</div>';
-  try{var vf='audio/';if(!hit||hit.action==='AI解答'){txPlayVoice(vf+'answer.mp3');}else if(hit.action==='转人工'){txPlayVoice(vf+'transfer.mp3');}else if(hit.action==='生成工单'){txPlayVoice(vf+'repair.mp3');}else{txPlayVoice(vf+'end.mp3');}}catch(e){}
+  box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#2563eb">🤖 AI：</span>'+aiReply+(hit&&hit.action==='转人工'?'<span style="margin-left:8px"><button class="btn btn-sm btn-o" onclick="txPlayVoice(\'transfer.mp3\')">🔊 试听真人语音</button></span>':'')+'</div>';
+  try{var vf='';if(!hit||hit.action==='AI解答'){txPlayVoice(vf+'answer.mp3');}else if(hit.action==='转人工'){txPlayVoice(vf+'transfer.mp3');}else if(hit.action==='生成工单'){txPlayVoice(vf+'repair.mp3');}else{txPlayVoice(vf+'end.mp3');}}catch(e){}
   // 记录
   var rec={time:time,text:text,result:hit?'转人工':'AI应答',kw:hit?hit.kw:'',target:hit?hit.target:'',status:'待处理',ticket:null,scene:document.getElementById('aiInput').placeholder||''};
   var calls=getAICalls();
