@@ -727,6 +727,13 @@ h+='<div style="padding:10px;cursor:pointer;border-bottom:1px solid #f3f4f6;'+sc
 });
 document.getElementById('csSide').innerHTML=h;
 }
+function openCSChat(id){
+csCurSid=id;
+try{navTo('online-service','cs-console');}catch(e){}
+setTimeout(function(){
+try{if(typeof selectCSChat==='function'){selectCSChat(id);}}catch(e){}
+},300);
+}
 function selectCSChat(id){
 csCurSid=id;
 var s=CSess.find(function(x){return x.id===id;});if(!s)return;
@@ -850,8 +857,19 @@ var o={enabled:document.getElementById('phEn').value==='1',time:document.getElem
 try{localStorage.setItem('tx_phcfg_'+t,JSON.stringify(o));}catch(e){}
 closeModal();toast(t+' 配置已保存','su');
 }
+function phDelRec(t,i){
+var key='tx_phdata_'+t;var arr=[];
+try{var s=localStorage.getItem(key);if(s)arr=JSON.parse(s);}catch(e){}
+if(arr[i]){arr.splice(i,1);try{localStorage.setItem(key,JSON.stringify(arr));}catch(e){}toast('已删除记录','da');renderPlaceholder(document.getElementById('ca'));}
+}
 function renderPlaceholder(ca){
 var title=curTb||(MAPI[curSub]?MAPI[curSub].lb:'')||(MAPI[curGroup]?MAPI[curGroup].lb:'');
+var recKey='tx_phdata_'+title;var recs=[];
+try{var s=localStorage.getItem(recKey);if(s)recs=JSON.parse(s);}catch(e){}
+var recHtml='';
+if(recs.length){recHtml='<div class="cd" style="margin-top:12px"><div class="cdh"><span class="cdt">📋 最近新建记录 ('+recs.length+')</span></div><div style="max-height:280px;overflow:auto">'+recs.slice().reverse().map(function(r,i){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #f3f4f6"><div><span style="font-weight:600;font-size:13px">'+r.name+'</span> <span class="bdge in">'+r.type+'</span> <span style="font-size:10px;color:var(--tm);margin-left:6px">'+r.time+'</span></div><button class="btn btn-sm btn-d" onclick="phDelRec(\''+title+'\','+(recs.length-1-i)+')">🗑</button></div>';}).join('')+'</div></div>';}
+else{recHtml='<div class="cd" style="margin-top:12px"><div class="cdh"><span class="cdt">📋 最近新建记录</span></div><p style="color:var(--ts);padding:12px">暂无记录，点击上方「+ 新建」添加第一条记录。</p></div>';}
+
 ca.innerHTML='<h3>'+title+'</h3>'+
 '<div class="cd"><div class="cdh"><span class="cdt">'+title+' - 功能概览</span></div>'+
 '<p style="color:var(--ts);margin-bottom:12px">此页面为'+title+'模块，系统支持完整的数据管理与业务操作功能。点击下方功能卡片进入对应操作。</p>'+
@@ -864,6 +882,7 @@ ca.innerHTML='<h3>'+title+'</h3>'+
 '<div class="ph-card" style="cursor:pointer" onclick="renderPhBatch(document.getElementById(\'ca\'))"><div class="ph-icon">📝</div><h4>批量操作</h4><p>支持批量处理'+title+'中的业务数据</p></div>'+
 '</div>'+
 '<div style="margin-top:8px"><button class="btn btn-o" onclick="renderPlaceholder(document.getElementById(\'ca\'))">← 返回功能概览</button></div>'+
+recHtml+
 '</div>';
 }
 
@@ -873,8 +892,12 @@ function phExport(){ var t=phTitle(); var rows=['字段','值']; rows.push('模�
 
 function renderPhOverview(ca){
 var t=phTitle(); var h='<h3>'+t+' - 数据概览</h3>';
+var _recs=[];try{var _s=localStorage.getItem('tx_phdata_'+t);if(_s)_recs=JSON.parse(_s);}catch(e){}
+var _todayStr=new Date().toLocaleDateString();
+var _today=_recs.filter(function(r){return r.time&&(r.time.indexOf(_todayStr)>=0||r.time.indexOf(new Date().toLocaleDateString().slice(0,10))>=0);}).length;
+var _mods=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('tx_phdata_')===0)_mods++;}}catch(e){}
 h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">';
-var cards=[['总记录','1240','#5E6AD2'],['今日新增','86','#10b981'],['活跃用户','342','#f59e0b'],['转化率','6.8%','#8b5cf6']];
+var cards=[['总记录',_recs.length,'#5E6AD2'],['今日新增',_today,'#10b981'],['已用模块',_mods,'#f59e0b'],['记录完整',_recs.length?('100%'):'--','#8b5cf6']];
 cards.forEach(function(c){h+='<div class="scd" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="font-size:11px;color:var(--ts)">'+c[0]+'</div><div style="font-size:22px;font-weight:700;color:'+c[2]+'">'+c[1]+'</div></div>';});
 h+='</div><div class="cd"><div class="cdh"><span class="cdt">📊 近7日数据趋势</span></div><div id="phOverviewChart" style="height:280px"></div></div>';
 h+='<div style="margin-top:8px"><button class="btn btn-o" onclick="renderPlaceholder(document.getElementById(\'ca\'))">← 返回功能概览</button></div>';
@@ -2355,6 +2378,11 @@ toast('▶ 正在播放录音：'+x.id+' ('+x.agent+'→'+x.customer+')','in');
 // 优先播放预生成的真人质检录音（火山TTS），无则用系统自然语音兜底
 try{
   var a=new Audio('qc_'+x.id+'.mp3');
+  // 按质检标注体现真实语速/情绪：语速偏快/催促/急躁 → 加快播放
+  var _w=x.warn||[];
+  var _fast=_w.some(function(t){return /语速偏快|语速过快|催促|急躁|急切|激动/.test(t);});
+  var _slow=_w.some(function(t){return /语速偏慢|缓慢|沉稳|低沉/.test(t);});
+  a.playbackRate=_fast?1.2:(_slow?0.92:1);
   var started=false;
   a.onplay=function(){started=true;};
   var fallback=function(){if(!started){try{if(txAudioEl){txAudioEl.pause();}}catch(e){}txSpeak(x.transcript);}};
@@ -2428,9 +2456,17 @@ if(!txt){toast('请先输入要试听的文字','er');return;}
 if(!('speechSynthesis' in window)){toast('当前浏览器不支持语音合成','er');return;}
 var vn=document.getElementById('ttsCustomVoice');
 var vname=vn?vn.value:'晓晓';
-var voices=[{name:'晓晓',voiceKey:'Xiaoxiao',rate:1.0,pitch:1.1},{name:'云希',voiceKey:'Yunyang',rate:0.92,pitch:0.85},{name:'晓悠',voiceKey:'Huihui',rate:1.15,pitch:1.25},{name:'云野',voiceKey:'Kangkang',rate:0.88,pitch:0.75},{name:'晓辰',voiceKey:'Yaoyao',rate:1.0,pitch:1.0},{name:'慧慧',voiceKey:'Huihui',rate:1.12,pitch:1.3},{name:'康康',voiceKey:'Kangkang',rate:0.85,pitch:0.7},{name:'瑶瑶',voiceKey:'Yaoyao',rate:0.95,pitch:1.05},{name:'云扬',voiceKey:'Yunyang',rate:1.05,pitch:1.0},{name:'汉汉',voiceKey:'HanHan',rate:0.95,pitch:1.05}];
-var v=voices.find(function(x){return x.name===vname;})||{voiceKey:null,rate:1,pitch:1};
-txSpeak(txt, v.voiceKey, v.rate, v.pitch);
+var all=getVoices();
+var v=all.find(function(x){return x.name===vname;})||all[0]||{};
+var role=(v.gender==='男')?'male':'female';
+var pick=txPickVoice(role);
+var rate=(v.rate!==undefined?v.rate:1),pitch=(v.pitch!==undefined?v.pitch:1);
+window.speechSynthesis.cancel();
+var u=new SpeechSynthesisUtterance(txt);
+u.lang='zh-CN';u.rate=rate;u.pitch=pitch;
+if(pick)u.voice=pick;
+window.speechSynthesis.speak(u);
+toast('▶ 正在试听：'+vname,'in');
 }
 
 // ===== 语音质检 - 行业扩展数据 =====
@@ -2594,22 +2630,31 @@ var idx=0;
 function speakNext(){
 if(idx>=d.dialog.length){toast('▶ 对话播放完毕','in');return;}
 var seg=d.dialog[idx];idx++;
-var u=new SpeechSynthesisUtterance(seg.txt);
+var txt=seg.txt||'';
+var u=new SpeechSynthesisUtterance(txt);
 u.lang='zh-CN';
 var pick=null;
-if(seg.sp==='bot'){pick=V.huihui;u.pitch=1.15;u.rate=1.05;}
-else if(seg.sp==='transfer'){pick=null;u.pitch=1;u.rate=1;}
-else if(seg.sp==='human'){
-  // 人工坐席音色（中性偏专业）
-  pick=V.yaoyao||V.huihui;u.pitch=1.0;u.rate=0.95;
-}
+var rate=1,pitch=1;
+// 情绪识别：急迫 / 质疑 / 平静（真实还原客户语速与态度）
+var urgent=/(怎么办|赶紧|马上|着急|快点|尽快|漏气|泄漏|危险|故障|坏了|急死|要紧|严重|不行|没办法|救命|很急|着急)/.test(txt);
+var doubt=/(怎么|是不是|凭什么|怎么会|为什么|不对|不合理|多了|异常|怀疑|真的假的|凭什么|凭什么我)/.test(txt);
+var calm=/(谢谢|麻烦|帮我|不太会|请|希望|感谢|麻烦您|谢谢您|请教|帮帮忙)/.test(txt);
+if(seg.sp==='bot'){ pick=V.huihui; rate=1.02; pitch=1.1; }
+else if(seg.sp==='transfer'){ pick=V.kangkang||V.huihui; rate=0.96; pitch=0.96; }
+else if(seg.sp==='human'){ pick=V.yaoyao||V.huihui; rate=0.98; pitch=0.98; }
 else if(seg.sp==='cust'){
-  // 客户按年龄/性别选音色
   var cv=d.custVoice||'中年男';
-  if(cv.indexOf('老年')>=0){ pick=(cv.indexOf('女')>=0)?V.yaoyao:V.kangkang; u.pitch=(cv.indexOf('女')>=0)?0.75:0.6; u.rate=0.82; }
-  else if(cv.indexOf('青年')>=0){ pick=(cv.indexOf('女')>=0)?V.yaoyao:V.kangkang; u.pitch=(cv.indexOf('女')>=0)?1.35:1.1; u.rate=1.15; }
-  else { pick=(cv.indexOf('女')>=0)?V.yaoyao:V.kangkang; u.pitch=(cv.indexOf('女')>=0)?1.05:0.9; u.rate=0.98; }
+  var fem=cv.indexOf('女')>=0;
+  if(cv.indexOf('老年')>=0){ pick=fem?V.yaoyao:V.kangkang; rate=0.82; pitch=fem?0.78:0.62; }
+  else if(cv.indexOf('青年')>=0){ pick=fem?V.yaoyao:V.kangkang; rate=1.12; pitch=fem?1.3:1.08; }
+  else { pick=fem?V.yaoyao:V.kangkang; rate=0.98; pitch=fem?1.02:0.9; }
+  // 情绪叠加：急迫→语速快音调高；质疑→稍快略高；平静→略缓
+  if(urgent){ rate+=0.22; pitch+=0.22; }
+  else if(doubt){ rate+=0.09; pitch+=0.12; }
+  else if(calm){ rate-=0.06; pitch-=0.02; }
 }
+u.rate=Math.max(0.5,Math.min(1.6,rate));
+u.pitch=Math.max(0.3,Math.min(2,pitch));
 if(!pick){var local=vs.filter(function(v){return v.localService&&v.lang&&v.lang.toLowerCase().indexOf('zh')>=0;});pick=local[0]||vs[0];}
 if(pick)u.voice=pick;
 u.onend=speakNext;
