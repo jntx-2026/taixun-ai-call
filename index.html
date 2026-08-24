@@ -2133,6 +2133,33 @@ window.addEventListener('resize',function(){c1.resize();c2.resize();c3.resize();
 }
 
 // ===== TTS AUDIO PLAYBACK (话术试听-真实发声) =====
+function txPickVoice(role){
+  var vs=window.speechSynthesis.getVoices();
+  if(!vs.length)return null;
+  role=role||'female';
+  // 微软神经网络自然语音（最接近真人），女声/男声音色池
+  var prefs={
+    female:['Xiaoxiao','Xiaoyi','Huihui','Xiaochen','Xiaohan','Xiaomo','Xiaorui','Xiaoshuang','Xiaoxuan','Xiaoyou','Yunxia','Yaoyao'],
+    male:['Yunxi','Yunjian','Yunyang','Kangkang','Yunhao','Yunfeng','Yunye'],
+    transfer:['Yunxi','Yunjian','Yunyang']
+  };
+  var want=prefs[role]||prefs.female;
+  var zh=function(v){return v.lang&&v.lang.toLowerCase().indexOf('zh')>=0;};
+  // 1) 精确匹配偏好音色池（神经网络音在末尾通常是较新的自然版）
+  for(var i=0;i<want.length;i++){
+    var hit=vs.filter(function(v){return zh(v)&&v.name.indexOf(want[i])>=0;});
+    if(hit.length){var best=null;for(var k=0;k<hit.length;k++){if(!best||(hit[k].name.indexOf('Natural')>=0&&best.name.indexOf('Natural')<0)||(hit[k].name.indexOf('Online')>=0&&best.name.indexOf('Online')<0))best=hit[k];}return best||hit[0];}
+  }
+  // 2) 任何含 Online/Natural 的中文神经网络语音
+  var nat=vs.filter(function(v){return zh(v)&&(v.name.indexOf('Online')>=0||v.name.indexOf('Natural')>=0);});
+  if(nat.length)return nat[0];
+  // 3) 非本地服务的在线中文语音（通常比本地机械音自然）
+  var onl=vs.filter(function(v){return zh(v)&&!v.localService;});
+  if(onl.length)return onl[0];
+  // 4) 兜底任何中文语音
+  var any=vs.filter(zh);
+  return any.length?any[0]:null;
+}
 function txSpeak(text,voiceName,rate,pitch){
 if(!('speechSynthesis' in window)){toast('当前浏览器不支持语音合成','er');return;}
 window.speechSynthesis.cancel();
@@ -2144,11 +2171,7 @@ u.pitch=(pitch===undefined?1:pitch);
 var vs=window.speechSynthesis.getVoices();
 var pick=null;
 if(voiceName && vs.length){pick=vs.find(function(v){return v.name.indexOf(voiceName)>=0;});}
-if(!pick && vs.length){
-  var local=vs.filter(function(v){return v.localService && v.lang && v.lang.toLowerCase().indexOf('zh')>=0;});
-  var online=vs.filter(function(v){return v.lang && v.lang.toLowerCase().indexOf('zh')>=0;});
-  pick=(local.length?local:online)[0];
-}
+if(!pick && vs.length){pick=txPickVoice((voiceName&&voiceName.indexOf('男')>=0)?'male':'female');}
 if(pick){u.voice=pick;}
 window.speechSynthesis.speak(u);
 toast('▶ 正在试听：'+text.substring(0,12)+'…','in');
@@ -2519,7 +2542,7 @@ var d=_findDialog(id);if(!d)return;
 if(!('speechSynthesis' in window)){toast('浏览器不支持语音','er');return;}
 window.speechSynthesis.cancel();
 var vs=window.speechSynthesis.getVoices();
-var V={huihui:vs.find(function(v){return v.name.indexOf('Huihui')>=0;}),kangkang:vs.find(function(v){return v.name.indexOf('Kangkang')>=0;}),yaoyao:vs.find(function(v){return v.name.indexOf('Yaoyao')>=0;})};
+var V={huihui:txPickVoice('female'),kangkang:txPickVoice('male'),yaoyao:txPickVoice('female')};
 var idx=0;
 function speakNext(){
 if(idx>=d.dialog.length){toast('▶ 对话播放完毕','in');return;}
