@@ -1609,6 +1609,33 @@ try{var s=localStorage.getItem('tx_scripts');if(s){var o=JSON.parse(s);if(Array.
 return DScripts;
 }
 function saveScripts(a){try{localStorage.setItem('tx_scripts',JSON.stringify(a));}catch(e){}}
+function scriptExport(){
+var a=getScripts();
+var rows=[['ID','名称','场景','节点','版本','标签','更新']];
+a.forEach(function(s){rows.push([s.id,s.name,s.scene,s.nodes,s.ver,(s.tags||[]).join('、'),s.update]);});
+var csv=rows.map(function(r){return r.map(function(cv){return '"'+String(cv).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+var b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+var dl=document.createElement('a');dl.href=URL.createObjectURL(b);dl.download='话术列表-导出.csv';dl.click();
+toast('已导出 '+a.length+' 条话术','su');
+}
+function scriptImport(){
+var inp=document.createElement('input');inp.type='file';inp.accept='.csv,.json';
+inp.onchange=function(){
+var f=inp.files[0];if(!f)return;
+var rd=new FileReader();
+rd.onload=function(){
+try{
+var txt=rd.result;var a=getScripts();var id=a.length?Math.max.apply(null,a.map(function(x){return x.id;}))+1:1;
+try{var arr=JSON.parse(txt);if(Array.isArray(arr)&&arr.length){arr.forEach(function(o){if(o&&o.name){a.push({id:id++,name:o.name,scene:o.scene||'导入',nodes:o.nodes||10,ver:o.ver||'v1.0',tags:o.tags||['导入'],update:'2026-08-24'});}});saveScripts(a);DScripts=a;toast('已导入 '+arr.length+' 条话术','su');renderScriptList(document.getElementById('ca'));return;}}catch(e2){}
+var lines=txt.split('\n');
+lines.forEach(function(line){var cols=line.replace(/"/g,'').split(',');if(cols[1]&&cols[1].trim()&&cols[1]!=='名称'){a.push({id:id++,name:cols[1].trim(),scene:cols[2]?cols[2].trim():'导入',nodes:parseInt(cols[3])||10,ver:cols[4]?cols[4].trim():'v1.0',tags:(cols[5]?cols[5].trim():'导入').split('、'),update:'2026-08-24'});}});
+saveScripts(a);DScripts=a;toast('已导入话术','su');renderScriptList(document.getElementById('ca'));
+}catch(e){toast('导入失败，请检查文件格式','er');}
+};
+rd.readAsText(f,'utf-8');
+};
+inp.click();
+}
 function scriptCreate(){
 var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
 '<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">话术名称</label><input id="scName" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如: 新品推广话术"></div>'+
@@ -1671,7 +1698,7 @@ closeModal();toast('话术「'+scriptName+'」已应用到任务「'+t+'」','su
 }
 function renderScriptList(ca){
 ca.innerHTML='<h3>AI话术设计</h3>'+
-'<div style="display:flex;gap:6px;margin-bottom:12px"><button class="btn btn-p" onclick="scriptCreate()">+ 新建话术</button><button class="btn btn-o">📥 导入</button><button class="btn btn-o">📤 导出</button></div>'+
+'<div style="display:flex;gap:6px;margin-bottom:12px"><button class="btn btn-p" onclick="scriptCreate()">+ 新建话术</button><button class="btn btn-o" onclick="scriptImport()">📥 导入</button><button class="btn btn-o" onclick="scriptExport()">📤 导出</button></div>'+
 '<div class="script-grid">'+
 DScripts.map(function(s){
 return '<div class="script-card" onclick="scriptDetail(s.id)"><div class="shd"><span class="sht">'+s.name+'</span><span class="bdge in">v'+s.ver+'</span></div><div class="shp">场景: '+s.scene+' | 节点数: '+s.nodes+' | 更新: '+s.update+'</div><div class="shf">'+s.tags.map(function(t){return '<span class="shtag">'+t+'</span>';}).join('')+'</div></div>';
@@ -1681,12 +1708,23 @@ return '<div class="script-card" onclick="scriptDetail(s.id)"><div class="shd"><
 
 // ===== SETTINGS PAGES =====
 function renderSettingsPage(ca,title){
+var key='tx_setting_'+title;var cfg={enabled:true,time:'2026-06-01',desc:''};
+try{var s=localStorage.getItem(key);if(s){var o=JSON.parse(s);if(o){cfg.enabled=o.enabled!==false;cfg.time=o.time||cfg.time;cfg.desc=o.desc||'';}}}catch(e){}
 ca.innerHTML='<h3>'+title+'</h3>'+
 '<div class="form-block"><h4>'+title+'配置</h4>'+
-'<div class="form-row"><div><label>启用状态</label><select><option>启用</option><option>禁用</option></select></div><div><label>生效时间</label><input type="text" value="2026-06-01"></div></div>'+
-'<div class="form-row fl"><div><label>配置说明</label><textarea placeholder="请输入'+title+'相关配置说明..."></textarea></div></div>'+
-'<div style="margin-top:8px"><button class="btn btn-p">保存设置</button> <button class="btn btn-o">恢复默认</button></div>'+
+'<div class="form-row"><div><label>启用状态</label><select id="setEnable"><option value="1"'+(cfg.enabled?' selected':'')+'>启用</option><option value="0"'+(cfg.enabled?'':' selected')+'>禁用</option></select></div><div><label>生效时间</label><input id="setTime" type="text" value="'+cfg.time+'"></div></div>'+
+'<div class="form-row fl"><div><label>配置说明</label><textarea id="setDesc" placeholder="请输入'+title+'相关配置说明...">'+cfg.desc+'</textarea></div></div>'+
+'<div style="margin-top:8px"><button class="btn btn-p" onclick="settingsSave(\''+title+'\')">保存设置</button> <button class="btn btn-o" onclick="settingsReset(\''+title+'\')">恢复默认</button></div>'+
 '</div>';
+}
+function settingsSave(title){
+var o={enabled:document.getElementById('setEnable').value==='1',time:document.getElementById('setTime').value.trim()||'2026-06-01',desc:document.getElementById('setDesc').value.trim()};
+try{localStorage.setItem('tx_setting_'+title,JSON.stringify(o));}catch(e){}
+toast(title+' 配置已保存','su');renderSettingsPage(document.getElementById('ca'),title);
+}
+function settingsReset(title){
+try{localStorage.removeItem('tx_setting_'+title);}catch(e){}
+toast(title+' 配置已恢复默认','su');renderSettingsPage(document.getElementById('ca'),title);
 }
 
 // ===== LEAD LIST (数据公海) =====
@@ -2313,8 +2351,17 @@ QVData.map(function(x,i){var lv=x.level;var c=(lv==='优秀')?'su':(lv==='良好
 
 function qcPlay(i){
 var x=QVData[i]; if(!x)return;
-txSpeak(x.transcript);
 toast('▶ 正在播放录音：'+x.id+' ('+x.agent+'→'+x.customer+')','in');
+// 优先播放预生成的真人质检录音（火山TTS），无则用系统自然语音兜底
+try{
+  var a=new Audio('qc_'+x.id+'.mp3');
+  var started=false;
+  a.onplay=function(){started=true;};
+  var fallback=function(){if(!started){try{if(txAudioEl){txAudioEl.pause();}}catch(e){}txSpeak(x.transcript);}};
+  a.onerror=fallback;
+  a.play().then(function(){started=true;if(txAudioEl){try{txAudioEl.pause();}catch(e){}}txAudioEl=a;}).catch(fallback);
+  setTimeout(fallback,3000);
+}catch(e){txSpeak(x.transcript);}
 }
 
 function openQCDetail(i){
