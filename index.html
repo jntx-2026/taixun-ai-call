@@ -2349,7 +2349,7 @@ function txShowWave(text,secs){
       el=document.createElement('div');
       el.id='txWave';
       el.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:400;background:rgba(11,15,26,.92);color:#fff;border-radius:14px;padding:22px 30px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);display:none';
-      el.innerHTML='<div style="font-size:26px;margin-bottom:8px">'+'🔊'+'</div>'+'<div style="font-size:13px;font-weight:600;margin-bottom:12px;max-width:280px" id="txWaveText"></div>'+'<div style="display:flex;gap:5px;justify-content:center;align-items:flex-end;height:26px" id="txWaveBars">'+Array(7).fill(0).map(function(_,i){return '<span data-b="'+i+'" style="width:5px;background:#4a6cf7;border-radius:2px;height:8px;display:inline-block"></span>';}).join('')+'</div>'+'<div style="font-size:10px;color:#8892b0;margin-top:10px" id="txWaveTip"></div>';
+      el.innerHTML='<div style="font-size:26px;margin-bottom:8px">'+'🔊'+'</div>'+'<div style="font-size:13px;font-weight:600;margin-bottom:12px;max-width:280px" id="txWaveText"></div>'+'<div style="display:flex;gap:5px;justify-content:center;align-items:flex-end;height:26px" id="txWaveBars">'+Array(7).fill(0).map(function(_,i){return '<span data-b="'+i+'" style="width:5px;background:#4a6cf7;border-radius:2px;height:8px;display:inline-block"></span>';}).join('')+'</div>'+'<div style="font-size:10px;color:#8892b0;margin-top:10px" id="txWaveTip"></div>'+'<button onclick="stopAllPlay()" style="margin-top:14px;background:#ef4444;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:13px;cursor:pointer;font-weight:600">⏹ 停止播放</button>';
       document.body.appendChild(el);
       // 声波动画
       var css='@keyframes txbar{0%,100%{height:8px}30%{height:26px}60%{height:14px}80%{height:22px}}';
@@ -2368,6 +2368,15 @@ function txShowWave(text,secs){
 function txHideWave(){
   try{if(txWaveEl){txWaveEl.style.display='none';txWaveEl=null;}}catch(e){}
   if(window._txWaveTimer)clearTimeout(window._txWaveTimer);
+}
+
+var _stopDlx=false;
+function stopAllPlay(){
+  _stopDlx=true;
+  try{if(txAudioEl){txAudioEl.pause();txAudioEl=null;}}catch(e){}
+  try{if(window.speechSynthesis){window.speechSynthesis.cancel();}}catch(e){}
+  try{txHideWave();}catch(e){}
+  try{toast('⏹ 已停止播放','in');}catch(e){}
 }
 // 回退：播放一段预录 MP3（循环片段），并给出声波反馈
 function txSpeakFallback(text){
@@ -2827,6 +2836,7 @@ function recSegEmotion(txt){
 }
 function recPlayDialog(id){
 var d=_findDialog(id);if(!d)return;
+_stopDlx=false;
 // ★★★ 第一优先：分角色真人音频序列 dlx_<id>_0..n.mp3（每句不同真人音色，真实还原不同角色语气）
 try{
   var a0=new Audio('dlx_'+id+'_0.mp3');
@@ -2852,14 +2862,15 @@ try{
 }catch(e){recPlayTTSPath(d);}
 }
 function recPlayDlgSeq(id,idx,d){
+if(_stopDlx){_stopDlx=false;try{txHideWave();}catch(e){}return;}
 var a=new Audio('dlx_'+id+'_'+idx+'.mp3');
 a.onerror=function(){txHideWave();};
-a.onended=function(){recPlayDlgSeq(id,idx+1,d);};
+a.onended=function(){if(_stopDlx){_stopDlx=false;try{txHideWave();}catch(e){}return;}recPlayDlgSeq(id,idx+1,d);};
 a.play().then(function(){
   if(txAudioEl){try{txAudioEl.pause();}catch(e){}}
   txAudioEl=a;
   if(idx===0){txShowWave('🎧 分角色真人对话播放中 '+d.id,Math.max(4000,d.dur?(parseInt(d.dur)*60*1000):10000));toast('▶ 播放真人对话（分角色音色）：'+d.ind+' · '+d.customer+'来电','in');}
-}).catch(function(){recPlayDlgWhole(id);});
+}).catch(function(){if(!_stopDlx)recPlayDlgWhole(id);});
 }
 
 function recPlayTTSPath(d){
@@ -3175,7 +3186,11 @@ var AI_SCENES=[
   {name:'燃气咨询',icon:'⛽',ex:['燃气打不着火了','在哪里交燃气费','想开通燃气']},
   {name:'政务咨询',icon:'🏛️',ex:['怎么办居住证','需要带什么材料','营业时间几点']},
   {name:'投诉建议',icon:'📢',ex:['我要投诉你们服务太差','上次问题一直没解决','你们态度很不好']},
-  {name:'催缴提醒',icon:'💳',ex:['我水费欠了多少','这个月怎么还没扣费','滞纳金怎么算']}
+  {name:'催缴提醒',icon:'💳',ex:['我水费欠了多少','这个月怎么还没扣费','滞纳金怎么算']},
+  {name:'水务-水费暴涨',icon:'💧',ex:['我这个月水费怎么比上个月多了一倍','水表是不是坏了水费涨这么多','水费异常怎么查原因']},
+  {name:'电力-反复跳闸',icon:'⚡',ex:['我家总闸反复跳闸是不是线路问题','家里突然跳闸没电了','总开关一合上就跳闸']},
+  {name:'热力-单户不热',icon:'🔥',ex:['我家楼上楼下都热就我家不热','暖气放气好几次还是不热','家里暖气片摸着是凉的']},
+  {name:'水务-暴怒投诉',icon:'📢',ex:['你们水务太不靠谱动不动就停水','垃圾水务什么服务','我要投诉你们']}
 ];
 // ---- 命中触发词 ----
 function matchAIKeyword(text){
@@ -3225,6 +3240,17 @@ function renderAIDemo(ca){
   aiRenderRules();
   aiRenderTrans();
   aiRenderCallLog();
+}
+var AI_KB=[
+ {kw:'水务水费',scene:'水务-水费暴涨',words:['水费暴涨','水费多','水费涨','水表坏','水费异常','多收','水费高'],reply:'非常理解您的疑惑。水费突然上涨一般是三种情况：一是近期用水量增加，二是水表自转、轻微漏水，三是往期欠费补扣或阶梯水价调价。我这边可以立刻帮您核对本期计费水量，也能查询您近6个月缴费记录和每日用水数据。如确认是表具故障产生的异常计费，我们支持全额减免并免费更换新水表，绝不把设备故障成本转嫁给您，公正处理您的水费争议。'},
+ {kw:'水务停水',scene:'水务-停水',words:['停水','什么时候来水','没水','断水'],reply:'非常抱歉让您遇到停水不便，理解您着急的心情。我马上为您查询停水原因，核实到您小区是市政管道临时检修，抢修人员已在现场施工，预计2小时内恢复供水，我这边全程跟进进度，恢复供水后系统会短信通知您，有进展第一时间同步您，请您放心。'},
+ {kw:'电力跳闸',scene:'电力-反复跳闸',words:['跳闸','停电','没电','断电','合闸'],reply:'您好，您先别着急。请先检查家里配电箱的空气开关：如果是单独回路跳闸，大概率是电器过载或短路导致，可以关闭所有电器后重新合闸试试；如果总开关反复跳闸，就是线路故障，请勿反复合闸避免烧坏设备。我这边可以立刻为您安排电工上门免费排查检修，快速恢复供电。'},
+ {kw:'热力不热',scene:'热力-单户不热',words:['暖气不热','不热','暖气凉','放气','没温度','不供暖'],reply:'非常抱歉给您带来不便，理解您着急的心情。像您这样邻里都热、单户不热的情况，大概率是户内过滤网严重堵塞、入户阀门开度不足，或户内管道气堵死角没有排空，常规放气解决不了深层堵塞。我们安排维修人员上门专业清洗过滤网、全屋排气、调试入户压差，针对性解决单户不热问题，全程免费检修。'},
+ {kw:'投诉',scene:'水务-暴怒投诉',words:['投诉','态度差','垃圾','太不靠谱','服务差','举报','辱骂','不干事'],reply:'先生/女士，请您先消消气，非常理解您的心情。频繁停水未及时通知确实是我们工作的疏漏，我向您诚恳道歉。我已加急推送抢修工单，优先处理您片区问题，同时登记您的投诉诉求，24小时内会有专人回访跟进整改结果。请您理性沟通，我们一定全力解决您的问题。'}
+];
+function matchAIKB(text){
+  for(var i=0;i<AI_KB.length;i++){var k=AI_KB[i];for(var j=0;j<k.words.length;j++){if(text.indexOf(k.words[j])>=0)return k;}}
+  return null;
 }
 function aiPickScene(i){
   var s=AI_SCENES[i];
@@ -3278,11 +3304,13 @@ function aiSimCall(){
   if(!text){toast('请输入客户说的话','er');return;}
   var box=document.getElementById('aiChatBox');
   var hit=matchAIKeyword(text);
+  var kb=matchAIKB(text);
   var t=new Date();
   var time=(t.getMonth()+1)+'/'+t.getDate()+' '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');
   // AI 应答
   var aiReply='';
-  if(!hit){ aiReply='您好，请问有什么可以帮您？'; }
+  if(kb){ aiReply=kb.reply; }
+  else if(!hit){ aiReply='您好，请问有什么可以帮您？'; }
   else if(hit.action==='AI解答'){ aiReply='好的，这个问题我可以为您解答，请稍等～'; }
   else if(hit.action==='转人工'){ aiReply='好的，我马上为您转接人工坐席，请稍候。'; }
   else if(hit.action==='生成工单'){ aiReply='收到，我这就为您登记并安排处理，请保持电话畅通。'; }
