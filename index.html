@@ -564,8 +564,30 @@ if(!curGroup){ca.innerHTML='<h3>欢迎使用泰讯AI智能呼叫系统</h3><p st
 var key=(curSub&&curTb)?(curSub+'/'+curTb):(curSub||curGroup);
 key=key.replace(/\//g,'_');
 var fn=renderMap[key];
-if(fn){fn(ca);}else{renderPlaceholder(ca);}
+if(fn){fn(ca);ensurePhBar(ca);}else{renderPlaceholder(ca);}
 }
+// 为所有下拉模块提供统一「新建/配置」入口（让客户在每个模块都能体验真实价值）
+function ensurePhBar(ca){
+  if(!ca||!ca.innerHTML)return;
+  // 智能呼叫演示是专门的演示页，不叠加新建/配置条
+  if(curTb==='智能呼叫演示')return;
+  if(keyOf()==='ai-demo')return;
+  var html=ca.innerHTML;
+  // 已有 新建 或 配置 按钮的页面不再重复叠加
+  if(/新建|配置/.test(html))return;
+  var ttl=phTitle();
+  if(!ttl)return;
+  var _def=PH_NEW_DEFS[ttl]||null;
+  var hint=_def?('<span style="font-size:11px;color:#5b6bd6;margin-left:auto">💡 本模块支持'+_def.t+'配置，点「新建」体验真实业务价值</span>'):'';
+  var bar='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:10px 12px;background:#f8faff;border:1px solid #e0e7ff;border-radius:8px">'
+    +'<button class="btn btn-p" onclick="openPhNew()">+ 新建</button>'
+    +'<button class="btn btn-o" onclick="phExport()">↓ 导出数据</button>'
+    +'<button class="btn btn-o" onclick="renderContent()">↻ 刷新</button>'
+    +'<button class="btn btn-o" onclick="phConfig()">⚙ 配置</button>'
+    +hint+'</div>';
+  ca.innerHTML=bar+ca.innerHTML;
+}
+function keyOf(){ return (curSub&&curTb)?(curSub+'/'+curTb):(curSub||curGroup); }
 
 var renderMap={
 'ai-demo':renderAIDemo,
@@ -2989,6 +3011,34 @@ var PH_NEW_DEFS={
 {k:'source',l:'来源渠道',t:'select',o:['外呼','在线客服','展会','转介绍','广告投放'],r:1},
 {k:'intent',l:'意向等级',t:'select',o:['高意向','中意向','低意向','待培育'],r:1},
 {k:'stage',l:'所处阶段',t:'select',o:['新线索','已联系','需求确认','报价中','成交'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'呼叫统计':{t:'呼叫统计方案',ic:'📊',d:'把你想看的呼叫指标配置成一个统计方案：外呼量、接通量、接通率、通话时长、转人工量，选定时间范围一眼掌握。业务做得好不好、人力够不够，用数据说话，汇报更有底气。',key:'tx_ph_callstat',fields:[
+{k:'name',l:'方案名称',p:'如：月度外呼成效统计',r:1},
+{k:'dim',l:'统计维度',t:'select',o:['按日期','按话术','按坐席','按号码批次'],r:1},
+{k:'metric',l:'核心指标',t:'select',o:['外呼量+接通率','通话时长+转人工','意向+成交','全指标'],r:1},
+{k:'range',l:'时间范围',t:'select',o:['近7天','近30天','本月','自定义'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'电话号码':{t:'号码批次',ic:'🗂',d:'把要外呼的电话号码整理成批次：批量粘贴号码、标记归属地和标签，导入系统后直接分配给外呼任务。号码池清晰可控，想打哪批打哪批，还能自动去重防骚扰。',key:'tx_ph_phone',fields:[
+{k:'name',l:'批次名称',p:'如：华东新客号码池',r:1},
+{k:'nums',l:'号码（每行一个，可粘贴）',t:'ta',p:'13800001234\n13911112222',r:1},
+{k:'city',l:'归属地',p:'如：山东济南',r:1},
+{k:'tag',l:'标签',p:'如：新客,高意向',r:0},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'整体呼叫看板':{t:'运营看板',ic:'📈',d:'把你要盯的运营指标配置成一个大屏看板：总呼叫量、接通率、转人工、坐席忙闲、工单量，全部一屏呈现。领导进来看一眼就知道整体运营状况，汇报、复盘、决策都有数据支撑。',key:'tx_ph_ovboard',fields:[
+{k:'name',l:'看板名称',p:'如：呼叫中心运营总览',r:1},
+{k:'metric',l:'展示指标',t:'select',o:['呼叫量+接通率','转人工+工单','坐席工作量','综合运营'],r:1},
+{k:'refresh',l:'刷新频率',t:'select',o:['实时','每1分钟','每5分钟'],r:1},
+{k:'scope',l:'统计范围',t:'select',o:['全体坐席','坐席组A','坐席组B'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'呼叫趋势看板':{t:'趋势看板',ic:'📉',d:'配置呼叫趋势的分析维度：按小时/按天看呼叫量的涨跌、接通率波动、高峰低谷。找准什么时候电话最多、什么时候最好打，排班和投放都更精准，人力用在刀刃上。',key:'tx_ph_trendboard',fields:[
+{k:'name',l:'看板名称',p:'如：呼叫时段趋势分析',r:1},
+{k:'dim',l:'趋势维度',t:'select',o:['按小时','按天','按周','按话术'],r:1},
+{k:'metric',l:'分析指标',t:'select',o:['呼叫量','接通率','平均时长','转人工率'],r:1},
+{k:'peak',l:'关注高峰',t:'select',o:['早高峰(9-11)','午高峰(14-16)','晚高峰(19-21)','全部'],r:1},
 {k:'desc',l:'备注（选填）',t:'ta'}
 ]}
 };
