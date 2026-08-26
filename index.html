@@ -843,7 +843,10 @@ var t=phTitle()||'本模块';
 var key='tx_phcfg_'+t;
 var cfg={enabled:true,time:'2026-08-24',desc:''};
 try{var s=localStorage.getItem(key);if(s){var o=JSON.parse(s);if(o){cfg.enabled=o.enabled!==false;cfg.time=o.time||cfg.time;cfg.desc=o.desc||'';}}}catch(e){}
-var body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+// 模块价值说明（有定制新建定义的模块，配置面板一并展示其价值）
+var _def=PH_NEW_DEFS[t];
+var _val=_def?('<div style="background:#f0f5ff;border-left:4px solid #4a6cf7;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--tx);line-height:1.7"><b>'+_def.ic+' 这个模块能帮你：</b><br>'+_def.d+'</div>'):('<div style="background:#f0f5ff;border-left:4px solid #4a6cf7;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--tx);line-height:1.7"><b>💡 '+t+' 模块</b>：通过这里开启/关闭功能、设定生效时间，并说明用途。配合「+ 新建」可维护本模块数据，形成完整闭环。</div>');
+var body=_val+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
 '<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">功能模块</label><input value="'+t+'" disabled style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px;background:#f8fafc"></div>'+
 '<div><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">启用状态</label><select id="phEn" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option value="1"'+(cfg.enabled?' selected':'')+'>启用</option><option value="0"'+(cfg.enabled?'':' selected')+'>禁用</option></select></div>'+
 '<div style="grid-column:1/-1"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">生效时间</label><input id="phTime" type="date" value="'+cfg.time+'" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"></div>'+
@@ -872,12 +875,16 @@ if(recs.length){recHtml='<div class="cd" style="margin-top:12px"><div class="cdh
 else{recHtml='<div class="cd" style="margin-top:12px"><div class="cdh"><span class="cdt">📋 最近新建记录</span></div><p style="color:var(--ts);padding:12px">暂无记录，点击上方「+ 新建」添加第一条记录。</p></div>';}
 function phRecSummary(r){try{var kk=[];for(var k in r){if(k==='time'||k==='_t'||k==='_ic'||k==='名称'||k==='规则名称'||k==='任务名称'||k==='批次名称'||k==='训练任务名称'||k==='配置名称'||k==='策略名称'||k==='name')continue;if(r[k]&&k!=='备注')kk.push(r[k]);}return kk.slice(0,3).join(' · ');}catch(e){return '';}}
 
+var _phDef=PH_NEW_DEFS[title]||null;
+var _valBanner='';
+if(_phDef){_valBanner='<div style="background:linear-gradient(135deg,#eef2ff,#f5f3ff);border:1px solid #e0e7ff;border-left:4px solid #4a6cf7;border-radius:10px;padding:14px 16px;margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#3b50c6;margin-bottom:6px">'+_phDef.ic+' 这个「'+_phDef.t+'」模块，能为你带来真实价值</div><div style="font-size:12px;color:var(--tx);line-height:1.75">'+_phDef.d+'</div><div style="font-size:11px;color:#5b6bd6;margin-top:8px">👆 点击右上角「+ 新建」即可配置一条，立即体验它在实际业务中的运作方式。</div></div>';}
 ca.innerHTML='<h3>'+title+'</h3>'+
 '<div class="cd"><div class="cdh"><span class="cdt">'+title+' - 功能概览</span></div>'+
 '<p style="color:var(--ts);margin-bottom:12px">此页面为'+title+'模块，系统支持完整的数据管理与业务操作功能。点击下方功能卡片进入对应操作。</p>'+
 '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+
 '<button class="btn btn-p" onclick="openPhNew()">+ 新建</button><button class="btn btn-o" onclick="phExport()">↓ 导出数据</button><button class="btn btn-o" onclick="renderPlaceholder(document.getElementById(\'ca\'))">↻ 刷新</button><button class="btn btn-o" onclick="phConfig()">⚙ 配置</button>'+
 '</div>'+
+_valBanner+
 '<div class="ph-grid">'+
 '<div class="ph-card" style="cursor:pointer" onclick="renderPhOverview(document.getElementById(\'ca\'))"><div class="ph-icon">📊</div><h4>数据概览</h4><p>查看'+title+'相关数据统计与分析报表</p></div>'+
 '<div class="ph-card" style="cursor:pointer" onclick="renderPhSearch(document.getElementById(\'ca\'))"><div class="ph-icon">🔍</div><h4>智能搜索</h4><p>快速检索'+title+'中的相关信息与记录</p></div>'+
@@ -2681,6 +2688,7 @@ openModal('➕ '+def.ic+' 新建'+def.t, body, footer, '520px');
 }
 function openPhNewGeneric(ttl){
 var body='<div style="font-size:12px;line-height:1.8">';
+body+='<div style="background:#f0f5ff;border-left:4px solid #4a6cf7;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--tx);line-height:1.7"><b>💡 这个「'+ttl+'」模块</b>：在这里新建一条记录，系统会把它保存到本模块，后续可在此搜索、批量处理、导出，形成完整的数据管理闭环，让每一笔业务都可追溯、可统计。</div>';
 body+='<div class="form-row"><div><label>名称 <span style="color:#ef4444">*</span></label><input id="pnName" placeholder="请输入名称" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px"></div></div>';
 body+='<div class="form-row"><div><label>类型</label><select id="pnType" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px"><option>标准类型</option><option>自定义类型</option></select></div></div>';
 body+='<div class="form-row"><div><label>备注</label><textarea id="pnDesc" placeholder="选填" style="width:100%;min-height:60px;padding:8px;border:1px solid #e5e7eb;border-radius:6px;resize:vertical"></textarea></div></div>';
@@ -2779,6 +2787,208 @@ var PH_NEW_DEFS={
 {k:'script',l:'训练话术',t:'select',o:['投诉处理','催缴沟通','产品答疑','通用客服'],r:1},
 {k:'samples',l:'训练样本数',p:'如：200',r:1},
 {k:'goal',l:'训练目标',p:'如：投诉识别准确率95%',r:0},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+// ===== 新增：让客户一眼看到价值的行业/场景化“新建”模块 =====
+'人工呼叫中台':{t:'外呼任务',ic:'📞',d:'把一批号码交给坐席人工外呼：选好任务名、号码批次、分配坐席和话术，坐席在中台一键拨号跟进。既能坐席自主外呼，又能自动记录通话结果，客户电话一接通就看到专业开场。',key:'tx_ph_manual',fields:[
+{k:'name',l:'任务名称',p:'如：8月老客户回访',r:1},
+{k:'batch',l:'号码批次',t:'select',o:['山东新客批次','会员回访批次','展会线索批次','指定粘贴号码'],r:1},
+{k:'agent',l:'分配坐席',t:'select',o:['李工','王姐','张工','坐席组A','全体坐席'],r:1},
+{k:'script',l:'话术',t:'select',o:['客户回访话术','产品介绍话术','满意度调研','催缴提醒'],r:1},
+{k:'nums',l:'号码数量',p:'如：300',r:1},
+{k:'win',l:'外呼时段',p:'如：09:00-12:00',r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'实时转人工':{t:'转人工触发规则',ic:'🔀',d:'把「客户一说到哪些话就转人工」配置成规则。比如客户提到投诉、退费、找领导，AI 立即识别并平滑转给人工坐席，不让客户在电话里干着急。',key:'tx_ph_realtimetf',fields:[
+{k:'name',l:'规则名称',p:'如：投诉类客户转人工',r:1},
+{k:'kw',l:'触发词（逗号分隔）',p:'如：投诉,退费,找领导,我要举报',r:1},
+{k:'target',l:'转接目标',t:'select',o:['投诉专席','售后主管','值班组长','指定坐席'],r:1},
+{k:'prio',l:'优先级',t:'select',o:['高','中','低'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'AI转人工沟通':{t:'AI转接话术',ic:'💬',d:'配置 AI 在把客户转给人工前的“过渡话术”：先安抚客户、说清原因，再平稳转接。避免生硬中断，让客户觉得被尊重、体验更专业。',key:'tx_ph_aitfchat',fields:[
+{k:'name',l:'话术名称',p:'如：投诉安抚转接话术',r:1},
+{k:'before',l:'转接前安抚话术',t:'ta',p:'如：非常理解您的心情，我马上为您转接专人处理，请稍候不要挂机～',r:1},
+{k:'after',l:'转接后告知话术',t:'ta',p:'如：您好，这里是投诉专席，请问有什么可以帮您？',r:1},
+{k:'scene',l:'适用场景',t:'select',o:['投诉','退费','咨询','售后','通用'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'自动接听/选择接听':{t:'接听策略',ic:'📞',d:'配置 AI 接听/坐席接听的切换策略：客户来电先由 AI 接起、识别意图，简单问题 AI 直接处理，复杂问题自动转人工，接得快又处理得准。',key:'tx_ph_autopick',fields:[
+{k:'name',l:'策略名称',p:'如：来电智能分流策略',r:1},
+{k:'mode',l:'接听方式',t:'select',o:['AI优先接听','坐席优先接听','按时间段切换','按号码段分流'],r:1},
+{k:'ai',l:'AI处理范围',t:'select',o:['仅咨询问答','咨询+简单办理','咨询+办理+报修'],r:1},
+{k:'tf',l:'转人工条件',t:'select',o:['客户要求转人工','触发词命中','AI无法处理','以上全部'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'坐席状态实时统计':{t:'坐席统计配置',ic:'📊',d:'配置要实时监控的坐席指标：在线/离线、忙闲、接单量、平均通话时长，坐席状态一屏掌握，管理者随时知道人力够不够。',key:'tx_ph_agentstat',fields:[
+{k:'name',l:'统计方案名称',p:'如：客服中心实时监控',r:1},
+{k:'group',l:'统计范围',t:'select',o:['全体坐席','坐席组A','坐席组B','单个坐席'],r:1},
+{k:'metric',l:'核心指标',t:'select',o:['在线率+忙闲','接单量+通话时长','接通率+满意度','全部指标'],r:1},
+{k:'refresh',l:'刷新频率',t:'select',o:['实时','每30秒','每1分钟'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'全对话展示':{t:'对话展示配置',ic:'📝',d:'配置通话全过程在坐席屏幕上的展示内容：客户信息、实时转写、情绪标签、知识库提示一起呈现，坐席一眼看清客户情况和应对要点。',key:'tx_ph_fullchat',fields:[
+{k:'name',l:'展示方案名称',p:'如：坐席工作台标准视图',r:1},
+{k:'show',l:'展示内容',t:'select',o:['客户信息+实时转写','+情绪标签','+知识库提示','全部内容'],r:1},
+{k:'font',l:'字号',t:'select',o:['标准','大号','超大号'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'灵活推送处理':{t:'推送规则',ic:'📨',d:'配置转人工/线索如何推送到坐席：微信、短信、App 推送，设定推给谁、推什么内容，让坐席第一时间收到客户的即时诉求。',key:'tx_ph_push',fields:[
+{k:'name',l:'规则名称',p:'如：高意向客户微信推送',r:1},
+{k:'channel',l:'推送渠道',t:'select',o:['微信','短信','App推送','全部'],r:1},
+{k:'target',l:'推送给',t:'select',o:['负责坐席','销售专员','值班组长','指定人'],r:1},
+{k:'cond',l:'触发条件',t:'select',o:['转人工时','生成工单时','客户留资时','全部'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'灵活客户信息处理':{t:'客户信息映射',ic:'🗂',d:'配置把通话中识别到的客户信息自动填进系统：姓名、电话、意向、诉求分类，坐席不用重复询问，客户不用重复说，体验更顺滑。',key:'tx_ph_custmap',fields:[
+{k:'name',l:'映射方案名称',p:'如：来电客户自动建档',r:1},
+{k:'fields',l:'自动抓取字段',t:'select',o:['姓名+电话','+意向等级','+诉求分类','全部字段'],r:1},
+{k:'save',l:'保存位置',t:'select',o:['客户管理-线索','签约客户','CRM客户库','全部'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'智能统计大屏':{t:'大屏看板配置',ic:'📈',d:'配置投到会议室/大屏的统计看板：呼叫量、接通率、转人工量、工单量一目了然，领导随时掌控整体运营情况，汇报更有底气。',key:'tx_ph_bigscreen',fields:[
+{k:'name',l:'看板名称',p:'如：呼叫中心运营大屏',r:1},
+{k:'metric',l:'展示指标',t:'select',o:['呼叫量+接通率','转人工+工单','坐席工作量','综合运营指标'],r:1},
+{k:'refresh',l:'刷新频率',t:'select',o:['实时','每1分钟','每5分钟'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'人工介入':{t:'人工介入规则',ic:'🎯',d:'配置 AI 在什么情况下把通话“交还”给人：客户情绪激动、多次追问、明确要求人工时，AI 自动通知坐席一键接管，保证关键时刻有人服务。',key:'tx_ph_humanin',fields:[
+{k:'name',l:'介入规则名称',p:'如：情绪激动客户人工接管',r:1},
+{k:'cond',l:'介入条件',t:'select',o:['客户要求人工','情绪识别为生气/急促','多轮未解决','以上全部'],r:1},
+{k:'action',l:'介入方式',t:'select',o:['通知坐席接管','自动转接','弹窗提醒坐席'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'转人工通话记录查看':{t:'通话记录查询配置',ic:'📋',d:'配置按什么条件快速查找转人工的通话：按客户、按坐席、按时间段、按结果筛选，回查录音和转写，处理争议、复盘提升都有据可查。',key:'tx_ph_tfrecords',fields:[
+{k:'name',l:'查询方案名称',p:'如：每日转人工回查',r:1},
+{k:'filter',l:'默认筛选',t:'select',o:['按坐席','按客户','按时间段','按处理结果'],r:1},
+{k:'show',l:'展示字段',t:'select',o:['基础信息','+转写','+录音','全部'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'通话记录':{t:'通话记录检索',ic:'📞',d:'配置通话记录的保存与检索维度：接通/未接通、外呼/呼入、时长、录音是否保留，方便日后按需调取每一通真实通话。',key:'tx_ph_callrecords',fields:[
+{k:'name',l:'检索方案名称',p:'如：外呼结果分析',r:1},
+{k:'scope',l:'统计范围',t:'select',o:['全部通话','仅外呼','仅呼入','仅转人工'],r:1},
+{k:'metric',l:'关注指标',t:'select',o:['接通率','通话时长','转人工率','录音完整度'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'数据统计':{t:'统计报表',ic:'📊',d:'配置要生成的报表：按话术、按坐席、按批次统计外呼效果，接通率、意向率、成交率都能量化，业务好不好一看便知。',key:'tx_ph_datastat',fields:[
+{k:'name',l:'报表名称',p:'如：月度外呼成效报表',r:1},
+{k:'dim',l:'统计维度',t:'select',o:['按话术','按坐席','按号码批次','按时间段'],r:1},
+{k:'metric',l:'核心指标',t:'select',o:['接通率+意向率','成交率+工单','全指标'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'坐席列表':{t:'坐席账号',ic:'👤',d:'把坐席人员加入系统：姓名、工号、分机、角色权限一键配好，坐席登录后即可在各自工作台接打客户电话。',key:'tx_ph_agents',fields:[
+{k:'name',l:'坐席姓名',p:'如：李工',r:1},
+{k:'no',l:'工号',p:'如：A001',r:1},
+{k:'ext',l:'分机号',p:'如：8001',r:1},
+{k:'role',l:'角色',t:'select',o:['一线坐席','组长','质检','管理员'],r:1},
+{k:'group',l:'所属坐席组',t:'select',o:['坐席组A','坐席组B','售后组','投诉组'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'黑名单':{t:'黑名单号码',ic:'🚫',d:'把骚扰号、投诉号、无效号加入黑名单，避免反复拨打浪费人力、也避免被投诉骚扰。可一键导入多个号码。',key:'tx_ph_blacklist',fields:[
+{k:'name',l:'黑名单批次',p:'如：8月无效号码库',r:1},
+{k:'nums',l:'号码（每行一个）',t:'ta',p:'13800000000\n13911111111',r:1},
+{k:'reason',l:'拉黑原因',t:'select',o:['客户投诉','无效号码','重复骚扰','客户要求'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'禁呼时间':{t:'禁呼规则',ic:'⏰',d:'配置哪些时间段禁止外呼（如午休、夜间、客户休息时段），系统自动避开，既合规又避免客户反感，提升通话质量和体验。',key:'tx_ph_nocall',fields:[
+{k:'name',l:'规则名称',p:'如：午休及夜间禁呼',r:1},
+{k:'from',l:'开始时间',p:'如：12:00',r:1},
+{k:'to',l:'结束时间',p:'如：14:00',r:1},
+{k:'days',l:'适用日期',t:'select',o:['周一至周五','工作日+周六','每天'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'重呼规则':{t:'重呼策略',ic:'🔄',d:'配置没接通的号码怎么重呼：隔多久、重呼几次、什么时候停止，智能安排重呼节奏，既不漏掉潜在客户，又不被当成骚扰电话。',key:'tx_ph_recall',fields:[
+{k:'name',l:'策略名称',p:'如：未接通3次重呼策略',r:1},
+{k:'times',l:'重呼次数',p:'如：3',r:1},
+{k:'gap',l:'重呼间隔（分钟）',p:'如：120',r:1},
+{k:'window',l:'重呼时段',p:'如：09:00-20:00',r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'线索分配规则':{t:'线索分配规则',ic:'🎯',d:'配置新线索自动分给谁：按地区、按行业、按轮询，线索来了系统自动派给对应销售/坐席，抢单靠规则、公平又高效。',key:'tx_ph_leadrule',fields:[
+{k:'name',l:'规则名称',p:'如：华东新客分给销售组',r:1},
+{k:'mode',l:'分配方式',t:'select',o:['按地区','按行业','按轮询','按坐席负载'],r:1},
+{k:'target',l:'分配给',t:'select',o:['销售组A','销售组B','指定销售','全体坐席'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'智能降噪':{t:'降噪配置',ic:'🎚',d:'配置通话降噪强度，过滤环境噪音、回声、按键音，让客户和坐席都听得清，通话质量高、专业感强。',key:'tx_ph_noise',fields:[
+{k:'name',l:'降噪方案',p:'如：客服中心标准降噪',r:1},
+{k:'level',l:'降噪强度',t:'select',o:['标准','较强','极强'],r:1},
+{k:'scope',l:'适用范围',t:'select',o:['全部通话','仅外呼','仅坐席端'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'大模型质检':{t:'大模型质检规则',ic:'🤖',d:'配置让 AI 大模型自动质检每一通电话：是否合规用语、是否解答到位、服务态度如何，自动打分、自动标记问题，质检不再靠抽查。',key:'tx_ph_llmqc',fields:[
+{k:'name',l:'质检规则名称',p:'如：合规与服务质检',r:1},
+{k:'dim',l:'质检维度',t:'select',o:['合规用语','服务态度','专业解答','综合质检'],r:1},
+{k:'score',l:'合格分数线',p:'如：80',r:1},
+{k:'scope',l:'质检范围',t:'select',o:['全部通话','随机抽样','仅转人工'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'语音质检':{t:'语音质检规则',ic:'🎧',d:'配置语音质检：对每一通录音自动识别语速、情绪、是否规范，发现语速过快、态度不佳自动预警，服务好坏系统替你盯着。',key:'tx_ph_voiceqc',fields:[
+{k:'name',l:'质检规则名称',p:'如：服务态度语音质检',r:1},
+{k:'warn',l:'预警项',t:'select',o:['语速过快','语气催促','情绪激动','不规范用语'],r:1},
+{k:'scope',l:'质检范围',t:'select',o:['全部录音','随机抽样','仅转人工'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'其他设置':{t:'其他设置',ic:'⚙',d:'配置系统的通用选项：默认问候语、转人工提示音、录音保留天数、界面主题等，把呼叫中心的细节体验调到位。',key:'tx_ph_other',fields:[
+{k:'name',l:'配置名称',p:'如：呼叫中心基础设置',r:1},
+{k:'greet',l:'默认问候语',p:'如：您好，欢迎致电客服热线',r:1},
+{k:'retain',l:'录音保留（天）',p:'如：180',r:1},
+{k:'theme',l:'界面主题',t:'select',o:['标准','深色','高对比'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'大模型对话设计':{t:'大模型话术',ic:'🤖',d:'不用写一行代码，用大白话告诉 AI「你要怎么跟客户说话」。设定角色人设、行业背景、应答风格和边界，AI 会自动生成一套专业、有温度、贴合你行业的对话话术，客户一开口它就知道怎么接。',key:'tx_ph_llmdialog',fields:[
+{k:'name',l:'话术名称',p:'如：水务催缴AI客服',r:1},
+{k:'role',l:'AI角色人设',p:'如：你是水务客服专员，态度亲切专业',r:1},
+{k:'ind',l:'所属行业',t:'select',o:['水务','热力','电力','燃气','政务','医疗','零售','通用客服'],r:1},
+{k:'style',l:'应答风格',t:'select',o:['专业稳重','亲切温和','高效简洁','幽默亲和'],r:1},
+{k:'limit',l:'应答边界/禁说',p:'如：不承诺具体到户时间、不泄露内部政策',r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'待办计划':{t:'跟进待办',ic:'📌',d:'把「接下来要办的事」变成一条待办：给客户回访、跟进意向、催办工单、处理回款，设定优先级和到期时间。系统会在工作台提醒你，重要的事一件不落，客户觉得你专业又上心。',key:'tx_ph_todo',fields:[
+{k:'name',l:'待办事项',p:'如：回访王总确认意向',r:1},
+{k:'rel',l:'关联对象',t:'select',o:['客户/线索','工单','合同/回款','坐席','无'],r:1},
+{k:'prio',l:'优先级',t:'select',o:['高','中','低'],r:1},
+{k:'due',l:'到期时间',p:'如：2026-08-28 18:00',r:1},
+{k:'owner',l:'负责人',t:'select',o:['本人','坐席组A','李工','王姐'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'签约回款中':{t:'回款跟进',ic:'💰',d:'把「签了约还没回款」的客户管起来：登记合同金额、应收日期、当前阶段和对接人，系统按到期自动提醒催收，回款进度一清二楚，老板随时能看出哪笔钱该收了。',key:'tx_ph_payment',fields:[
+{k:'name',l:'客户/合同名称',p:'如：山东水务-2026年度合同',r:1},
+{k:'amount',l:'应收金额（元）',p:'如：150000',r:1},
+{k:'stage',l:'回款阶段',t:'select',o:['已开票待收款','部分回款','验收后付款','逾期待催收'],r:1},
+{k:'due',l:'应收日期',p:'如：2026-09-15',r:1},
+{k:'owner',l:'对接人',t:'select',o:['销售A','销售B','本人'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'短信模板':{t:'短信模板',ic:'📱',d:'把常用短信做成模板：预约提醒、催缴通知、满意度回访、验证码，填好内容保存后一键群发。变量自动代入客户姓名/号码/金额，批量触达又快又不犯错，客户体验更规范。',key:'tx_ph_sms',fields:[
+{k:'name',l:'模板名称',p:'如：欠费催缴短信',r:1},
+{k:'type',l:'模板类型',t:'select',o:['催缴提醒','预约通知','回访调研','营销推广','验证码'],r:1},
+{k:'content',l:'短信内容',t:'ta',p:'如：尊敬的{客户姓名}，您本期费用逾期，请及时缴纳以免影响服务，详询{热线}。',r:1},
+{k:'scene',l:'适用场景',t:'select',o:['水务/燃气欠费','售后回访','展会邀约','节日问候'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'通讯录':{t:'通讯录成员',ic:'👔',d:'把团队和坐席成员加进通讯录：姓名、手机、分机、部门和角色一键配好。坐席转人工、拨号、协作找人时直接从这里选，呼叫中心组织架构清晰，协调配合更顺畅。',key:'tx_ph_contacts',fields:[
+{k:'name',l:'姓名',p:'如：李工',r:1},
+{k:'phone',l:'手机号',p:'如：13800001234',r:1},
+{k:'ext',l:'分机号',p:'如：8001',r:1},
+{k:'dept',l:'部门/坐席组',t:'select',o:['客服部','销售部','售后组','投诉组','管理层'],r:1},
+{k:'role',l:'角色',t:'select',o:['坐席','组长','质检','主管'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'通用设置':{t:'通用配置',ic:'⚙️',d:'把呼叫中心的「底座」配置好：默认语言、时区、录音保留、来电显示、超时阈值、安全合规开关。一套合理的通用配置，让整个系统的行为统一、稳定、合规，业务跑起来不出乱子。',key:'tx_ph_general',fields:[
+{k:'name',l:'配置名称',p:'如：呼叫中心基础底座',r:1},
+{k:'lang',l:'默认语言',t:'select',o:['中文','英文','中英自动'],r:1},
+{k:'tz',l:'时区',t:'select',o:['(UTC+8) 北京','(UTC+9) 东京','(UTC+0) 伦敦'],r:1},
+{k:'retain',l:'录音保留（天）',p:'如：180',r:1},
+{k:'cid',l:'来电显示策略',t:'select',o:['显示主叫号码','显示归属地','自定义'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'线索数据':{t:'客户线索',ic:'👥',d:'把每一个潜在客户登记成一条线索：姓名、电话、来源、意向等级和阶段。线索一进来就有据可查、可跟进、可分配，谁负责、进行到哪一步一目了然，不丢任何一个商机。',key:'tx_ph_leads',fields:[
+{k:'name',l:'客户姓名',p:'如：王经理',r:1},
+{k:'phone',l:'联系电话',p:'如：13900001234',r:1},
+{k:'source',l:'来源渠道',t:'select',o:['外呼','在线客服','展会','转介绍','广告投放'],r:1},
+{k:'intent',l:'意向等级',t:'select',o:['高意向','中意向','低意向','待培育'],r:1},
+{k:'stage',l:'所处阶段',t:'select',o:['新线索','已联系','需求确认','报价中','成交'],r:1},
 {k:'desc',l:'备注（选填）',t:'ta'}
 ]}
 };
