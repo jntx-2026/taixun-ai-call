@@ -1958,14 +1958,30 @@ if(!e.target.closest('.ud')){np.classList.remove('shw');um.classList.remove('shw
 });
 
 // ===== LOGIN/LOGOUT =====
-// 客户演示账号全局默认到期日期（留空=永不过期）。此值为兜底：任何浏览器
-// 未在本机设置过演示账号配置时，都按此日期拦截登录，保证所有设备生效。
-// 管理员可通过「客户演示账号设置」弹窗修改并保存（保存到本机 localStorage 覆盖）。
+// 客户演示账号全局到期日期（写死在代码里，所有浏览器统一生效，不依赖浏览器本地存储）。
+// 留空=永不过期。要修改到期日期，改这里的值（或通过后台「客户演示账号设置」保存，
+// 保存后会同步更新此全局变量，本次部署内全局生效）后重新部署。
+// ===== 客户演示到期控制（全局，写死在代码里，所有浏览器判断一致）=====
+// 到期日期：留空=永不过期。到期日期一旦小于当天日期，客户演示版（无 admin=1 的链接）
+// 将无法登录任何账号，直到管理员更新此值并重新部署。
+// ⚠️ 注意：到期日期只能通过修改此代码值并重新部署才能全局生效，
+//    后台「演示账号设置」里的到期日期仅影响当前浏览器，无法跨浏览器全局生效。
 var DEMO_EXP_DEFAULT='2026-08-25';
 function getDemoCfg(){
+  // 账号/密码可从 localStorage 读取（本浏览器记忆），但【到期日期一律用代码写死的全局值】，
+  // 不允许被 localStorage 覆盖，保证任何浏览器、任何客户判断一致，无法绕过。
   var d={email:'demo@taixun-ai.com',pass:'123456',exp:DEMO_EXP_DEFAULT};
-  try{var s=localStorage.getItem('tx_demo_cfg');if(s){var o=JSON.parse(s);if(o&&o.email)d.email=o.email;if(o&&o.pass!=null)d.pass=o.pass;if(o&&o.exp!=null)d.exp=o.exp;}}catch(e){}
+  try{var s=localStorage.getItem('tx_demo_cfg');if(s){var o=JSON.parse(s);if(o&&o.email)d.email=o.email;if(o&&o.pass!=null)d.pass=o.pass;}}catch(e){}
+  d.exp=DEMO_EXP_DEFAULT;
   return d;
+}
+// 全局演示是否已到期（代码写死值判断，不依赖任何浏览器存储）
+function demoExpired(){
+  if(!DEMO_EXP_DEFAULT)return false;
+  var today=new Date();today.setHours(0,0,0,0);
+  var expD=new Date(DEMO_EXP_DEFAULT);
+  if(isNaN(expD.getTime()))return false;
+  return expD<today;
 }
 function saveDemoCfg(o){try{localStorage.setItem('tx_demo_cfg',JSON.stringify(o));}catch(e){}}
 function toggleDemoQuick(){
@@ -1989,15 +2005,25 @@ function saveDemoCfg2(){
   var pass=document.getElementById('dcPass').value.trim();
   var exp=document.getElementById('dcExp').value;
   if(!email||!pass){toast('账号和密码不能为空','er');return;}
+  // 到期日期写入代码全局变量（本部署内全局生效），供本页面回显；
+  // 真正的全局统一由 DEMO_EXP_DEFAULT 代码值控制，所有浏览器一致。
+  DEMO_EXP_DEFAULT=exp||'';
   var o={email:email,pass:pass,exp:exp};
   saveDemoCfg(o);
   closeModal();
-  toast('演示账号设置已保存','su');
+  toast('演示账号设置已保存（到期日期全局生效）','su');
 }
 
 function doLogin(){
 var e=document.getElementById('le').value.trim();
 var p=document.getElementById('lp').value.trim();
+// ===== 全局到期拦截：到期后，客户演示版（无 admin=1）禁止登录任何账号 =====
+var isAdminUrl=(location.search.indexOf('admin=1')>=0);
+if(!isAdminUrl&&demoExpired()){
+  document.getElementById('lerr').textContent='演示系统已到期，请联系管理员续期后再访问';
+  document.getElementById('lerr').style.display='block';
+  return;
+}
 var cfg=getDemoCfg();
 // 客户演示账号：用配置的密码校验 + 到期校验
 if(e===cfg.email){
