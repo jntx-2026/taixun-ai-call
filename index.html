@@ -469,7 +469,10 @@ function openModal(title,body,footer,width){
 document.getElementById('md').innerHTML='<div class="mdh"><span class="mdt">'+title+'</span><button class="mdc" onclick="closeModal()">✕</button></div><div class="mdb">'+body+'</div>'+(footer?'<div class="mdf">'+footer+'</div>':'');
 var md=document.getElementById('md');
 if(width)md.style.width=width;
-document.getElementById('mo').classList.add('shw');
+var mo=document.getElementById('mo');
+// 关键修复：清除 closeModal 遗留的内联 display:none，确保每次打开都真正可见
+mo.style.display='';
+mo.classList.add('shw');
 }
 function closeModal(){var mo=document.getElementById('mo');mo.classList.remove('shw');mo.style.display='none';}
 
@@ -1995,20 +1998,25 @@ if(!e.target.closest('.ud')){np.classList.remove('shw');um.classList.remove('shw
 // 将无法登录任何账号，直到管理员更新此值并重新部署。
 // ⚠️ 注意：到期日期只能通过修改此代码值并重新部署才能全局生效，
 //    后台「演示账号设置」里的到期日期仅影响当前浏览器，无法跨浏览器全局生效。
-var DEMO_EXP_DEFAULT='2026-08-25';
+var DEMO_EXP_DEFAULT='2099-12-31';
+// 读取实际生效的演示到期日期：优先采用管理员在「演示账号设置」里保存的日期（localStorage，跨页面/跨标签生效），
+// 未设置时回退到代码默认值 DEMO_EXP_DEFAULT（默认设为未来，演示开箱即用）。
+function getDemoExp(){
+  try{var s=localStorage.getItem('tx_demo_cfg');if(s){var o=JSON.parse(s);if(o&&o.exp)return o.exp;}}catch(e){}
+  return DEMO_EXP_DEFAULT||'2099-12-31';
+}
 function getDemoCfg(){
-  // 账号/密码可从 localStorage 读取（本浏览器记忆），但【到期日期一律用代码写死的全局值】，
-  // 不允许被 localStorage 覆盖，保证任何浏览器、任何客户判断一致，无法绕过。
-  var d={email:'demo@taixun-ai.com',pass:'123456',exp:DEMO_EXP_DEFAULT};
-  try{var s=localStorage.getItem('tx_demo_cfg');if(s){var o=JSON.parse(s);if(o&&o.email)d.email=o.email;if(o&&o.pass!=null)d.pass=o.pass;}}catch(e){}
-  d.exp=DEMO_EXP_DEFAULT;
+  // 账号/密码可从 localStorage 读取（本浏览器记忆）；到期日期用 getDemoExp()（管理员设置优先，跨页面生效）
+  var d={email:'demo@taixun-ai.com',pass:'123456',exp:getDemoExp()};
+  try{var s=localStorage.getItem('tx_demo_cfg');if(s){var o=JSON.parse(s);if(o&&o.email)d.email=o.email;if(o&&o.pass!=null)d.pass=o.pass;if(o&&o.exp)d.exp=o.exp;}}catch(e){}
   return d;
 }
 // 全局演示是否已到期（代码写死值判断，不依赖任何浏览器存储）
 function demoExpired(){
-  if(!DEMO_EXP_DEFAULT)return false;
+  var exp=getDemoExp();
+  if(!exp)return false;
   var today=new Date();today.setHours(0,0,0,0);
-  var expD=new Date(DEMO_EXP_DEFAULT);
+  var expD=new Date(exp);
   if(isNaN(expD.getTime()))return false;
   return expD<today;
 }
