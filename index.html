@@ -1958,8 +1958,12 @@ if(!e.target.closest('.ud')){np.classList.remove('shw');um.classList.remove('shw
 });
 
 // ===== LOGIN/LOGOUT =====
+// 客户演示账号全局默认到期日期（留空=永不过期）。此值为兜底：任何浏览器
+// 未在本机设置过演示账号配置时，都按此日期拦截登录，保证所有设备生效。
+// 管理员可通过「客户演示账号设置」弹窗修改并保存（保存到本机 localStorage 覆盖）。
+var DEMO_EXP_DEFAULT='2026-08-25';
 function getDemoCfg(){
-  var d={email:'demo@taixun-ai.com',pass:'123456',exp:''};
+  var d={email:'demo@taixun-ai.com',pass:'123456',exp:DEMO_EXP_DEFAULT};
   try{var s=localStorage.getItem('tx_demo_cfg');if(s){var o=JSON.parse(s);if(o&&o.email)d.email=o.email;if(o&&o.pass!=null)d.pass=o.pass;if(o&&o.exp!=null)d.exp=o.exp;}}catch(e){}
   return d;
 }
