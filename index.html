@@ -868,8 +868,9 @@ var title=curTb||(MAPI[curSub]?MAPI[curSub].lb:'')||(MAPI[curGroup]?MAPI[curGrou
 var recKey='tx_phdata_'+title;var recs=[];
 try{var s=localStorage.getItem(recKey);if(s)recs=JSON.parse(s);}catch(e){}
 var recHtml='';
-if(recs.length){recHtml='<div class="cd" style="margin-top:12px"><div class="cdh"><span class="cdt">📋 最近新建记录 ('+recs.length+')</span></div><div style="max-height:280px;overflow:auto">'+recs.slice().reverse().map(function(r,i){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #f3f4f6"><div><span style="font-weight:600;font-size:13px">'+r.name+'</span> <span class="bdge in">'+r.type+'</span> <span style="font-size:10px;color:var(--tm);margin-left:6px">'+r.time+'</span></div><button class="btn btn-sm btn-d" onclick="phDelRec(\''+title+'\','+(recs.length-1-i)+')">🗑</button></div>';}).join('')+'</div></div>';}
+if(recs.length){recHtml='<div class="cd" style="margin-top:12px"><div class="cdh"><span class="cdt">📋 最近新建记录 ('+recs.length+')</span></div><div style="max-height:280px;overflow:auto">'+recs.slice().reverse().map(function(r,i){var _nm=r._t?(r['规则名称']||r['任务名称']||r['批次名称']||r['训练任务名称']||r['配置名称']||r['策略名称']||r.name||r['名称']||''):(r.name||'');var _type=r._t?r._t:(r.type||'');var _sub=r._t?phRecSummary(r):(r.desc||'');var _badge=r._t?('<span class="bdge in">'+r._ic+' '+_type+'</span>'):(_type?('<span class="bdge in">'+_type+'</span>'):'');return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #f3f4f6"><div><span style="font-weight:600;font-size:13px">'+_nm+'</span> '+_badge+'<div style="font-size:10px;color:var(--ts);margin-top:2px">'+_sub+'</div><span style="font-size:10px;color:var(--tm)">'+r.time+'</span></div><button class="btn btn-sm btn-d" onclick="phDelRec(\''+title+'\','+(recs.length-1-i)+')">🗑</button></div>';}).join('')+'</div></div>';}
 else{recHtml='<div class="cd" style="margin-top:12px"><div class="cdh"><span class="cdt">📋 最近新建记录</span></div><p style="color:var(--ts);padding:12px">暂无记录，点击上方「+ 新建」添加第一条记录。</p></div>';}
+function phRecSummary(r){try{var kk=[];for(var k in r){if(k==='time'||k==='_t'||k==='_ic'||k==='名称'||k==='规则名称'||k==='任务名称'||k==='批次名称'||k==='训练任务名称'||k==='配置名称'||k==='策略名称'||k==='name')continue;if(r[k]&&k!=='备注')kk.push(r[k]);}return kk.slice(0,3).join(' · ');}catch(e){return '';}}
 
 ca.innerHTML='<h3>'+title+'</h3>'+
 '<div class="cd"><div class="cdh"><span class="cdt">'+title+' - 功能概览</span></div>'+
@@ -2373,10 +2374,14 @@ function txHideWave(){
 var _stopDlx=false;
 function stopAllPlay(){
   _stopDlx=true;
-  try{if(txAudioEl){txAudioEl.pause();txAudioEl=null;}}catch(e){}
+  try{if(txAudioEl){try{txAudioEl.pause();}catch(e){}txAudioEl=null;}}catch(e){}
   try{if(window.speechSynthesis){window.speechSynthesis.cancel();}}catch(e){}
   try{txHideWave();}catch(e){}
+  try{var st=document.getElementById('recPlayStatus');if(st){st.innerHTML='● 已停止';st.style.background='#fee2e2';st.style.color='#ef4444';}}catch(e){}
   try{toast('⏹ 已停止播放','in');}catch(e){}
+}
+function recMarkPlaying(label){
+  try{var st=document.getElementById('recPlayStatus');if(st){st.innerHTML='▶ 正在播放'+(label?('：'+label):'');st.style.background='#dbeafe';st.style.color='#2563eb';}}catch(e){}
 }
 // 回退：播放一段预录 MP3（循环片段），并给出声波反馈
 function txSpeakFallback(text){
@@ -2601,9 +2606,31 @@ openModal('📊 '+s.name+' - 话术详情', body, '<button class="btn btn-o" onc
 
 // ===== 占位页 - 新建弹窗 =====
 function openPhNew(){
-var ttl=phTitle();
+var ttl=phTitle()||'记录';
+var def=PH_NEW_DEFS[ttl];
+if(!def){openPhNewGeneric(ttl);return;}
 var body='<div style="font-size:12px;line-height:1.8">';
-body+='<div class="form-row"><div><label>名称</label><input id="pnName" placeholder="请输入名称" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px"></div></div>';
+body+='<div style="background:#f0f5ff;border-left:4px solid #4a6cf7;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--tx);line-height:1.7"><b>'+def.ic+' 这个「'+def.t+'」能帮你：</b><br>'+def.d+'</div>';
+def.fields.forEach(function(fd){
+  var req=fd.r?'<span style="color:#ef4444">*</span>':'';
+  body+='<div class="form-row"><div><label>'+fd.l+' '+req+'</label>';
+  if(fd.t==='select'){
+    body+='<select id="pnf_'+fd.k+'" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px">'+(fd.o||[]).map(function(o){return '<option>'+o+'</option>';}).join('')+'</select>';
+  } else if(fd.t==='ta'){
+    body+='<textarea id="pnf_'+fd.k+'" placeholder="'+(fd.p||'')+'" style="width:100%;min-height:60px;padding:8px;border:1px solid #e5e7eb;border-radius:6px;resize:vertical"></textarea>';
+  } else {
+    body+='<input id="pnf_'+fd.k+'" placeholder="'+(fd.p||'')+'" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px">';
+  }
+  body+='</div></div>';
+});
+body+='</div>';
+window.__phDef=def;
+var footer='<button class="btn btn-p" onclick="phNewSubmit()">✅ 创建'+def.t+'</button><button class="btn btn-o" onclick="closeModal()">取消</button>';
+openModal('➕ '+def.ic+' 新建'+def.t, body, footer, '520px');
+}
+function openPhNewGeneric(ttl){
+var body='<div style="font-size:12px;line-height:1.8">';
+body+='<div class="form-row"><div><label>名称 <span style="color:#ef4444">*</span></label><input id="pnName" placeholder="请输入名称" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px"></div></div>';
 body+='<div class="form-row"><div><label>类型</label><select id="pnType" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px"><option>标准类型</option><option>自定义类型</option></select></div></div>';
 body+='<div class="form-row"><div><label>备注</label><textarea id="pnDesc" placeholder="选填" style="width:100%;min-height:60px;padding:8px;border:1px solid #e5e7eb;border-radius:6px;resize:vertical"></textarea></div></div>';
 body+='</div>';
@@ -2611,16 +2638,99 @@ var footer='<button class="btn btn-p" onclick="phNewSubmit()">确认新建</butt
 openModal('➕ 新建 - '+ttl, body, footer, '460px');
 }
 function phNewSubmit(){
+var t=phTitle()||'记录';
+var def=window.__phDef;
+window.__phDef=null;
+if(def){
+  var rec={_t:def.t,_ic:def.ic,time:new Date().toLocaleString()};
+  var name='';
+  var miss=[];
+  def.fields.forEach(function(fd){
+    var el=document.getElementById('pnf_'+fd.k);
+    var v=el?el.value.trim():'';
+    if(fd.r&&!v){miss.push(fd.l);}
+    rec[fd.l]=v;
+    if(fd.k==='name')name=v;
+  });
+  if(miss.length){toast('请填写：'+miss.join('、'),'er');return;}
+  closeModal();
+  var key='tx_phdata_'+t;var arr=[];
+  try{var s=localStorage.getItem(key);if(s)arr=JSON.parse(s);}catch(e){}
+  arr.push(rec);
+  try{localStorage.setItem(key,JSON.stringify(arr));}catch(e){}
+  toast('✅ 已创建'+def.t+'：'+name,'su');
+  renderPlaceholder(document.getElementById('ca'));
+  return;
+}
 var nm=document.getElementById('pnName');var nv=nm?nm.value.trim():'';
 if(!nv){toast('请填写名称','er');return;}
 closeModal();
-var t=phTitle()||'记录';var key='tx_phdata_'+t;var arr=[];
+var key='tx_phdata_'+t;var arr=[];
 try{var s=localStorage.getItem(key);if(s)arr=JSON.parse(s);}catch(e){}
 arr.push({name:nv,type:(document.getElementById('pnType')||{}).value||'标准类型',desc:(document.getElementById('pnDesc')||{}).value||'',time:new Date().toLocaleString()});
 try{localStorage.setItem(key,JSON.stringify(arr));}catch(e){}
 toast('已创建：'+nv,'su');
 renderPlaceholder(document.getElementById('ca'));
 }
+// ===== 专业新建：各模块定制定义（让客户一眼看到价值）=====
+var PH_NEW_DEFS={
+'转人工自定义':{t:'转人工规则',ic:'🔀',d:'把「客户说哪些话时，该转给谁、怎么转」配置成规则。设定触发词和目标，AI 会自动把这类客户妥善转接给对应坐席/部门，客户不会觉得被冷落。',key:'tx_ph_transferrule',fields:[
+{k:'name',l:'规则名称',p:'如：投诉转售后主管',r:1},
+{k:'kw',l:'触发词（逗号分隔）',p:'如：投诉,售后,退换货,要找领导',r:1},
+{k:'target',l:'转接目标',t:'select',o:['售后主管','投诉专席','值班组长','一线坐席','指定部门'],r:1},
+{k:'mode',l:'处理方式',t:'select',o:['AI先安抚后转接','直接转接','AI自主处理'],r:1},
+{k:'prio',l:'优先级',t:'select',o:['高','中','低'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'转接多种轮询模式':{t:'轮询策略',ic:'🔄',d:'当一个转人工需求有多个坐席时，按什么顺序/方式分配？配置轮询策略，让客户等待时间最短、接单最均衡。',key:'tx_ph_poll',fields:[
+{k:'name',l:'策略名称',p:'如：售后坐席组轮询',r:1},
+{k:'mode',l:'轮询方式',t:'select',o:['按顺序轮询','随机分配','最少通话优先','负载均衡'],r:1},
+{k:'group',l:'坐席组',t:'select',o:['售后组','投诉组','一线坐席','全体坐席'],r:1},
+{k:'timeout',l:'超时秒数（无人接单）',p:'如：30',r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'在忙坐席智能处理':{t:'忙线处理规则',ic:'⏳',d:'客户要转接时坐席正忙怎么办？配置智能处理规则，让客户不流失：排队等待/自动回拨/转其他坐席/留言。',key:'tx_ph_busy',fields:[
+{k:'name',l:'规则名称',p:'如：售后忙线策略',r:1},
+{k:'action',l:'忙线处理',t:'select',o:['排队等待','自动回拨','转其他坐席','引导留言','稍后再呼'],r:1},
+{k:'waittime',l:'最长等待秒数',p:'如：60',r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'内网FS转接技术':{t:'FS转接配置',ic:'📡',d:'配置 FreeSWITCH 内网转接参数，让 AI 通话稳定转接到 PBX/坐席软电话。',key:'tx_ph_fs',fields:[
+{k:'name',l:'配置名称',p:'如：总部FS网关',r:1},
+{k:'host',l:'FS服务地址',p:'如：10.0.0.8:5060',r:1},
+{k:'proto',l:'协议',t:'select',o:['SIP','SIPS','WS','WSS'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'批量呼出':{t:'批量外呼任务',ic:'📞',d:'一键发起一批外呼：选好话术、设定号码量和外呼时段，系统自动排队外呼并统计结果。',key:'tx_ph_batchcall',fields:[
+{k:'name',l:'任务名称',p:'如：8月会员回访',r:1},
+{k:'script',l:'话术模板',t:'select',o:['会员回访话术','产品推广话术','满意度调研','催缴提醒','默认外呼话术'],r:1},
+{k:'nums',l:'号码数量',p:'如：500',r:1},
+{k:'window',l:'外呼时段',p:'如：09:00-12:00,14:00-18:00',r:1},
+{k:'daily',l:'每日外呼上限',p:'如：200',r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'呼叫工作台':{t:'呼出任务',ic:'🎧',d:'给坐席安排一个呼出任务：选号码池、话术和座席，坐席在工作台一键开始外呼。',key:'tx_ph_workbench',fields:[
+{k:'name',l:'任务名称',p:'如：李工今日回访',r:1},
+{k:'agent',l:'分配坐席',t:'select',o:['李工','王姐','张工','全体坐席'],r:1},
+{k:'nums',l:'号码数量',p:'如：150',r:1},
+{k:'script',l:'话术',t:'select',o:['默认回访','产品介绍','满意度调研'],r:1},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'电话盘':{t:'号码批次',ic:'🗂',d:'把一批号码整理成一个批次：批量粘贴号码、设定归属地和标签，方便后续分配到外呼任务。',key:'tx_ph_phonebatch',fields:[
+{k:'name',l:'批次名称',p:'如：山东新客批次',r:1},
+{k:'nums',l:'号码（每行一个，可粘贴）',t:'ta',p:'13800001234\n13911112222',r:1},
+{k:'city',l:'归属地',p:'如：山东济南',r:1},
+{k:'tag',l:'标签',p:'如：新客,高意向',r:0},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]},
+'话术训练':{t:'训练任务',ic:'🎓',d:'让 AI 针对某个话术做训练：提供场景和样本，提升 AI 对客户意图的识别与回复准确率。',key:'tx_ph_train',fields:[
+{k:'name',l:'训练任务名称',p:'如：投诉应对训练',r:1},
+{k:'script',l:'训练话术',t:'select',o:['投诉处理','催缴沟通','产品答疑','通用客服'],r:1},
+{k:'samples',l:'训练样本数',p:'如：200',r:1},
+{k:'goal',l:'训练目标',p:'如：投诉识别准确率95%',r:0},
+{k:'desc',l:'备注（选填）',t:'ta'}
+]}
+};
 
 
 
@@ -2809,6 +2919,13 @@ openModal('🎧 质检详情 - '+x.id, body, '<button class="btn btn-o" onclick=
 function renderRecordingLib(ca){
 var h='<h3>录音师试听</h3>';
 h+='<p style="font-size:11px;color:var(--ts);margin-bottom:12px">🎧 真实来电通话录音：客户来电 → 机器人先接听 → 无法处理时转接人工坐席，体现完整沟通链路。</p>';
+// 常驻播放控制条：始终可见的播放/停止控制，避免停止按钮藏在浮层里找不到
+h+='<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:12px;box-shadow:var(--shd)">';
+h+='<span style="font-size:11px;color:var(--tm);font-weight:600">🎧 播放控制</span>';
+h+='<span id="recPlayStatus" style="font-size:11px;color:var(--ts);background:#f1f5f9;padding:4px 10px;border-radius:14px">● 未播放</span>';
+h+='<button class="btn btn-p btn-sm" onclick="stopAllPlay()">⏹ 停止播放</button>';
+h+='<span style="font-size:10px;color:var(--tm)">点击任意「▶ 播放对话」开始，此停止按钮随时可停</span>';
+h+='</div>';
 h+='<div class="sr"><div class="scd"><div class="si bl">🎙️</div><div><div class="sv">'+CDialog.length+'</div><div class="sl">真实录音</div></div></div>';
 h+='<div class="scd"><div class="si gr">🕒</div><div><div class="sv">'+CDialog.length+'</div><div class="sl">覆盖行业</div></div></div>';
 h+='<div class="scd"><div class="si pu">🤖</div><div><div class="sv">AI</div><div class="sl">机器人接听</div></div></div>';
@@ -2837,12 +2954,14 @@ function recSegEmotion(txt){
 function recPlayDialog(id){
 var d=_findDialog(id);if(!d)return;
 _stopDlx=false;
-// ★★★ 第一优先：分角色真人音频序列 dlx_<id>_0..n.mp3（每句不同真人音色，真实还原不同角色语气）
+// ★★★ 第一优先：分角色真人音频序列 dlx_<id>_0..n.mp3（每句不同真人音色）
+// 第0句在此播放一次并作为当前播放元素（避免与序列第0句重叠→第一句扩音/双声），随后序列从第1句继续
 try{
   var a0=new Audio('dlx_'+id+'_0.mp3');
   var _dx=false;
   a0.onerror=function(){ if(!_dx) recPlayDlgWhole(id); };
-  a0.play().then(function(){ _dx=true; recPlayDlgSeq(id,0,d); }).catch(function(){ recPlayDlgWhole(id); });
+  a0.onended=function(){ if(_dx) recPlayDlgSeq(id,1,d); };
+  a0.play().then(function(){ _dx=true; if(txAudioEl){try{txAudioEl.pause();}catch(e){}} txAudioEl=a0; txShowWave('🎧 分角色真人对话播放中 '+d.id,Math.max(4000,d.dur?(parseInt(d.dur)*60*1000):10000));toast('▶ 播放真人对话（分角色音色）：'+d.ind+' · '+d.customer+'来电','in');recMarkPlaying(d.ind+' · '+d.customer); }).catch(function(){ recPlayDlgWhole(id); });
   setTimeout(function(){ if(!_dx) recPlayDlgWhole(id); },3000);
   return;
 }catch(e){ recPlayDlgWhole(id); }
@@ -2853,9 +2972,9 @@ var d=_findDialog(id);if(!d)return;
 try{
   var ra=new Audio();ra.src='dl_DL-'+id.replace(/^DL-/,'')+'.mp3';
   var _rs=false;
-  ra.onplay=function(){_rs=true;txShowWave('🎧 真实录音播放中 '+d.id,Math.max(3000,d.dur?(parseInt(d.dur)*60*1000):8000));toast('▶ 播放真实录音：'+d.id+'（真人语音）','in');};
+  ra.onplay=function(){_rs=true;txShowWave('🎧 真实录音播放中 '+d.id,Math.max(3000,d.dur?(parseInt(d.dur)*60*1000):8000));toast('▶ 播放真实录音：'+d.id+'（真人语音）','in');recMarkPlaying(d.ind+' · '+d.customer);};
   ra.onerror=function(){if(!_rs)recPlayTTSPath(d);};
-  ra.onended=function(){txHideWave();};
+  ra.onended=function(){txHideWave();try{var st=document.getElementById('recPlayStatus');if(st){st.innerHTML='● 未播放';st.style.background='#f1f5f9';st.style.color='var(--ts)';}}catch(e){}};
   ra.play().then(function(){_rs=true;if(txAudioEl){try{txAudioEl.pause();}catch(e){}}txAudioEl=ra;}).catch(function(){recPlayTTSPath(d);});
   setTimeout(function(){if(!_rs)recPlayTTSPath(d);},3500);
   return;
@@ -2869,7 +2988,7 @@ a.onended=function(){if(_stopDlx){_stopDlx=false;try{txHideWave();}catch(e){}ret
 a.play().then(function(){
   if(txAudioEl){try{txAudioEl.pause();}catch(e){}}
   txAudioEl=a;
-  if(idx===0){txShowWave('🎧 分角色真人对话播放中 '+d.id,Math.max(4000,d.dur?(parseInt(d.dur)*60*1000):10000));toast('▶ 播放真人对话（分角色音色）：'+d.ind+' · '+d.customer+'来电','in');}
+  if(idx===0){txShowWave('🎧 分角色真人对话播放中 '+d.id,Math.max(4000,d.dur?(parseInt(d.dur)*60*1000):10000));toast('▶ 播放真人对话（分角色音色）：'+d.ind+' · '+d.customer+'来电','in');recMarkPlaying(d.ind+' · '+d.customer);}
 }).catch(function(){if(!_stopDlx)recPlayDlgWhole(id);});
 }
 
