@@ -2350,6 +2350,14 @@ var txAudioEl=null;
 var txWaveEl=null;
 var txVoicesReady=false;
 var txVoicesWaiters=[];
+// 全局播放定时器注册表：所有播放的兜底/续播 setTimeout 都登记到这里，
+// stopAllPlay() 一次性清空，彻底避免“停止后又被兜底定时器重新拉起播放”。
+var _playTimers=[];
+function _trackTimer(id){_playTimers.push(id);return id;}
+function _clearPlayTimers(){
+  for(var i=0;i<_playTimers.length;i++){try{clearTimeout(_playTimers[i]);}catch(e){}}
+  _playTimers=[];
+}
 // 预录 MP3 语音片段（作为 Web Speech 不可用时的回退音源）
 var txClipPool=[
  'voices/voice1_xiaoxiao.mp3','voices/voice2_yunxi.mp3','voices/voice3_xiaoyou.mp3',
@@ -2402,10 +2410,18 @@ function txHideWave(){
 }
 
 var _stopDlx=false;
+var _stopAudioEls=[];
 function stopAllPlay(){
   _stopDlx=true;
-  try{if(txAudioEl){try{txAudioEl.pause();}catch(e){}txAudioEl=null;}}catch(e){}
+  // 1) 清空所有待执行的兜底/续播定时器，杜绝“停止后又被重新拉起”
+  _clearPlayTimers();
+  // 2) 暂停并置空所有活动 Audio 元素
+  try{if(txAudioEl){try{txAudioEl.pause();txAudioEl.src='';}catch(e){try{txAudioEl.pause();}catch(e2){}}txAudioEl=null;}}catch(e){}
+  try{for(var i=0;i<_stopAudioEls.length;i++){var _el=_stopAudioEls[i];if(_el){try{_el.pause();_el.src='';}catch(e){}}}}catch(e){}
+  _stopAudioEls=[];
+  // 3) 终止所有 Web Speech 合成
   try{if(window.speechSynthesis){window.speechSynthesis.cancel();}}catch(e){}
+  // 4) 隐藏声波浮层，恢复播放状态
   try{txHideWave();}catch(e){}
   try{var st=document.getElementById('recPlayStatus');if(st){st.innerHTML='● 已停止';st.style.background='#fee2e2';st.style.color='#ef4444';}}catch(e){}
   try{toast('⏹ 已停止播放','in');}catch(e){}
@@ -2418,19 +2434,22 @@ function txSpeakFallback(text){
   try{
     var clip=txClipPool[Math.floor(Math.random()*txClipPool.length)];
     var a=new Audio();a.src=clip;a.loop=true;a.volume=0.7;
+    _stopAudioEls.push(a);
     txShowWave((text||'正在试听…').substring(0,30),2600);
     a.play().then(function(){txAudioEl=a;}).catch(function(){
       // 连 MP3 也没有 → 至少给出视觉反馈，提示环境不支持音频
       txShowWave((text||'试听').substring(0,30)+'\n（当前环境无音频输出）',2600);
       toast('当前环境无法播放音频，已展示试听内容','wa');
     });
-    setTimeout(function(){try{if(a&&a.pause)a.pause();}catch(e){}},2600);
+    _trackTimer(setTimeout(function(){try{if(a&&a.pause)a.pause();}catch(e){}},2600));
   }catch(e){txShowWave((text||'试听').substring(0,30),2000);toast('环境不支持音频','er');}
 }
 function txSpeak(text,voiceName,rate,pitch){
   if(!text)return;
+  _stopDlx=false;  // 用户主动试听 → 解除停止标记，允许本次播放
   if(!('speechSynthesis' in window)){txSpeakFallback(text);return;}
   txEnsureVoices(function(){
+    if(_stopDlx){return;}
     window.speechSynthesis.cancel();
     var u=new SpeechSynthesisUtterance(text);
     u.lang='zh-CN';
@@ -2443,11 +2462,11 @@ function txSpeak(text,voiceName,rate,pitch){
     if(pick){u.voice=pick;}
     var started=false;
     u.onstart=function(){started=true;txShowWave(text.substring(0,30),Math.max(2000,text.length*180));};
-    u.onerror=function(e){if(!started){txSpeakFallback(text);}};
+    u.onerror=function(e){if(!started&&!_stopDlx){txSpeakFallback(text);}};
     u.onend=function(){txHideWave();};
     try{window.speechSynthesis.speak(u);}catch(e){txSpeakFallback(text);}
     // 3 秒内没 start 就回退
-    setTimeout(function(){if(!started){try{window.speechSynthesis.cancel();}catch(e){}txSpeakFallback(text);}},3000);
+    _trackTimer(setTimeout(function(){if(!started&&!_stopDlx){try{window.speechSynthesis.cancel();}catch(e){}txSpeakFallback(text);}},3000));
     toast('▶ 正在试听：'+text.substring(0,12)+'…','in');
   });
 }
@@ -2455,9 +2474,11 @@ function txSpeak(text,voiceName,rate,pitch){
 // ===== TTS AUDIO PLAYBACK (真实音频播放) =====
 function txPlayVoice(src){
   try{
-    if(txAudioEl){txAudioEl.pause();txAudioEl=null;}
+    _stopDlx=false;  // 用户主动播放 → 解除停止标记
+    if(txAudioEl){try{txAudioEl.pause();}catch(e){}txAudioEl=null;}
     var a=new Audio();
     a.src=src;
+    _stopAudioEls.push(a);
     txShowWave('播放音频片段',2600);
     a.play().then(function(){txAudioEl=a;toast('▶ 正在播放试听…','in');}).catch(function(e){txHideWave();toast('播放失败，请检查音频文件','er');});
   }catch(e){toast('当前环境不支持音频播放','er');}
@@ -2984,38 +3005,44 @@ function recSegEmotion(txt){
 function recPlayDialog(id){
 var d=_findDialog(id);if(!d)return;
 _stopDlx=false;
+_stopAudioEls=[];
 // ★★★ 第一优先：分角色真人音频序列 dlx_<id>_0..n.mp3（每句不同真人音色）
 // 第0句在此播放一次并作为当前播放元素（避免与序列第0句重叠→第一句扩音/双声），随后序列从第1句继续
 try{
   var a0=new Audio('dlx_'+id+'_0.mp3');
+  _stopAudioEls.push(a0);
   var _dx=false;
-  a0.onerror=function(){ if(!_dx) recPlayDlgWhole(id); };
-  a0.onended=function(){ if(_dx) recPlayDlgSeq(id,1,d); };
-  a0.play().then(function(){ _dx=true; if(txAudioEl){try{txAudioEl.pause();}catch(e){}} txAudioEl=a0; txShowWave('🎧 分角色真人对话播放中 '+d.id,Math.max(4000,d.dur?(parseInt(d.dur)*60*1000):10000));toast('▶ 播放真人对话（分角色音色）：'+d.ind+' · '+d.customer+'来电','in');recMarkPlaying(d.ind+' · '+d.customer); }).catch(function(){ recPlayDlgWhole(id); });
-  setTimeout(function(){ if(!_dx) recPlayDlgWhole(id); },3000);
+  a0.onerror=function(){ if(!_dx&&!_stopDlx) recPlayDlgWhole(id); };
+  a0.onended=function(){ if(_stopDlx){_stopDlx=false;try{txHideWave();}catch(e){}return;} if(_dx) recPlayDlgSeq(id,1,d); };
+  a0.play().then(function(){ if(_stopDlx){try{a0.pause();}catch(e){}return;} _dx=true; if(txAudioEl){try{txAudioEl.pause();}catch(e){}} txAudioEl=a0; txShowWave('🎧 分角色真人对话播放中 '+d.id,Math.max(4000,d.dur?(parseInt(d.dur)*60*1000):10000));toast('▶ 播放真人对话（分角色音色）：'+d.ind+' · '+d.customer+'来电','in');recMarkPlaying(d.ind+' · '+d.customer); }).catch(function(){ if(!_stopDlx) recPlayDlgWhole(id); });
+  _trackTimer(setTimeout(function(){ if(!_dx&&!_stopDlx) recPlayDlgWhole(id); },3000));
   return;
-}catch(e){ recPlayDlgWhole(id); }
+}catch(e){ if(!_stopDlx) recPlayDlgWhole(id); }
 }
 function recPlayDlgWhole(id){
 var d=_findDialog(id);if(!d)return;
+if(_stopDlx){_stopDlx=false;try{txHideWave();}catch(e){}return;}
 // ★★ 第二优先：整段真人录音 dl_DL-<id>.mp3（旧场景完整对话）
 try{
   var ra=new Audio();ra.src='dl_DL-'+id.replace(/^DL-/,'')+'.mp3';
+  _stopAudioEls.push(ra);
   var _rs=false;
   ra.onplay=function(){_rs=true;txShowWave('🎧 真实录音播放中 '+d.id,Math.max(3000,d.dur?(parseInt(d.dur)*60*1000):8000));toast('▶ 播放真实录音：'+d.id+'（真人语音）','in');recMarkPlaying(d.ind+' · '+d.customer);};
-  ra.onerror=function(){if(!_rs)recPlayTTSPath(d);};
+  ra.onerror=function(){if(!_rs&&!_stopDlx)recPlayTTSPath(d);};
   ra.onended=function(){txHideWave();try{var st=document.getElementById('recPlayStatus');if(st){st.innerHTML='● 未播放';st.style.background='#f1f5f9';st.style.color='var(--ts)';}}catch(e){}};
-  ra.play().then(function(){_rs=true;if(txAudioEl){try{txAudioEl.pause();}catch(e){}}txAudioEl=ra;}).catch(function(){recPlayTTSPath(d);});
-  setTimeout(function(){if(!_rs)recPlayTTSPath(d);},3500);
+  ra.play().then(function(){_rs=true;if(txAudioEl){try{txAudioEl.pause();}catch(e){}}txAudioEl=ra;}).catch(function(){if(!_stopDlx)recPlayTTSPath(d);});
+  _trackTimer(setTimeout(function(){if(!_rs&&!_stopDlx)recPlayTTSPath(d);},3500));
   return;
-}catch(e){recPlayTTSPath(d);}
+}catch(e){if(!_stopDlx)recPlayTTSPath(d);}
 }
 function recPlayDlgSeq(id,idx,d){
 if(_stopDlx){_stopDlx=false;try{txHideWave();}catch(e){}return;}
 var a=new Audio('dlx_'+id+'_'+idx+'.mp3');
+_stopAudioEls.push(a);
 a.onerror=function(){txHideWave();};
 a.onended=function(){if(_stopDlx){_stopDlx=false;try{txHideWave();}catch(e){}return;}recPlayDlgSeq(id,idx+1,d);};
 a.play().then(function(){
+  if(_stopDlx){try{a.pause();}catch(e){}return;}
   if(txAudioEl){try{txAudioEl.pause();}catch(e){}}
   txAudioEl=a;
   if(idx===0){txShowWave('🎧 分角色真人对话播放中 '+d.id,Math.max(4000,d.dur?(parseInt(d.dur)*60*1000):10000));toast('▶ 播放真人对话（分角色音色）：'+d.ind+' · '+d.customer+'来电','in');recMarkPlaying(d.ind+' · '+d.customer);}
@@ -3059,6 +3086,7 @@ txEnsureVoices(function(){
     document.getElementById('recPitch').textContent=pitch.toFixed(2)+'x '+(pitch>1.1?'（偏高）':pitch<0.9?'（偏低）':'（正常）');
   }
   function speakNext(){
+    if(_stopDlx){try{panel.parentNode.removeChild(panel);}catch(e){}return;}
     if(idx>=d.dialog.length){
       try{panel.parentNode.removeChild(panel);}catch(e){}
       toast('▶ 对话播放完毕','in');return;
@@ -3093,9 +3121,9 @@ txEnsureVoices(function(){
     if(!pick){var local=vs.filter(function(v){return v.localService&&v.lang&&v.lang.toLowerCase().indexOf('zh')>=0;});pick=local[0]||vs[0];}
     if(pick)u.voice=pick;
     setPanel(seg,emo,u.rate,u.pitch);
-    u.onstart=function(){txShowWave(emo+'：'+txt.substring(0,20),Math.max(1800,txt.length*150));};
-    u.onerror=function(){if(idx<=d.dialog.length)speakNext();};
-    u.onend=speakNext;
+    u.onstart=function(){if(_stopDlx){try{window.speechSynthesis.cancel();}catch(e){}}else{txShowWave(emo+'：'+txt.substring(0,20),Math.max(1800,txt.length*150));}};
+    u.onerror=function(){if(_stopDlx){try{panel.parentNode.removeChild(panel);}catch(e){}}else if(idx<=d.dialog.length)speakNext();};
+    u.onend=function(){if(_stopDlx){try{panel.parentNode.removeChild(panel);}catch(e){}}else speakNext();};
     window.speechSynthesis.speak(u);
   }
   speakNext();
@@ -3480,13 +3508,31 @@ function aiRenderRules(){
 }
 function aiAddRule(){
   var md=document.getElementById('md');
+  // 行业场景下拉：按行业分组，选中后自动带出该场景的触发词与专业应答（体现行业价值）
+  var gs={};AI_SCENES.forEach(function(s){(gs[s.group]=gs[s.group]||[]).push(s);});
+  var order=['水务','热力','燃气','电力','政务','景区','金融','教育','零售','电商','通用'];
+  var keys=Object.keys(gs).sort(function(a,b){var ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+  var opts='<option value="">— 选择行业场景（自动带出话术/应答） —</option>';
+  keys.forEach(function(g){opts+='<optgroup label="'+g+'">';gs[g].forEach(function(s){opts+='<option value="'+s.name+'">'+s.icon+' '+s.name+'</option>';});opts+='</optgroup>';});
   md.innerHTML='<div class="mdh" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><span style="font-weight:600;font-size:15px">新增触发词规则</span><button onclick="closeModal()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--tm)">×</button></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">行业场景 <span style="color:#4a6cf7;font-size:10px">（选择后自动带出该行业话术与专业应答）</span></label><select id="arScene" onchange="aiSceneFill(this.value)" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px">'+opts+'</select></div>'+
   '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">规则名称</label><input id="arName" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如：故障报修"></div>'+
   '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">触发词（多个用 / 分隔）</label><input id="arWords" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如：漏水/爆管/坏了"></div>'+
   '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">动作</label><select id="arAction" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px"><option value="转人工">转人工</option><option value="生成工单">生成工单</option><option value="AI解答">AI解答</option><option value="结束通话">结束通话</option></select></div>'+
-  '<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">转接目标</label><input id="arTarget" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如：维修班组 / 投诉处理组"></div>'+
+  '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">转接目标</label><input id="arTarget" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px" placeholder="如：维修班组 / 投诉处理组"></div>'+
+  '<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--tm);margin-bottom:4px">AI 专业应答（体现客户价值感，可编辑）</label><textarea id="arReply" rows="4" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;line-height:1.7;resize:vertical" placeholder="输入该场景下 AI 的专业、有温度的应答话术…"></textarea></div>'+
   '<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-o" onclick="closeModal()">取消</button><button class="btn btn-p" onclick="aiSaveRule()">保存</button></div>';
   document.getElementById('mo').style.display='flex';
+}
+// 选中行业场景 → 自动带出触发词与专业应答
+function aiSceneFill(sceneName){
+  if(!sceneName){return;}
+  var kb=AI_KB.find(function(k){return k.scene===sceneName;});
+  if(kb){
+    var n=document.getElementById('arName');if(n&&!n.value)n.value=kb.scene.replace(/^[^-]+-/,'');
+    var w=document.getElementById('arWords');if(w&&!w.value)w.value=kb.words.join('/');
+    var r=document.getElementById('arReply');if(r&&!r.value)r.value=kb.reply;
+  }
 }
 function aiSaveRule(){
   var n=document.getElementById('arName').value.trim();
@@ -3494,7 +3540,7 @@ function aiSaveRule(){
   if(!n||!w){toast('名称和触发词必填','er');return;}
   var rules=getAIRules();
   var id=rules.length?Math.max.apply(null,rules.map(function(r){return r.id;}))+1:1;
-  rules.push({id:id,kw:n,words:w.split(/[\/\/\s]+/).filter(Boolean),action:document.getElementById('arAction').value,target:document.getElementById('arTarget').value.trim(),prio:0});
+  rules.push({id:id,kw:n,words:w.split(/[\/\/\s]+/).filter(Boolean),action:document.getElementById('arAction').value,target:document.getElementById('arTarget').value.trim(),prio:0,scene:document.getElementById('arScene')?document.getElementById('arScene').value:'',reply:document.getElementById('arReply')?document.getElementById('arReply').value.trim():''});
   saveAIRules(rules);
   closeModal();
   aiRenderRules();
@@ -3507,6 +3553,15 @@ function aiDelRule(id){
   toast('规则已删除','in');
 }
 // ---- 模拟通话 ----
+// 检测客户情绪，用于让 AI 应答更有人情味（语速/音调/语气随客户状态调整）
+function _aiEmotion(text){
+  if(/(凭什么|太过分|什么态度|给我解决|投诉|气死|不像话|混账|骗子|垃圾|太差劲|废物|曝光|必须|立刻|现在就要|不行我要)/.test(text))return {e:'生气',emoji:'😠',rate:0.92,pitch:1.0,warm:true};
+  if(/(怎么办|赶紧|马上|快点|尽快|漏气|泄漏|危险|故障|坏了|急死|要紧|严重|没办法|救命|很急|着急|马上到|别等了|停水|没电|漏水|跳闸)/.test(text))return {e:'急促',emoji:'😰',rate:1.0,pitch:1.02,warm:true};
+  if(/(太好了|谢谢|谢谢您|太感谢|真不错|方便|帮了我大忙|满意|开心|好嘞|没问题)/.test(text))return {e:'乐观',emoji:'😄',rate:1.04,pitch:1.06,warm:true};
+  if(/(怎么|是不是|凭什么|怎么会|为什么|不对|不合理|多了|异常|怀疑|真的假的)/.test(text))return {e:'质疑',emoji:'🤔',rate:0.98,pitch:1.0,warm:true};
+  if(/(帮帮我|麻烦您|求求|拜托|帮忙|请教|麻烦一下)/.test(text))return {e:'恳求',emoji:'🥺',rate:0.94,pitch:0.98,warm:true};
+  return {e:'平静',emoji:'😐',rate:1.0,pitch:1.0,warm:false};
+}
 function aiSimCall(){
   var inp=document.getElementById('aiInput');
   var text=inp?inp.value.trim():'';
@@ -3514,19 +3569,24 @@ function aiSimCall(){
   var box=document.getElementById('aiChatBox');
   var hit=matchAIKeyword(text);
   var kb=matchAIKB(text);
+  var emo=_aiEmotion(text);
   var t=new Date();
   var time=(t.getMonth()+1)+'/'+t.getDate()+' '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');
-  // AI 应答
+  // AI 应答：命中知识库用专业话术；否则按情绪给有温度的话术，杜绝“冰冷机器人”腔
   var aiReply='';
-  if(kb){ aiReply=kb.reply; }
-  else if(!hit){ aiReply='您好，请问有什么可以帮您？'; }
-  else if(hit.action==='AI解答'){ aiReply='好的，这个问题我可以为您解答，请稍等～'; }
-  else if(hit.action==='转人工'){ aiReply='好的，我马上为您转接人工坐席，请稍候。'; }
-  else if(hit.action==='生成工单'){ aiReply='收到，我这就为您登记并安排处理，请保持电话畅通。'; }
-  else { aiReply='好的，感谢您的来电，再见！'; }
-  box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#64748b">📞 客户['+time+']：</span><b>'+text+'</b></div>';
-  var _kbTxt=kb?kb.reply.replace(/'/g,"\\'"):'';box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#2563eb">🤖 AI：</span>'+aiReply+(kb?'<span style="margin-left:8px"><button class="btn btn-sm btn-o" onclick="txSpeak(\''+_kbTxt+'\',\'女\',0.98,1.05)">🔊 试听知识库应答</button></span>':(hit&&hit.action==='转人工'?'<span style="margin-left:8px"><button class="btn btn-sm btn-o" onclick="txPlayVoice(\'transfer.mp3\')">🔊 试听真人语音</button></span>':''))+'</div>';
-  try{var vf='';if(kb){txSpeak(kb.reply,'女',0.98,1.05);}else if(!hit||hit.action==='AI解答'){txPlayVoice(vf+'answer.mp3');}else if(hit.action==='转人工'){txPlayVoice(vf+'transfer.mp3');}else if(hit.action==='生成工单'){txPlayVoice(vf+'repair.mp3');}else{txPlayVoice(vf+'end.mp3');}}catch(e){}
+  var voiceName='女',rate=0.98,pitch=1.05;  // 默认温暖女声、稍慢、柔和
+  if(kb){ aiReply=kb.reply; voiceName='女'; rate=0.96; pitch=1.04; }
+  else if(!hit){
+    if(emo.warm){ aiReply='您好，我听到了，您别着急，我这就帮您想办法，您具体遇到了什么问题，我为您详细看看好吗？'; voiceName='女'; rate=0.96; pitch=1.04; }
+    else { aiReply='您好，很高兴为您服务，请问有什么可以帮您？'; voiceName='女'; rate=0.98; pitch=1.05; }
+  }
+  else if(hit.action==='AI解答'){ aiReply='好的，这个问题我为您详细解答，请稍等片刻～'; voiceName='女'; rate=0.97; pitch=1.05; }
+  else if(hit.action==='转人工'){ aiReply='非常理解您的心情，我马上为您转接专业人工坐席，请稍候，不要挂机哦～'; voiceName='女'; rate=0.96; pitch=1.04; }
+  else if(hit.action==='生成工单'){ aiReply='收到，我这就为您登记并安排专人处理，请保持电话畅通，我们会尽快给您回电～'; voiceName='女'; rate=0.96; pitch=1.04; }
+  else { aiReply='好的，感谢您的来电，再见，祝您生活愉快！'; voiceName='女'; rate=0.97; pitch=1.04; }
+  box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#64748b">📞 客户['+time+']：</span><b>'+text+'</b><span class="bdge" style="margin-left:6px;background:#f1f5f9;color:#475569">'+emo.emoji+' '+emo.e+'</span></div>';
+  var _kbTxt=kb?kb.reply.replace(/'/g,"\\'"):'';box.innerHTML+='<div style="margin-bottom:6px"><span style="color:#2563eb">🤖 AI：</span>'+aiReply+(kb?'<span style="margin-left:8px"><button class="btn btn-sm btn-o" onclick="txSpeak(\''+_kbTxt+'\',\'女\',0.96,1.04)">🔊 试听知识库应答</button></span>':(hit&&hit.action==='转人工'?'<span style="margin-left:8px"><button class="btn btn-sm btn-o" onclick="txPlayVoice(\'transfer.mp3\')">🔊 试听真人语音</button></span>':''))+'</div>';
+  try{var vf='';if(kb){txSpeak(kb.reply,voiceName,rate,pitch);}else if(!hit||hit.action==='AI解答'){txSpeak(aiReply,voiceName,rate,pitch);}else if(hit.action==='转人工'){txPlayVoice(vf+'transfer.mp3');}else if(hit.action==='生成工单'){txPlayVoice(vf+'repair.mp3');}else{txPlayVoice(vf+'end.mp3');}}catch(e){}
   // 记录
   var rec={time:time,text:text,result:hit?'转人工':'AI应答',kw:hit?hit.kw:'',target:hit?hit.target:'',status:'待处理',ticket:null,scene:document.getElementById('aiInput').placeholder||''};
   var calls=getAICalls();
